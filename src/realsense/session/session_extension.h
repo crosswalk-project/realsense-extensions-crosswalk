@@ -5,7 +5,7 @@
 #ifndef SRC_SESSION_SESSION_EXTENSION_H_
 #define SRC_SESSION_SESSION_EXTENSION_H_
 
-#include "common/extension.h"
+#include "realsense/common/extension.h"
 
 class SessionExtension : public common::Extension {
  public:

@@ -5,8 +5,8 @@
 #ifndef SRC_SESSION_SESSION_INSTANCE_H_
 #define SRC_SESSION_SESSION_INSTANCE_H_
 
-#include "src/common/extension.h"
-#include "src/common/picojson.h"
+#include "realsense/common/extension.h"
+#include "realsense/common/picojson.h"
 
 class SessionInstance : public common::Instance {
  public:

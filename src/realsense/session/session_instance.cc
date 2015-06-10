@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "session/session_instance.h"
+#include "realsense/session/session_instance.h"
 
 #include <string>
 #include <sstream>

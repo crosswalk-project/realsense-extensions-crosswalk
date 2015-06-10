@@ -20,11 +20,11 @@
 
 #include <string>
 
-#include "common/XW_Extension.h"
-#include "common/XW_Extension_EntryPoints.h"
-#include "common/XW_Extension_Permissions.h"
-#include "common/XW_Extension_Runtime.h"
-#include "common/XW_Extension_SyncMessage.h"
+#include "realsense/common/XW_Extension.h"
+#include "realsense/common/XW_Extension_EntryPoints.h"
+#include "realsense/common/XW_Extension_Permissions.h"
+#include "realsense/common/XW_Extension_Runtime.h"
+#include "realsense/common/XW_Extension_SyncMessage.h"
 
 namespace common {
 

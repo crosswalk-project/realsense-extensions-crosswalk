@@ -10,6 +10,9 @@
       'includes': [
         'xwalk_js2c.gypi',
       ],
+      'include_dirs': [
+        '../..',
+      ],
       'sources': [
         'extension.cc',
         'extension.h',

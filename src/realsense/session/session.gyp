@@ -11,9 +11,11 @@
         '../common/xwalk_js2c.gypi',
       ],
       'include_dirs': [
+        '../..',
         '<!(echo %RSSDK_DIR%\include)',
       ],
       'dependencies': [
+        '../../base/base.gyp:base',
         '../common/xw_extension.gyp:xw_extension',
       ],
       'msvs_settings': {
@@ -33,9 +35,6 @@
               'AdditionalDependencies': [
                 'libpxc_d.lib'
               ],
-              'IgnoreDefaultLibraryNames': [
-                'libcmtd.lib'
-              ],
             },
           },
         },
@@ -44,9 +43,6 @@
             'VCLinkerTool': {
               'AdditionalDependencies': [
                 'libpxc.lib'
-              ],
-              'IgnoreDefaultLibraryNames': [
-                'libcmt.lib'
               ],
             },
           },

@@ -5,10 +5,10 @@
 {
   'targets': [
     {
-      'target_name': 'all',
+      'target_name': 'realsense',
       'type': 'none',
       'dependencies': [
-        'src/session/session.gyp:*',
+        'session/session.gyp:*',
       ]
     },
   ],
