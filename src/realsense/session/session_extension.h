@@ -2,19 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_SESSION_SESSION_EXTENSION_H_
-#define SRC_SESSION_SESSION_EXTENSION_H_
+#ifndef SRC_REALSENSE_SESSION_SESSION_EXTENSION_H_
+#define SRC_REALSENSE_SESSION_SESSION_EXTENSION_H_
 
 #include "realsense/common/extension.h"
 
-class SessionExtension : public common::Extension {
+namespace realsense {
+namespace session {
+
+class SessionExtension : public realsense::common::Extension {
  public:
   SessionExtension();
   virtual ~SessionExtension();
 
  private:
-  // common::Extension implementation.
-  virtual common::Instance* CreateInstance();
+  // realsense::common::Extension implementation.
+  virtual realsense::common::Instance* CreateInstance();
 };
 
-#endif  // SRC_SESSION_SESSION_EXTENSION_H_
+}  // namespace session
+}  // namespace realsense
+
+#endif  // SRC_REALSENSE_SESSION_SESSION_EXTENSION_H_
