@@ -10,7 +10,7 @@
 
 namespace {
 
-common::Extension* g_extension = NULL;
+realsense::common::Extension* g_extension = NULL;
 XW_Extension g_xw_extension = 0;
 
 const XW_CoreInterface* g_core = NULL;
@@ -85,7 +85,7 @@ int32_t XW_Initialize(XW_Extension extension, XW_GetInterface get_interface) {
     return XW_ERROR;
   }
 
-  using common::Extension;
+  using realsense::common::Extension;
   g_core->RegisterShutdownCallback(g_xw_extension, Extension::OnShutdown);
   g_core->RegisterInstanceCallbacks(
       g_xw_extension, Extension::OnInstanceCreated,
@@ -95,6 +95,7 @@ int32_t XW_Initialize(XW_Extension extension, XW_GetInterface get_interface) {
   return XW_OK;
 }
 
+namespace realsense {
 namespace common {
 
 Extension::Extension() {}
@@ -210,3 +211,4 @@ void Instance::SendSyncReply(const char* reply) {
 }
 
 }  // namespace common
+}  // namespace realsense

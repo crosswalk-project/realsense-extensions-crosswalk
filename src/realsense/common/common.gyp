@@ -5,15 +5,27 @@
 {
   'targets': [
     {
-      'target_name': 'xw_extension',
+      'target_name': 'common',
       'type': 'static_library',
       'includes': [
         'xwalk_js2c.gypi',
+        'xwalk_idlgen.gypi',
       ],
+      'variables': {
+        'jsapi_component': 'common',
+      },
       'include_dirs': [
         '../..',
       ],
       'sources': [
+        'binding_object.h',
+        'binding_object_store.cc',
+        'binding_object_store.h',
+        'common.idl',
+        'common_api.js',
+        'common_promise_api.js',
+        'event_target.cc',
+        'event_target.h',
         'extension.cc',
         'extension.h',
         'picojson.h',
@@ -23,6 +35,8 @@
         'XW_Extension_Permissions.h',
         'XW_Extension_Runtime.h',
         'XW_Extension_SyncMessage.h',
+        'xwalk_extension_function_handler.cc',
+        'xwalk_extension_function_handler.h',
       ],
     }
   ]
