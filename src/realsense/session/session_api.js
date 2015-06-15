@@ -2,16 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-(function() {
-  function Session() {
-    this.getVersion = function() {
-      var msg = {};
-      msg.cmd = 'getVersion';
-      var serialized = JSON.stringify(msg);
-      var response = extension.internal.sendSyncMessage(serialized);
-      return JSON.parse(response);
-    };
-  }
+var Session = function(object_id) {
+  common.BindingObject.call(this, common.getUniqueId());
+  common.EventTarget.call(this);
 
-  exports = new Session();
-})();
+  if (object_id == undefined)
+    internal.postMessage('sessionConstructor', [this._id]);
+
+  this._addMethodWithPromise('getVersion', Promise);
+};
+
+Session.prototype = new common.EventTargetPrototype();
+Session.prototype.constructor = Session;
+
+exports = Session;

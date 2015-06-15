@@ -9,6 +9,7 @@
       'type': 'loadable_module',
       'includes': [
         '../common/xwalk_js2c.gypi',
+        '../common/xwalk_idlgen.gypi',
       ],
       'include_dirs': [
         '../..',
@@ -16,8 +17,11 @@
       ],
       'dependencies': [
         '../../base/base.gyp:base',
-        '../common/xw_extension.gyp:xw_extension',
+        '../common/common.gyp:common',
       ],
+      'variables': {
+        'jsapi_component': 'session',
+      },
       'msvs_settings': {
         'VCLinkerTool': {
           'AdditionalDependencies': [
@@ -49,11 +53,14 @@
         }
       },
       'sources': [
+        'session.idl',
         'session_api.js',
         'session_extension.cc',
         'session_extension.h',
         'session_instance.cc',
         'session_instance.h',
+        'session_object.cc',
+        'session_object.h'
       ],
     },
   ],

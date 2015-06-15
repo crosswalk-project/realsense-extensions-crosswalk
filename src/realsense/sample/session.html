@@ -7,7 +7,7 @@
   </body>
   <script>
     var versionElement = document.getElementById('version'); 
-    var v = realsense.session.getVersion();
-    versionElement.innerHTML = 'RealSense Version Major: ' + v.major + ' Minor: ' + v.minor;
+    var session = new realsense.session();
+    session.getVersion().then(function(v) {versionElement.innerHTML = 'RealSense Version Major: ' + v.major + ' Minor: ' + v.minor;});
   </script>
 </html>
