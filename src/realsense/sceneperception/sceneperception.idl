@@ -1,0 +1,63 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+namespace sceneperception {  
+  dictionary CheckingEvent {
+    double quality;
+  };
+  
+  enum Accuracy {
+    high,
+    med,
+    low,
+    failed
+  };
+  
+  dictionary TrackingEvent {
+    double[] cameraPose;
+    Accuracy accuracy;
+  };
+  
+  dictionary BlockMesh {
+    DOMString meshId;
+    double vertexStartIndex;
+    double numVertices;
+    double faceStartIndex;
+    double numFaces;
+  };
+
+  dictionary MeshingEvent {
+    BlockMesh[] blockMeshes;
+    double numberOfVertices;
+    double[] vertices;
+    double[] colors;
+    double numberOfFaces;
+    double[] faces;
+  };
+  
+  dictionary ErrorEvent {
+    DOMString status;
+  };
+  
+  callback Promise = void (DOMString error);
+
+  interface Events {
+    static void onerror();
+    static void onchecking();
+    static void ontracking();
+    static void onmeshing();
+  };
+
+  interface Functions {
+    static void start(Promise promise);
+    static void stop(Promise promise);
+    static void reset(Promise promise);
+    static void enableTracking(Promise promise);
+    static void disableTracking(Promise promise);
+    static void enableMeshing(Promise promise);
+    static void disableMeshing(Promise promise);
+
+    [nodoc] static ScenePerception scenePerceptionConstructor(DOMString objectId);
+  };
+};
