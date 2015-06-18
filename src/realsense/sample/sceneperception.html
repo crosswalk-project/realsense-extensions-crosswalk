@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>ScenePerception Test</title>
+  </head>
+  <body>
+    <p id='quality'>Quality: </p>
+  <p id='accuracy'>Accuracy: </p>
+  <div style='margin-bottom:23px;'>
+    <button id='start'>Start</button>
+    <button id='stop'>Stop</button>
+    <button id='reset'>Reset</button>
+    <button id='enableTracking'>Enable Tracking</button>
+    <button id='disableTracking'>Disable Tracking</button>
+    <button id='enableMeshing'>Enable Meshing</button>
+    <button id='disableMeshing'>Disable Meshing</button>
+  </div>
+  <div id='canvas'>
+  </div>
+  </body>
+  <script src='libs/three.js'></script>
+  <script src='libs/TrackballControls.js'></script>
+  <script src="libs/stats.min.js"></script>
+  <script src="sceneperception.js"></script>
+  <script type="text/javascript">
+    window.onload = main();
+  </script>
+</html>
