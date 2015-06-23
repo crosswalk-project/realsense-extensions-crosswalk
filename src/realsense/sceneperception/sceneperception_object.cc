@@ -117,7 +117,7 @@ void ScenePerceptionObject::StopSceneManagerThread() {
 
 void ScenePerceptionObject::OnStopSceneManagerThread() {
   if (scenemanager_thread_.IsRunning()) {
-    scenemanager_thread_.Start();
+    scenemanager_thread_.Stop();
   }
 }
 
