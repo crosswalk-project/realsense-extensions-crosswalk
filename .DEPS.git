@@ -13,3 +13,11 @@ deps = {
   'realsense-extensions-crosswalk/src/tools/gyp':
         Var('git_url') + '/external/gyp.git@2889664b9fa88cce175c5c7cdf207d28420a7412',
 }
+
+hooks = [
+  {
+    "name": "gyp_realsense",
+    "pattern": ".",
+    "action": ["python", "src/gyp_realsense"],
+  }
+]
