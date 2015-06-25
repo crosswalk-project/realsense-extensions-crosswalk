@@ -43,7 +43,8 @@ cscope.*
 Session.vim
 tags
 Thumbs.db
-testing/gmock
-testing/gtest
-third_party/icu
-tools/gyp
+/testing/gmock
+/testing/gtest
+/third_party/icu
+/tools/gyp
+/out*
