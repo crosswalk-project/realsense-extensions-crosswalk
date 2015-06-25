@@ -39,6 +39,8 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
       scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
   void OnDisableMeshing(
       scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+  void OnGetSample(
+      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
 
   // Run on scenemanager_thread_
   void OnCreateAndStartPipeline(
@@ -53,6 +55,8 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
       scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
   void OnEnableReconstruction(
       bool enable,
+      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+  void OnCopySample(
       scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
   void OnMeshingResult();
   void ReleaseResources();
@@ -73,6 +77,7 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
   };
   State state_;
 
+  bool on_sample_;
   bool on_checking_;
   bool on_tracking_;
   bool on_meshing_;
@@ -97,6 +102,9 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
 
   PXCBlockMeshingData* block_meshing_data_;
   PXCScenePerception::MeshingUpdateInfo  meshing_update_info_;
+
+  PXCImage* latest_color_image_;
+  PXCImage* latest_depth_image_;
 };
 
 }  // namespace sceneperception

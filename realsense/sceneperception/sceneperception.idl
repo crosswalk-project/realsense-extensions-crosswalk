@@ -13,6 +13,17 @@ namespace sceneperception {
     low,
     failed
   };
+
+  dictionary Image {
+    long width;
+    long height;
+    long[] data;
+  };
+
+  dictionary Sample {
+    Image color;
+    Image depth;
+  };
   
   dictionary TrackingEvent {
     double[] cameraPose;
@@ -41,9 +52,11 @@ namespace sceneperception {
   };
   
   callback Promise = void (DOMString error);
+  callback SamplePromise = void (Sample sample, DOMString error);
 
   interface Events {
     static void onerror();
+    static void onsample();
     static void onchecking();
     static void ontracking();
     static void onmeshing();
@@ -57,6 +70,7 @@ namespace sceneperception {
     static void disableTracking(Promise promise);
     static void enableMeshing(Promise promise);
     static void disableMeshing(Promise promise);
+    static void getSample(SamplePromise promise);
 
     [nodoc] static ScenePerception scenePerceptionConstructor(DOMString objectId);
   };
