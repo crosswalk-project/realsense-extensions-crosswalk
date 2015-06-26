@@ -16,8 +16,10 @@ var ScenePerception = function(object_id) {
   this._addMethodWithPromise('disableTracking', Promise);
   this._addMethodWithPromise('enableMeshing', Promise);
   this._addMethodWithPromise('disableMeshing', Promise);
+  this._addMethodWithPromise('getSample', Promise);
 
   this._addEvent('error');
+  this._addEvent('sample');
   this._addEvent('checking');
   this._addEvent('tracking');
   this._addEvent('meshing');

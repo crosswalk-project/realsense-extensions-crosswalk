@@ -34,6 +34,7 @@ const int kMaxNumberOfVertices = 7864320;
 
 ScenePerceptionObject::ScenePerceptionObject() :
     state_(IDLE),
+    on_sample_(false),
     on_checking_(false),
     on_tracking_(false),
     on_meshing_(false),
@@ -81,6 +82,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("disableMeshing",
                     base::Bind(&ScenePerceptionObject::OnDisableMeshing,
                                base::Unretained(this)));
+  handler_.Register("getSample",
+                    base::Bind(&ScenePerceptionObject::OnGetSample,
+                               base::Unretained(this)));
 }
 
 ScenePerceptionObject::~ScenePerceptionObject() {
@@ -91,6 +95,14 @@ ScenePerceptionObject::~ScenePerceptionObject() {
 
 void ScenePerceptionObject::ReleaseResources() {
   DCHECK_EQ(scenemanager_thread_.message_loop(), base::MessageLoop::current());
+  if (latest_color_image_) {
+    latest_color_image_->Release();
+    latest_color_image_ = NULL;
+  }
+  if (latest_depth_image_) {
+    latest_depth_image_->Release();
+    latest_depth_image_ = NULL;
+  }
   if (block_meshing_data_) {
     block_meshing_data_->Release();
     block_meshing_data_ = NULL;
@@ -128,6 +140,8 @@ void ScenePerceptionObject::StartEvent(const std::string& type) {
     on_tracking_ = true;
   } else if (type == std::string("meshing")) {
     on_meshing_ = true;
+  } else if (type == std::string("sample")) {
+    on_sample_ = true;
   }
 }
 
@@ -138,6 +152,8 @@ void ScenePerceptionObject::StopEvent(const std::string& type) {
     on_tracking_ = false;
   } else if (type == std::string("meshing")) {
     on_meshing_ = false;
+  } else if (type == std::string("sample")) {
+    on_sample_ = false;
   }
 }
 
@@ -243,6 +259,16 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
     return;
   }
 
+  PXCImage::ImageInfo image_info;
+  memset(&image_info, 0, sizeof(image_info));
+  image_info.width = kCaptureWidth;
+  image_info.height = kCaptureHeight;
+  image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
+  latest_color_image_ = session_->CreateImage(&image_info);
+
+  image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
+  latest_depth_image_ = session_->CreateImage(&image_info);
+
   state_ = CHECKING;
 
   scenemanager_thread_.message_loop()->PostTask(
@@ -298,7 +324,12 @@ void ScenePerceptionObject::OnRunPipeline() {
       return;
     }
 
-    // TODO(ningxin): add onSample event
+    if (on_sample_) {
+      latest_color_image_->CopyImage(sample->color);
+      latest_depth_image_->CopyImage(sample->depth);
+
+      DispatchEvent("sample");
+    }
   }
 
   if (state_ == CHECKING) {
@@ -613,6 +644,78 @@ void ScenePerceptionObject::OnMeshingResult() {
 
   last_meshing_time_ = base::TimeTicks::Now();
   doing_meshing_updating_ = false;
+}
+
+void ScenePerceptionObject::OnGetSample(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!scenemanager_thread_.IsRunning()) {
+    Sample sample;
+    GetSample::Results::Create(
+        sample, std::string("pipeline is not started"));
+    return;
+  }
+
+  scenemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::OnCopySample,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+}
+
+void ScenePerceptionObject::OnCopySample(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(scenemanager_thread_.message_loop(), base::MessageLoop::current());
+
+  Sample sample;
+
+  PXCImage* color = latest_color_image_;
+  PXCImage* depth = latest_depth_image_;
+
+  if (color && depth) {
+    PXCImage::ImageInfo color_info = color->QueryInfo();
+    sample.color.width = color_info.width;
+    sample.color.height = color_info.height;
+    PXCImage::ImageData color_data;
+    pxcStatus status = color->AcquireAccess(
+        PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_RGB32, &color_data);
+    if (status >= PXC_STATUS_NO_ERROR) {
+      for (int y = 0; y < color_info.height; ++y) {
+        for (int x = 0; x < color_info.width; ++x) {
+          uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
+          int i = (x + color_info.width * y) * 4;
+          sample.color.data.push_back(rgb32[i + 2]);
+          sample.color.data.push_back(rgb32[i + 1]);
+          sample.color.data.push_back(rgb32[i]);
+          sample.color.data.push_back(rgb32[i + 3]);
+        }
+      }
+      color->ReleaseAccess(&color_data);
+    }
+
+    PXCImage::ImageInfo depth_info = depth->QueryInfo();
+    sample.depth.width = depth_info.width;
+    sample.depth.height = depth_info.height;
+    PXCImage::ImageData depth_data;
+    status = depth->AcquireAccess(
+        PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_DEPTH, &depth_data);
+    if (status >= PXC_STATUS_NO_ERROR) {
+      for (int y = 0; y < depth_info.height; ++y) {
+        for (int x = 0; x < depth_info.width; ++x) {
+          uint16_t* depth16 =
+              reinterpret_cast<uint16_t*>(
+                  depth_data.planes[0] + depth_data.pitches[0] * y);
+          sample.depth.data.push_back(depth16[x]);
+        }
+      }
+      depth->ReleaseAccess(&depth_data);
+    }
+
+    info->PostResult(GetSample::Results::Create(sample, std::string()));
+  } else {
+    info->PostResult(
+        GetSample::Results::Create(sample, std::string("no sample")));
+    return;
+  }
 }
 
 }  // namespace sceneperception

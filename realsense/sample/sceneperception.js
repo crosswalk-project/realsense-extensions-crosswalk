@@ -16,10 +16,82 @@ var totalGeom;
 var scene, renderer, stats, controls, camera;
 var z_axis, y_axis, x_axis;
 
+var color_canvas = document.getElementById('color');
+var color_context = color_canvas.getContext('2d');
+var color_image_data = color_context.createImageData(320, 240);
+
+var depth_canvas = document.getElementById('depth');
+var depth_context = depth_canvas.getContext('2d');
+var depth_image_data = depth_context.createImageData(320, 240);
+var rgb_buffer = new Uint8ClampedArray(320 * 240 * 4);
+
 var sp;
+
+function ConvertDepthToRGBUsingHistogram(
+    depthImage, nearColor, farColor, rgbImage) {
+  var imageSize = 320 * 240;
+  for(var l = 0; l < imageSize; ++l) {
+    rgbImage[l * 4] = 0;
+    rgbImage[l * 4 + 1] = 0;
+    rgbImage[l * 4 + 2] = 0;
+    rgbImage[l * 4 + 3] = 255;
+  }
+  // Produce a cumulative histogram of depth values
+  var histogram = new Int32Array(256 * 256);
+  var imageSize = 320 * 240;
+  for (var i = 0; i < imageSize; ++i) {
+    if (depthImage[i]) {
+      ++histogram[depthImage[i]];
+    }
+  }
+  for (var j = 1; j < 256 * 256; ++j) {
+    histogram[j] += histogram[j - 1];
+  }
+
+  // Remap the cumulative histogram to the range 0..256
+  for (var k = 1; k < 256 * 256; k++) {
+    histogram[k] = (histogram[k] << 8) / histogram[256 * 256 - 1];
+  }
+
+  // Produce RGB image by using the histogram to interpolate between two colors
+  for (var l = 0; l < imageSize; ++l) {
+    if (depthImage[l]) { // For valid depth values (depth > 0)
+      // Use the histogram entry (in the range of 0..256) to interpolate between nearColor and
+      // farColor
+      var t = histogram[depthImage[l]];
+      rgbImage[l * 4] = ((256 - t) * nearColor[0] + t * farColor[0]) >> 8;
+      rgbImage[l * 4 + 1] = ((256 - t) * nearColor[1] + t * farColor[1]) >> 8;
+      rgbImage[l * 4 + 2] = ((256 - t) * nearColor[2] + t * farColor[2]) >> 8;
+      rgbImage[l * 4 + 3] = 255;
+    }
+  }
+}
 
 function main() {
   sp = new realsense.ScenePerception();
+
+  var sample_fps = new Stats();
+  sample_fps.domElement.style.position = 'absolute';
+  sample_fps.domElement.style.top = '0px';
+  sample_fps.domElement.style.right = '0px';
+  document.getElementById('color_container').appendChild(sample_fps.domElement);
+
+  var getting_sample = false;
+  sp.onsample = function(e) {
+    if (getting_sample)
+      return;
+    getting_sample = true;
+    sp.getSample().then(function(sample) {
+      color_image_data.data.set(sample.color.data);
+      color_context.putImageData(color_image_data, 0, 0);
+      ConvertDepthToRGBUsingHistogram(
+          sample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data);
+      depth_context.putImageData(depth_image_data, 0, 0);
+      sample_fps.update();
+      getting_sample = false;
+    });
+  };
+
   sp.onchecking = function(e) {
     var quality = e.data.quality;
     qualityElement.innerHTML = 'Quality: ' + quality.toFixed(2);
@@ -38,6 +110,7 @@ function main() {
   var meshesCreated = false;
 
   startButton.onclick = function(e) {
+    getting_sample = false;
     sp.start().then(function(e) {console.log(e);});
   };
 
