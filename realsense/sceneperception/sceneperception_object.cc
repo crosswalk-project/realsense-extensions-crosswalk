@@ -160,9 +160,9 @@ void ScenePerceptionObject::StopEvent(const std::string& type) {
 void ScenePerceptionObject::OnStart(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (scenemanager_thread_.IsRunning()) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("scenemanager thread is running");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("scenemanager thread is running")));
     return;  // Wrong state.
   }
   scenemanager_thread_.Start();
@@ -180,8 +180,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
 
   if (state_ != IDLE) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("state is not IDLE");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("state is not IDLE")));
     StopSceneManagerThread();
     return;
   }
@@ -189,8 +190,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   session_ = PXCSession::CreateInstance();
   if (!session_) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("failed to create session");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("failed to create session")));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -202,8 +204,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   scene_manager_ = session_->CreateSenseManager();
   if (!scene_manager_) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("failed to create scene manager");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("failed to create sense manager")));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -219,8 +222,10 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   pxcStatus status = scene_manager_->EnableScenePerception();
   if (status < PXC_STATUS_NO_ERROR) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("failed to create scene perception module");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(),
+            std::string("failed to enable scene perception module")));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -229,8 +234,10 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   sceneperception_ = scene_manager_->QueryScenePerception();
   if (sceneperception_ == NULL) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("failed to create scene perception");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(),
+            std::string("failed to create scene perception")));
     ReleaseResources();
     StopSceneManagerThread();
   }
@@ -252,8 +259,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   status = scene_manager_->Init();
   if (status < PXC_STATUS_NO_ERROR) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("failed to init pipeline");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("failed to init pipeline")));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -276,9 +284,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
       base::Bind(&ScenePerceptionObject::OnRunPipeline,
                  base::Unretained(this)));
 
-  scoped_ptr<base::ListValue> error(new base::ListValue());
-  error->AppendString("noerror");
-  info->PostResult(error.Pass());
+  info->PostResult(
+        Start::Results::Create(
+            std::string("success"), std::string()));
 }
 
 void ScenePerceptionObject::OnRunPipeline() {
@@ -408,9 +416,9 @@ void ScenePerceptionObject::OnRunPipeline() {
 void ScenePerceptionObject::OnStop(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!scenemanager_thread_.IsRunning()) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("scenemanager thread is not running");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Stop::Results::Create(
+            std::string(), std::string("scenemanager thread is not running")));
     return;  // Wrong state.
   }
   scenemanager_thread_.message_loop()->PostTask(
@@ -427,16 +435,17 @@ void ScenePerceptionObject::OnStopAndDestroyPipeline(
 
   if (state_ == IDLE) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("state is IDLE");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Stop::Results::Create(
+            std::string(), std::string("state is IDLE")));
     return;
   }
   state_ = IDLE;
   ReleaseResources();
   if (info.get()) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("noerror");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Stop::Results::Create(
+            std::string("success"), std::string()));
   }
 }
 
@@ -454,9 +463,9 @@ void ScenePerceptionObject::OnResetScenePerception(
   DCHECK_EQ(scenemanager_thread_.message_loop(), base::MessageLoop::current());
 
   if (state_ == IDLE) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    error->AppendString("state is IDLE");
-    info->PostResult(error.Pass());
+    info->PostResult(
+        Reset::Results::Create(
+            std::string(), std::string("state is IDLE")));
     return;
   }
   sceneperception_->SetMeshingThresholds(0.0f, 0.0f);
@@ -470,25 +479,25 @@ void ScenePerceptionObject::OnPauseScenePerception(
 
   if (!pause) {
     if (state_ != CHECKING) {
-      scoped_ptr<base::ListValue> error(new base::ListValue());
-      error->AppendString("state is not CHECKING");
-      info->PostResult(error.Pass());
+      info->PostResult(
+          EnableTracking::Results::Create(
+              std::string(), std::string("state is not CHECKING")));
       return;
     }
     state_ = TRACKING;
   } else {
     if (state_ != TRACKING) {
-      scoped_ptr<base::ListValue> error(new base::ListValue());
-      error->AppendString("state is not TRACKING");
-      info->PostResult(error.Pass());
+      info->PostResult(
+          DisableTracking::Results::Create(
+              std::string(), std::string("state is not TRACKING")));
       return;
     }
     state_ = CHECKING;
   }
   scene_manager_->PauseScenePerception(pause);
-  scoped_ptr<base::ListValue> error(new base::ListValue());
-  error->AppendString("noerror");
-  info->PostResult(error.Pass());
+  info->PostResult(
+      EnableTracking::Results::Create(
+          std::string("success"), std::string()));
 }
 
 void ScenePerceptionObject::OnEnableTracking(
@@ -517,16 +526,16 @@ void ScenePerceptionObject::OnEnableReconstruction(
 
   if (enable) {
     if (state_ != TRACKING) {
-      scoped_ptr<base::ListValue> error(new base::ListValue());
-      error->AppendString("state is not TRACKING");
-      info->PostResult(error.Pass());
+      info->PostResult(
+          EnableMeshing::Results::Create(
+              std::string(), std::string("state is not TRACKING")));
       return;
     }
 
     if (meshing_thread_.IsRunning()) {
-      scoped_ptr<base::ListValue> error(new base::ListValue());
-      error->AppendString("meshing thread is running");
-      info->PostResult(error.Pass());
+      info->PostResult(
+          EnableMeshing::Results::Create(
+              std::string(), std::string("meshing thread is running")));
       return;  // Wrong state.
     }
     meshing_thread_.Start();
@@ -534,9 +543,9 @@ void ScenePerceptionObject::OnEnableReconstruction(
     state_ = MESHING;
   } else {
     if (state_ != MESHING) {
-      scoped_ptr<base::ListValue> error(new base::ListValue());
-      error->AppendString("state is not MESHING");
-      info->PostResult(error.Pass());
+      info->PostResult(
+          DisableMeshing::Results::Create(
+              std::string(), std::string("state is not MESHING")));
       return;
     }
     if (!meshing_thread_.IsRunning()) {
@@ -547,9 +556,9 @@ void ScenePerceptionObject::OnEnableReconstruction(
     state_ = TRACKING;
   }
   sceneperception_->EnableSceneReconstruction(enable);
-  scoped_ptr<base::ListValue> error(new base::ListValue());
-  error->AppendString("noerror");
-  info->PostResult(error.Pass());
+  info->PostResult(
+      EnableMeshing::Results::Create(
+          std::string("success"), std::string()));
 }
 
 void ScenePerceptionObject::OnEnableMeshing(

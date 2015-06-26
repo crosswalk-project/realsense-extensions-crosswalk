@@ -30,7 +30,7 @@ var sp;
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
   var imageSize = 320 * 240;
-  for(var l = 0; l < imageSize; ++l) {
+  for (var l = 0; l < imageSize; ++l) {
     rgbImage[l * 4] = 0;
     rgbImage[l * 4 + 1] = 0;
     rgbImage[l * 4 + 2] = 0;
@@ -89,7 +89,7 @@ function main() {
       depth_context.putImageData(depth_image_data, 0, 0);
       sample_fps.update();
       getting_sample = false;
-    });
+    }, function(e) {console.log(e);});
   };
 
   sp.onchecking = function(e) {
@@ -111,39 +111,43 @@ function main() {
 
   startButton.onclick = function(e) {
     getting_sample = false;
-    sp.start().then(function(e) {console.log(e);});
+    sp.start().then(function() {console.log('start succeeds');}, function(e) {console.log(e);});
   };
 
   resetButton.onclick = function(e) {
-    sp.reset().then(function(e) {console.log(e);});
+    sp.reset().then(function() {console.log('reset succeeds');}, function(e) {console.log(e);});
     removeAllMeshes();
   };
 
   stopButton.onclick = function(e) {
-    sp.stop().then(function(e) {
-      console.log(e);
+    sp.stop().then(function() {
+      console.log('stop succeeds');
       qualityElement.innerHTML = 'Quality: ';
-    });
+    }, function(e) {console.log(e);});
   };
 
   enableTrackingButton.onclick = function(e) {
-    sp.enableTracking().then(function(e) {console.log(e);});
+    sp.enableTracking().then(function() {console.log('enableTracking succeeds');},
+                             function(e) {console.log(e);});
   };
 
   disableTrackingButton.onclick = function(e) {
-    sp.disableTracking().then(function(e) {
-      console.log(e);
+    sp.disableTracking().then(function() {
+      console.log('disableTracking succeeds');
       accuracyElement.innerHTML = 'Accuracy: ';
       showCamera(false);
-    });
+    }, function(e) {console.log(e);});
   };
 
   enableMeshingButton.onclick = function(e) {
-    sp.enableMeshing().then(function(e) {console.log(e);});
+    sp.enableMeshing().then(function() {console.log('enableMeshing succeeds');},
+                            function(e) {console.log(e);});
   };
 
   disableMeshingButton.onclick = function(e) {
-    sp.disableMeshing().then(function(e) {console.log(e); mergeMeshes();});
+    sp.disableMeshing().then(function() {
+      console.log('disableMeshing succeeds'); mergeMeshes();
+    }, function(e) {console.log(e);});
   };
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
