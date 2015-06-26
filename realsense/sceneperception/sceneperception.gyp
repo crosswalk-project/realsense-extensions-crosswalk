@@ -8,49 +8,12 @@
       'target_name': 'sceneperception',
       'type': 'loadable_module',
       'includes': [
+        '../common/rssdk.gypi',
         '../common/xwalk_js2c.gypi',
         '../common/xwalk_idlgen.gypi',
       ],
-      'include_dirs': [
-        '../..',
-        '<!(echo %RSSDK_DIR%\include)',
-      ],
-      'dependencies': [
-        '../../base/base.gyp:base',
-        '../common/common.gyp:common',
-      ],
       'variables': {
         'jsapi_component': 'sceneperception',
-      },
-      'msvs_settings': {
-        'VCLinkerTool': {
-          'AdditionalDependencies': [
-            'advapi32.lib',
-          ],
-          'AdditionalLibraryDirectories': [
-            '<!(echo %RSSDK_DIR%\lib\Win32)',
-          ],
-        },
-      },
-      'configurations': {
-        'Debug': {
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalDependencies': [
-                'libpxc_d.lib'
-              ],
-            },
-          },
-        },
-        'Release': {
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalDependencies': [
-                'libpxc.lib'
-              ],
-            },
-          },
-        }
       },
       'sources': [
         'sceneperception.idl',
