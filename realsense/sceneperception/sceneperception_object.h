@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
-#define SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
+#ifndef REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
+#define REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
 
 #include <string>
 
@@ -110,4 +110,4 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
 }  // namespace sceneperception
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
+#endif  // REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_

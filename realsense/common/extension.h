@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_COMMON_EXTENSION_H_
-#define SRC_REALSENSE_COMMON_EXTENSION_H_
+#ifndef REALSENSE_COMMON_EXTENSION_H_
+#define REALSENSE_COMMON_EXTENSION_H_
 
 // This is a C++ wrapper over Crosswalk Extension C API. It implements once the
 // boilerplate for the common case of mapping XW_Extension and XW_Instance to
@@ -95,4 +95,4 @@ class Instance {
 }  // namespace common
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_COMMON_EXTENSION_H_
+#endif  // REALSENSE_COMMON_EXTENSION_H_

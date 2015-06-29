@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_SESSION_SESSION_OBJECT_H_
-#define SRC_REALSENSE_SESSION_SESSION_OBJECT_H_
+#ifndef REALSENSE_SESSION_SESSION_OBJECT_H_
+#define REALSENSE_SESSION_SESSION_OBJECT_H_
 
 #include <string>
 #include "realsense/common/event_target.h"
@@ -28,4 +28,4 @@ class SessionObject : public realsense::common::EventTarget {
 }  // namespace session
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_SESSION_SESSION_OBJECT_H_
+#endif  // REALSENSE_SESSION_SESSION_OBJECT_H_

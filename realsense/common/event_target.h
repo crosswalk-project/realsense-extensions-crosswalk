@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_COMMON_EVENT_TARGET_H_
-#define SRC_REALSENSE_COMMON_EVENT_TARGET_H_
+#ifndef REALSENSE_COMMON_EVENT_TARGET_H_
+#define REALSENSE_COMMON_EVENT_TARGET_H_
 
 #include <map>
 #include <string>
@@ -50,4 +50,4 @@ class EventTarget : public BindingObject {
 }  // namespace common
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_COMMON_EVENT_TARGET_H_
+#endif  // REALSENSE_COMMON_EVENT_TARGET_H_
