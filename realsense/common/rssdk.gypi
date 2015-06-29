@@ -15,7 +15,7 @@
     '<(DEPTH)',
   ],
   'dependencies':[
-    '<(DEPTH)/base/base.gyp:base',
+    '<(DEPTH)/../crosswalk-extensions-sdk/base/base.gyp:base',
     '<(DEPTH)/realsense/common/common.gyp:common',
   ],
   'msvs_settings': {

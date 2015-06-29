@@ -16,7 +16,8 @@ import subprocess
 import string
 import sys
 
-chrome_src = os.path.dirname(os.path.realpath(__file__))
+realsense_src = os.path.dirname(os.path.realpath(__file__))
+chrome_src = os.path.join(os.path.dirname(realsense_src), 'crosswalk-extensions-sdk')
 
 sys.path.insert(0, os.path.join(chrome_src, 'tools', 'gyp', 'pylib'))
 import gyp
@@ -360,7 +361,7 @@ if __name__ == '__main__':
     if vs2013_runtime_dll_dirs:
       x64_runtime, x86_runtime = vs2013_runtime_dll_dirs
       vs_toolchain.CopyVsRuntimeDlls(
-        os.path.join(chrome_src, GetOutputDirectory()),
+        os.path.join(realsense_src, GetOutputDirectory()),
         (x86_runtime, x64_runtime))
 
   sys.exit(gyp_rc)
