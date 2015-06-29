@@ -1,0 +1,51 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// EnhancedPhotography API
+namespace enhanced_photography {
+  dictionary Distance {
+    double distance;
+  };
+
+  dictionary ErrorEvent {
+    DOMString status;
+  };
+
+  dictionary Image {
+    long width;
+    long height;
+    long[] data;
+  };
+
+  dictionary Point {
+    long x;
+    long y;
+  };
+
+  callback DistancePromise = void(Distance distance, DOMString error);
+  callback ImagePromise = void(Image image, DOMString error);
+  callback Promise = void(DOMString success, DOMString error);
+
+  interface Events {
+    static void onerror();
+    static void onimage();
+    static void onpreview();
+  };
+
+  interface Functions {
+    static void startPreview(Promise promise);
+    static void stopPreview(Promise promise);
+    static void getPreviewImage(ImagePromise promise);
+    static void takeSnapShot(Promise promise);
+    // This method will load the XMP photo.
+    // Currently, the XPM photo comes from a local file.
+    // TODO(qjia7): Use an ArrayBuffer to instead of the string file path.
+    // https://github.com/otcshare/realsense-extensions-crosswalk/issues/81
+    static void loadFromXMP(DOMString filepath, Promise promise);
+    static void saveAsXMP(DOMString filepath, Promise promise);
+    static void measureDistance(Point start, Point end, DistancePromise promise);
+
+    [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
+  };
+};

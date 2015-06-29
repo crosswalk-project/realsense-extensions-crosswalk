@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>RealSense Enhanced Photography API Test</title>
+    <style>
+      canvas {
+        width: 320px;
+        height: 240px;
+        border: 1px solid #000000;
+      }
+    </style>
+  </head>
+  <body>
+  <div style='margin-bottom:23px;'>
+    <button id='start'>StartPreview</button>
+    <button id='stop'>StopPreview</button>
+    <button id='snapshot'>TakeSnapShot</button>
+    <button id='load'>Load</button>
+    <button id='save'>Save</button>
+    <button id='measure'>MeasureDistance</button>
+  </div>
+  <div id='canvas_container'>
+    <canvas id='preview'></canvas>
+    <canvas id='image'></canvas>
+  </div>
+
+  <p id='status'></p>
+  </body>
+  <script src='libs/three.js'></script>
+  <script src='libs/TrackballControls.js'></script>
+  <script src="libs/stats.min.js"></script>
+  <script src="enhancedphotography.js"></script>
+  <script type="text/javascript">
+    window.onload = main();
+  </script>
+</html>
