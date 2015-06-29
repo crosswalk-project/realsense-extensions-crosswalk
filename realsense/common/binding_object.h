@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_COMMON_BINDING_OBJECT_H_
-#define SRC_REALSENSE_COMMON_BINDING_OBJECT_H_
+#ifndef REALSENSE_COMMON_BINDING_OBJECT_H_
+#define REALSENSE_COMMON_BINDING_OBJECT_H_
 
 #include "realsense/common/xwalk_extension_function_handler.h"
 
@@ -33,4 +33,4 @@ class BindingObject {
 }  // namespace common
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_COMMON_BINDING_OBJECT_H_
+#endif  // REALSENSE_COMMON_BINDING_OBJECT_H_
