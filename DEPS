@@ -4,7 +4,7 @@ deps = {
 }
 
 recursedeps = [
-  'crosswalk-extensions-sdk',
+  'src/crosswalk-extensions-sdk',
 ]
 
 hooks = [

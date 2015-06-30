@@ -17,7 +17,7 @@ import string
 import sys
 
 realsense_src = os.path.dirname(os.path.realpath(__file__))
-chrome_src = os.path.join(os.path.dirname(realsense_src), 'crosswalk-extensions-sdk')
+chrome_src = os.path.join(realsense_src, 'crosswalk-extensions-sdk')
 
 sys.path.insert(0, os.path.join(chrome_src, 'tools', 'gyp', 'pylib'))
 import gyp
