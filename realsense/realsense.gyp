@@ -8,7 +8,7 @@
       'target_name': 'realsense',
       'type': 'none',
       'dependencies': [
-        'sceneperception/sceneperception.gyp:*',
+        'scene_perception/scene_perception.gyp:*',
         'session/session.gyp:*',
       ]
     },

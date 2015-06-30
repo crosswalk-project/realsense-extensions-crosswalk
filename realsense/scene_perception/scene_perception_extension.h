@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_EXTENSION_H_
-#define REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_EXTENSION_H_
+#ifndef REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_EXTENSION_H_
+#define REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_EXTENSION_H_
 
 #include "realsense/common/extension.h"
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
 class ScenePerceptionExtension : public realsense::common::Extension {
  public:
@@ -20,7 +20,7 @@ class ScenePerceptionExtension : public realsense::common::Extension {
   virtual realsense::common::Instance* CreateInstance();
 };
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense
 
-#endif  // REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_EXTENSION_H_
+#endif  // REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_EXTENSION_H_

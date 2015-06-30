@@ -5,30 +5,30 @@
 #include <string>
 
 #include "base/at_exit.h"
-#include "realsense/sceneperception/sceneperception_extension.h"
-#include "realsense/sceneperception/sceneperception_instance.h"
+#include "realsense/scene_perception/scene_perception_extension.h"
+#include "realsense/scene_perception/scene_perception_instance.h"
 
 base::AtExitManager exit_manager;
 
 realsense::common::Extension* CreateExtension() {
-  return new realsense::sceneperception::ScenePerceptionExtension;
+  return new realsense::scene_perception::ScenePerceptionExtension;
 }
 
 // This will be generated from common_api.js
 extern const char kSource_common_api[];
 // This will be generated from common_promise_api.js
 extern const char kSource_common_promise_api[];
-// This will be generated from sceneperception_api.js.
-extern const char kSource_sceneperception_api[];
+// This will be generated from scene_perception_api.js.
+extern const char kSource_scene_perception_api[];
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
 ScenePerceptionExtension::ScenePerceptionExtension() {
   SetExtensionName("realsense.ScenePerception");
   std::string jsapi(kSource_common_api);
   jsapi += kSource_common_promise_api;
-  jsapi += kSource_sceneperception_api;
+  jsapi += kSource_scene_perception_api;
   SetJavaScriptAPI(jsapi.c_str());
 }
 
@@ -38,5 +38,5 @@ common::Instance* ScenePerceptionExtension::CreateInstance() {
   return new ScenePerceptionInstance();
 }
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense

@@ -5,7 +5,7 @@
 {
   'targets': [
     {
-      'target_name': 'sceneperception',
+      'target_name': 'scene_perception',
       'type': 'loadable_module',
       'includes': [
         '../common/rssdk.gypi',
@@ -13,17 +13,17 @@
         '../common/xwalk_idlgen.gypi',
       ],
       'variables': {
-        'jsapi_component': 'sceneperception',
+        'jsapi_component': 'scene_perception',
       },
       'sources': [
-        'sceneperception.idl',
-        'sceneperception_api.js',
-        'sceneperception_extension.cc',
-        'sceneperception_extension.h',
-        'sceneperception_instance.cc',
-        'sceneperception_instance.h',
-        'sceneperception_object.cc',
-        'sceneperception_object.h'
+        'scene_perception.idl',
+        'scene_perception_api.js',
+        'scene_perception_extension.cc',
+        'scene_perception_extension.h',
+        'scene_perception_instance.cc',
+        'scene_perception_instance.h',
+        'scene_perception_object.cc',
+        'scene_perception_object.h'
       ],
     },
   ],
