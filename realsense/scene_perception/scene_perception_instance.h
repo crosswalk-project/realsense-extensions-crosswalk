@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_INSTANCE_H_
-#define SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_INSTANCE_H_
+#ifndef REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_INSTANCE_H_
+#define REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_INSTANCE_H_
 
 #include "base/threading/thread.h"
 #include "realsense/common/extension.h"
@@ -11,7 +11,7 @@
 #include "realsense/common/xwalk_extension_function_handler.h"
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
 class ScenePerceptionInstance : public realsense::common::Instance {
  public:
@@ -32,7 +32,7 @@ class ScenePerceptionInstance : public realsense::common::Instance {
   base::Thread sp_ext_thread_;
 };
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_INSTANCE_H_
+#endif  // REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_INSTANCE_H_

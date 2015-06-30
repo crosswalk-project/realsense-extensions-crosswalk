@@ -5,18 +5,18 @@
 #include <string>
 #include <sstream>
 
-#include "realsense/sceneperception/sceneperception_instance.h"
+#include "realsense/scene_perception/scene_perception_instance.h"
 
 #include "base/json/json_string_value_serializer.h"
 #include "base/values.h"
-#include "realsense/sceneperception/sceneperception.h"
-#include "realsense/sceneperception/sceneperception_object.h"
+#include "realsense/scene_perception/scene_perception.h"
+#include "realsense/scene_perception/scene_perception_object.h"
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
 using namespace realsense::common; // NOLINT
-using realsense::jsapi::sceneperception::ScenePerceptionConstructor::Params;
+using realsense::jsapi::scene_perception::ScenePerceptionConstructor::Params;
 
 ScenePerceptionInstance::ScenePerceptionInstance()
     : handler_(this),
@@ -68,5 +68,5 @@ void ScenePerceptionInstance::OnScenePerceptionConstructor(
   store_.AddBindingObject(params->object_id, obj.Pass());
 }
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
-#define REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
+#ifndef REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_OBJECT_H_
+#define REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_OBJECT_H_
 
 #include <string>
 
@@ -16,7 +16,7 @@
 #include "realsense/common/event_target.h"
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
 class ScenePerceptionObject : public realsense::common::EventTarget {
  public:
@@ -98,7 +98,7 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
 
   PXCSession* session_;
   PXCSenseManager* scene_manager_;
-  PXCScenePerception* sceneperception_;
+  PXCScenePerception* scene_perception_;
 
   PXCBlockMeshingData* block_meshing_data_;
   PXCScenePerception::MeshingUpdateInfo  meshing_update_info_;
@@ -107,7 +107,7 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
   PXCImage* latest_depth_image_;
 };
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense
 
-#endif  // REALSENSE_SCENEPERCEPTION_SCENEPERCEPTION_OBJECT_H_
+#endif  // REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_OBJECT_H_

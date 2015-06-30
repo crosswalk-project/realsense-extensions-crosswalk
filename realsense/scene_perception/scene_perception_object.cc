@@ -2,19 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "realsense/scene_perception/scene_perception_object.h"
+
 #include <string>
 #include <sstream>
 
-#include "realsense/sceneperception/sceneperception_object.h"
-
 #include "base/bind.h"
 #include "base/logging.h"
-#include "realsense/sceneperception/sceneperception.h"
+#include "realsense/scene_perception/scene_perception.h"
 
 namespace realsense {
-namespace sceneperception {
+namespace scene_perception {
 
-using namespace jsapi::sceneperception; // NOLINT
+using namespace jsapi::scene_perception; // NOLINT
 using namespace realsense::common; // NOLINT
 
 // Current RSSDK R3 SP module requires this configuration
@@ -44,7 +44,7 @@ ScenePerceptionObject::ScenePerceptionObject() :
     message_loop_(base::MessageLoopProxy::current()),
     session_(NULL),
     scene_manager_(NULL),
-    sceneperception_(NULL),
+    scene_perception_(NULL),
     block_meshing_data_(NULL) {
   // TODO(ningxin): expose these configrations to JS
   color_image_width_ = depth_image_width_ = kCaptureWidth;
@@ -231,8 +231,8 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
     return;
   }
 
-  sceneperception_ = scene_manager_->QueryScenePerception();
-  if (sceneperception_ == NULL) {
+  scene_perception_ = scene_manager_->QueryScenePerception();
+  if (scene_perception_ == NULL) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
     info->PostResult(
         Start::Results::Create(
@@ -243,10 +243,10 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   }
 
   scene_manager_->PauseScenePerception(true);
-  sceneperception_->EnableSceneReconstruction(false);
+  scene_perception_->EnableSceneReconstruction(false);
 
   // TODO(ningxin): expose to JS API
-  block_meshing_data_ = sceneperception_->CreatePXCBlockMeshingData(
+  block_meshing_data_ = scene_perception_->CreatePXCBlockMeshingData(
         kMaxNumberOfBlockMeshes, kMaxNumberOfVertices, kMaxNumberOfFaces, 1);
 
   DLOG(INFO) << "MaxNumberOfBlockMeshes: " <<
@@ -344,7 +344,7 @@ void ScenePerceptionObject::OnRunPipeline() {
     if (on_checking_) {
       float image_quality = 0.0;
       if (sample)
-        image_quality = sceneperception_->CheckSceneQuality(sample);
+        image_quality = scene_perception_->CheckSceneQuality(sample);
 
       CheckingEvent event;
       event.quality = image_quality;
@@ -357,7 +357,7 @@ void ScenePerceptionObject::OnRunPipeline() {
 
   if ((state_ == TRACKING || state_ == MESHING) && on_tracking_) {
     PXCScenePerception::TrackingAccuracy accuracy =
-        sceneperception_->QueryTrackingAccuracy();
+        scene_perception_->QueryTrackingAccuracy();
 
     TrackingEvent event;
     event.accuracy = ACCURACY_NONE;
@@ -377,7 +377,7 @@ void ScenePerceptionObject::OnRunPipeline() {
     }
 
     float pose[12];
-    sceneperception_->GetCameraPose(pose);
+    scene_perception_->GetCameraPose(pose);
     for (int i = 0; i < 12; ++i) {
       event.camera_pose.push_back(pose[i]);
     }
@@ -391,7 +391,7 @@ void ScenePerceptionObject::OnRunPipeline() {
   if (state_ == MESHING && on_meshing_) {
     // Update meshes
     if (!doing_meshing_updating_ &&
-        sceneperception_->IsReconstructionUpdated()) {
+        scene_perception_->IsReconstructionUpdated()) {
       DLOG(INFO) << "Mesh is updated";
       if (base::TimeTicks::Now() - last_meshing_time_ >
           base::TimeDelta::FromMilliseconds(1000)) {
@@ -468,8 +468,8 @@ void ScenePerceptionObject::OnResetScenePerception(
             std::string(), std::string("state is IDLE")));
     return;
   }
-  sceneperception_->SetMeshingThresholds(0.0f, 0.0f);
-  sceneperception_->Reset();
+  scene_perception_->SetMeshingThresholds(0.0f, 0.0f);
+  scene_perception_->Reset();
   block_meshing_data_->Reset();
 }
 
@@ -555,7 +555,7 @@ void ScenePerceptionObject::OnEnableReconstruction(
 
     state_ = TRACKING;
   }
-  sceneperception_->EnableSceneReconstruction(enable);
+  scene_perception_->EnableSceneReconstruction(enable);
   info->PostResult(
       EnableMeshing::Results::Create(
           std::string("success"), std::string()));
@@ -584,10 +584,10 @@ void ScenePerceptionObject::OnDisableMeshing(
 void ScenePerceptionObject::OnDoMeshingUpdate() {
   DCHECK_EQ(meshing_thread_.message_loop(), base::MessageLoop::current());
   DLOG(INFO) << "Meshing starts";
-  pxcStatus status = sceneperception_->DoMeshingUpdate(block_meshing_data_,
+  pxcStatus status = scene_perception_->DoMeshingUpdate(block_meshing_data_,
                                                        0,
                                                        &meshing_update_info_);
-  sceneperception_->SetMeshingThresholds(0.03f, 0.005f);
+  scene_perception_->SetMeshingThresholds(0.03f, 0.005f);
   if (status < PXC_STATUS_NO_ERROR)
     return;
 
@@ -727,5 +727,5 @@ void ScenePerceptionObject::OnCopySample(
   }
 }
 
-}  // namespace sceneperception
+}  // namespace scene_perception
 }  // namespace realsense
