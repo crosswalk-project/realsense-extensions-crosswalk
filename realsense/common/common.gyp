@@ -16,7 +16,6 @@
       },
       'include_dirs': [
         '../..',
-        '<(DEPTH)/crosswalk-extensions-sdk',
       ],
       'sources': [
         'binding_object.h',

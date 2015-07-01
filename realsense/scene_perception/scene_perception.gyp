@@ -12,6 +12,9 @@
         '../common/xwalk_js2c.gypi',
         '../common/xwalk_idlgen.gypi',
       ],
+      'include_dirs': [
+        '../..',
+      ],
       'variables': {
         'jsapi_component': 'scene_perception',
       },

@@ -8,7 +8,7 @@
       'rule_name': 'xwalk_js2c',
       'extension': 'js',
       'inputs': [
-        '<(DEPTH)/crosswalk-extensions-sdk/tools/generate_api.py',
+        '<(DEPTH)/tools/generate_api.py',
       ],
       'outputs': [
         '<(SHARED_INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).cc'
