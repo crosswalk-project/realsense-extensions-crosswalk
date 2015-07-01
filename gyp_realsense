@@ -227,6 +227,10 @@ if __name__ == '__main__':
 
   args = delist
   args.append('-Dproprietary_codecs=1')
+  # TODO(halton): it is not decided to use clang or not on non-windows
+  # platforms, disable for now.
+  args.append('-Dclang=0')
+  args.append('-Dhost_clang=0')
 
   # Triggering media playback dynamically with third-party codecs by owner.
   if ip_media_codecs == True:
