@@ -43,5 +43,6 @@ cscope.*
 Session.vim
 tags
 Thumbs.db
+/buildtools
 /crosswalk-extensions-sdk
 /out*
