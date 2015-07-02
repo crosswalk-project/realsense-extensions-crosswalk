@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>BenchImage</title>
+</head>
+
+<body>
+  <div id="option">
+    Image size:
+    <select id="resolution" onchange="onResolutionChange(this.value)">
+      <option value="320*240" selected="selected">320*240</option>
+      <option value="640*480">640*480</option>
+      <option value="1280*720">1280*720</option>
+    </select>
+    Encoding method:
+    <select id="method" onchange="onMethodChange(this.value)">
+      <option value="Base64" selected="selected">Base64</option>
+      <option value="JSON">JSON</option>
+    </select>
+  </div>
+  <div id="color_container" style="position: absolute;">
+    <canvas id="color" width="320" height="240" style="border:1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.</canvas>
+  </div>
+  <script src="libs/stats.min.js"></script>
+  <script>
+  var benchimage = realsense.BenchImage;
+  var canvas = document.getElementById("color");
+  var ctx = canvas.getContext("2d");
+  var imgData = ctx.createImageData(canvas.width, canvas.height);
+  var resolution = [320, 240];
+  var getSample = getSampleString;
+  var sample_fps = new Stats();
+  sample_fps.domElement.style.position = 'absolute';
+  sample_fps.domElement.style.top = '1px';
+  sample_fps.domElement.style.left = '1px';
+  document.getElementById("color_container").appendChild(sample_fps.domElement);
+
+  // Base64 string to binary data
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Base64_encoding_and_decoding
+  function b64ToUint6(nChr) {
+    return nChr > 64 && nChr < 91 ?
+      nChr - 65 : nChr > 96 && nChr < 123 ?
+      nChr - 71 : nChr > 47 && nChr < 58 ?
+      nChr + 4 : nChr === 43 ?
+      62 : nChr === 47 ?
+      63 :
+      0;
+  }
+
+  function base64DecToArr(sBase64, arr) {
+    var
+      sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""),
+      nInLen = sB64Enc.length,
+      nOutLen = nInLen * 3 + 1 >> 2,
+      taBytes = arr ? arr : new Uint8Array(nOutLen);
+    for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+      nMod4 = nInIdx & 3;
+      nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 6 * (3 - nMod4);
+      if (nMod4 === 3 || nInLen - nInIdx === 1) {
+        for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+          taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+        }
+        nUint24 = 0;
+      }
+    }
+    return taBytes;
+  }
+
+  function onResolutionChange(val) {
+    resolution = val.split('*');
+    resolution[0] *= 1;
+    resolution[1] *= 1;
+    canvas.width = resolution[0];
+    canvas.height = resolution[1];
+    imgData = ctx.createImageData(canvas.width, canvas.height);
+  }
+
+  function onMethodChange(val) {
+    if (val == 'Base64')
+      getSample = getSampleString;
+    else
+      getSample = getSampleLong;
+  }
+
+  function getSampleString(width, height) {
+    sample_fps.begin();
+    benchimage.getSampleString(width, height).then(function(sample) {
+      base64DecToArr(sample.color.data, imgData.data);
+      ctx.putImageData(imgData, 0, 0);
+      sample_fps.end();
+      getSample(resolution[0], resolution[1]);
+    });
+  }
+
+  function getSampleLong(width, height) {
+    sample_fps.begin();
+    benchimage.getSampleLong(width, height).then(function(sample) {
+      var int32arr = new Int32Array(imgData.data.buffer);
+      int32arr.set(sample.color.data);
+      ctx.putImageData(imgData, 0, 0);
+      sample_fps.end();
+      getSample(resolution[0], resolution[1]);
+    });
+  }
+
+  getSample(resolution[0], resolution[1]);
+  </script>
+</body>
+
+</html>

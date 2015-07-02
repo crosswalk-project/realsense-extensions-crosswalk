@@ -5,11 +5,10 @@
 {
   'targets': [
     {
-      'target_name': 'all_extensions',
+      'target_name': 'benchmarks',
       'type': 'none',
       'dependencies': [
-        'realsense/realsense.gyp:*',
-        'realsense/benchmarks/benchmarks.gyp:*',
+        'bench_image/bench_image.gyp:*',
       ]
     },
   ],

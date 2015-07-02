@@ -1,0 +1,39 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// BenchImage API
+namespace bench_image {
+
+  dictionary ImageLong {
+    long width;
+    long height;
+    long[] data;
+  };
+
+  dictionary ImageString {
+    long width;
+    long height;
+    DOMString data;
+  };
+
+  dictionary SampleLong {
+    ImageLong color;
+    ImageLong depth;
+  };
+
+  dictionary SampleString {
+    ImageString color;
+    ImageString depth;
+  };
+
+  callback SampleLongPromise = void(SampleLong sample, DOMString error);
+  callback SampleStringPromise = void(SampleString sample, DOMString error);
+
+  interface Functions {
+    static void getSampleLong(SampleLongPromise promise, long width, long height);
+    static void getSampleString(SampleStringPromise promise, long width, long height);
+
+    [nodoc] static BenchImage BenchImageConstructor(DOMString objectId);
+  };
+};
