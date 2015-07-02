@@ -15,8 +15,8 @@
     '<(DEPTH)',
   ],
   'dependencies':[
-    '<(DEPTH)/crosswalk-extensions-sdk/base/base.gyp:base',
-    '<(DEPTH)/realsense/common/common.gyp:common',
+    '<(DEPTH)/base/base.gyp:base',
+    '<(DEPTH)/extensions/realsense/common/common.gyp:common',
   ],
   'msvs_settings': {
     'VCLinkerTool': {

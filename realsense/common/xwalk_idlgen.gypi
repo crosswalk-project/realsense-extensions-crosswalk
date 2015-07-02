@@ -5,7 +5,7 @@
 
 {
   'variables': {
-    'api_gen_dir': '<(DEPTH)/crosswalk-extensions-sdk/tools/json_schema_compiler',
+    'api_gen_dir': '<(DEPTH)/tools/json_schema_compiler',
     'api_gen': '<(api_gen_dir)/compiler.py',
     'root_namespace': 'realsense::jsapi::%(namespace)s',
     'jsapi_component%': '',
@@ -52,7 +52,7 @@
     '<(DEPTH)',
   ],
   'dependencies':[
-    '<(DEPTH)/crosswalk-extensions-sdk/tools/json_schema_compiler/api_gen_util.gyp:api_gen_util',
+    '<(DEPTH)/tools/json_schema_compiler/api_gen_util.gyp:api_gen_util',
   ],
   'direct_dependent_settings': {
     'include_dirs': [
