@@ -5,7 +5,7 @@
 {
   'targets': [
     {
-      'target_name': 'all',
+      'target_name': 'all_extensions',
       'type': 'none',
       'dependencies': [
         'realsense/realsense.gyp:*',
