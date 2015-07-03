@@ -13,12 +13,12 @@
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/time/time.h"
 #include "base/threading/thread.h"
-#include "realsense/common/event_target.h"
+#include "xwalk/common/event_target.h"
 
 namespace realsense {
 namespace scene_perception {
 
-class ScenePerceptionObject : public realsense::common::EventTarget {
+class ScenePerceptionObject : public xwalk::common::EventTarget {
  public:
   ScenePerceptionObject();
   ~ScenePerceptionObject() override;
@@ -28,36 +28,36 @@ class ScenePerceptionObject : public realsense::common::EventTarget {
   void StopEvent(const std::string& type) override;
 
  private:
-  void OnStart(scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
-  void OnStop(scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
-  void OnReset(scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+  void OnStart(scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnStop(scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnReset(scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnEnableTracking(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnDisableTracking(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnEnableMeshing(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnDisableMeshing(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnGetSample(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
   // Run on scenemanager_thread_
   void OnCreateAndStartPipeline(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnStopAndDestroyPipeline(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnRunPipeline();
   void OnResetScenePerception(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnPauseScenePerception(
       bool pause,
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnEnableReconstruction(
       bool enable,
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnCopySample(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnMeshingResult();
   void ReleaseResources();
 

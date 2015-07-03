@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SRC_REALSENSE_SESSION_SESSION_INSTANCE_H_
-#define SRC_REALSENSE_SESSION_SESSION_INSTANCE_H_
+#ifndef REALSENSE_SESSION_SESSION_INSTANCE_H_
+#define REALSENSE_SESSION_SESSION_INSTANCE_H_
 
-#include "realsense/common/extension.h"
-#include "realsense/common/binding_object_store.h"
-#include "realsense/common/xwalk_extension_function_handler.h"
+#include "xwalk/common/extension.h"
+#include "xwalk/common/binding_object_store.h"
+#include "xwalk/common/xwalk_extension_function_handler.h"
 
 namespace realsense {
 namespace session {
 
-class SessionInstance : public realsense::common::Instance {
+class SessionInstance : public xwalk::common::Instance {
  public:
   SessionInstance();
   virtual ~SessionInstance();
@@ -22,13 +22,13 @@ class SessionInstance : public realsense::common::Instance {
   virtual void HandleSyncMessage(const char* msg);
 
   void OnSessionConstructor(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
-  realsense::common::XWalkExtensionFunctionHandler handler_;
-  realsense::common::BindingObjectStore store_;
+  xwalk::common::XWalkExtensionFunctionHandler handler_;
+  xwalk::common::BindingObjectStore store_;
 };
 
 }  // namespace session
 }  // namespace realsense
 
-#endif  // SRC_REALSENSE_SESSION_SESSION_INSTANCE_H_
+#endif  // REALSENSE_SESSION_SESSION_INSTANCE_H_

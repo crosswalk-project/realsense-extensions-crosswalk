@@ -6,14 +6,14 @@
 #define REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_INSTANCE_H_
 
 #include "base/threading/thread.h"
-#include "realsense/common/extension.h"
-#include "realsense/common/binding_object_store.h"
-#include "realsense/common/xwalk_extension_function_handler.h"
+#include "xwalk/common/extension.h"
+#include "xwalk/common/binding_object_store.h"
+#include "xwalk/common/xwalk_extension_function_handler.h"
 
 namespace realsense {
 namespace scene_perception {
 
-class ScenePerceptionInstance : public realsense::common::Instance {
+class ScenePerceptionInstance : public xwalk::common::Instance {
  public:
   ScenePerceptionInstance();
   virtual ~ScenePerceptionInstance();
@@ -25,10 +25,10 @@ class ScenePerceptionInstance : public realsense::common::Instance {
   // Called on sp_ext_thread_
   void OnHandleMessage(scoped_ptr<base::Value> msg);
   void OnScenePerceptionConstructor(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
-  realsense::common::XWalkExtensionFunctionHandler handler_;
-  realsense::common::BindingObjectStore store_;
+  xwalk::common::XWalkExtensionFunctionHandler handler_;
+  xwalk::common::BindingObjectStore store_;
   base::Thread sp_ext_thread_;
 };
 

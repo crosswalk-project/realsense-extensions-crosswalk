@@ -9,13 +9,14 @@
       'type': 'loadable_module',
       'includes': [
         '../common/rssdk.gypi',
-        '../common/xwalk_js2c.gypi',
-        '../common/xwalk_idlgen.gypi',
+        '../../../xwalk/common/xwalk_js2c.gypi',
+        '../../../xwalk/common/xwalk_idlgen.gypi',
       ],
       'include_dirs': [
         '../..',
       ],
       'variables': {
+        'jsapi_namespace': 'realsense::jsapi',
         'jsapi_component': 'session',
       },
       'sources': [
