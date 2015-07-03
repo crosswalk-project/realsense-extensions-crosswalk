@@ -1,0 +1,47 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("depth_photo_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "depth_photo.idl" ]
+}
+
+xwalk_idlgen("enhanced_photography_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "enhanced_photography.idl" ]
+}
+
+xwalk_js2c("enhanced_photography_js") {
+  sources = [
+    "enhanced_photography_api.js",
+  ]
+}
+
+shared_library("enhanced_photography") {
+  sources = [
+    "depth_photo_object.cc",
+    "depth_photo_object.h",
+    "enhanced_photography_extension.cc",
+    "enhanced_photography_extension.h",
+    "enhanced_photography_instance.cc",
+    "enhanced_photography_instance.h",
+    "enhanced_photography_object.cc",
+    "enhanced_photography_object.h"
+  ]
+  deps = [
+    ":depth_photo_idl",
+    ":enhanced_photography_idl",
+    ":enhanced_photography_js",
+    "//xwalk/common:common_static",
+  ]
+  configs += [
+    "//extensions/realsense/common:rssdk_config",
+  ]
+  include_dirs = [
+    "../..",
+    "$target_gen_dir",
+  ]
+}

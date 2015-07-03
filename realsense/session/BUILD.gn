@@ -1,0 +1,37 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("session_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "session.idl" ]
+}
+
+xwalk_js2c("session_js") {
+  sources = [ "session_api.js" ]
+}
+
+shared_library("session") {
+  sources = [
+    "session_extension.cc",
+    "session_extension.h",
+    "session_instance.cc",
+    "session_instance.h",
+    "session_object.cc",
+    "session_object.h",
+  ]
+  deps = [
+    ":session_idl",
+    ":session_js",
+    "//xwalk/common:common_static",
+  ]
+  configs += [
+    "//extensions/realsense/common:rssdk_config",
+  ]
+  include_dirs = [
+    "../..",
+    "$target_gen_dir",
+  ]
+}
