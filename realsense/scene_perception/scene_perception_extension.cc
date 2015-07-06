@@ -10,7 +10,7 @@
 
 base::AtExitManager exit_manager;
 
-realsense::common::Extension* CreateExtension() {
+xwalk::common::Extension* CreateExtension() {
   return new realsense::scene_perception::ScenePerceptionExtension;
 }
 
@@ -34,7 +34,7 @@ ScenePerceptionExtension::ScenePerceptionExtension() {
 
 ScenePerceptionExtension::~ScenePerceptionExtension() {}
 
-common::Instance* ScenePerceptionExtension::CreateInstance() {
+xwalk::common::Instance* ScenePerceptionExtension::CreateInstance() {
   return new ScenePerceptionInstance();
 }
 

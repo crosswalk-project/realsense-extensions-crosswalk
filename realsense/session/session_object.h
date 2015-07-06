@@ -6,12 +6,12 @@
 #define REALSENSE_SESSION_SESSION_OBJECT_H_
 
 #include <string>
-#include "realsense/common/event_target.h"
+#include "xwalk/common/event_target.h"
 
 namespace realsense {
 namespace session {
 
-class SessionObject : public realsense::common::EventTarget {
+class SessionObject : public xwalk::common::EventTarget {
  public:
   SessionObject();
   ~SessionObject() override;
@@ -22,7 +22,7 @@ class SessionObject : public realsense::common::EventTarget {
 
  private:
   void OnGetVersion(
-      scoped_ptr<realsense::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 };
 
 }  // namespace session

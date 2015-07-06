@@ -7,7 +7,7 @@
 #include "realsense/session/session_extension.h"
 #include "realsense/session/session_instance.h"
 
-realsense::common::Extension* CreateExtension() {
+xwalk::common::Extension* CreateExtension() {
   return new realsense::session::SessionExtension;
 }
 
@@ -31,7 +31,7 @@ SessionExtension::SessionExtension() {
 
 SessionExtension::~SessionExtension() {}
 
-common::Instance* SessionExtension::CreateInstance() {
+xwalk::common::Instance* SessionExtension::CreateInstance() {
   return new SessionInstance();
 }
 

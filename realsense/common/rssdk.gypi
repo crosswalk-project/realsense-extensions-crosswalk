@@ -16,7 +16,7 @@
   ],
   'dependencies':[
     '<(DEPTH)/base/base.gyp:base',
-    '<(DEPTH)/extensions/realsense/common/common.gyp:common',
+    '<(DEPTH)/xwalk/common/common.gyp:common',
   ],
   'msvs_settings': {
     'VCLinkerTool': {

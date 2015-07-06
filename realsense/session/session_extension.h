@@ -5,19 +5,19 @@
 #ifndef REALSENSE_SESSION_SESSION_EXTENSION_H_
 #define REALSENSE_SESSION_SESSION_EXTENSION_H_
 
-#include "realsense/common/extension.h"
+#include "xwalk/common/extension.h"
 
 namespace realsense {
 namespace session {
 
-class SessionExtension : public realsense::common::Extension {
+class SessionExtension : public xwalk::common::Extension {
  public:
   SessionExtension();
   virtual ~SessionExtension();
 
  private:
-  // realsense::common::Extension implementation.
-  virtual realsense::common::Instance* CreateInstance();
+  // xwalk::common::Extension implementation.
+  virtual xwalk::common::Instance* CreateInstance();
 };
 
 }  // namespace session

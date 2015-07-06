@@ -5,19 +5,19 @@
 #ifndef REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_EXTENSION_H_
 #define REALSENSE_SCENE_PERCEPTION_SCENE_PERCEPTION_EXTENSION_H_
 
-#include "realsense/common/extension.h"
+#include "xwalk/common/extension.h"
 
 namespace realsense {
 namespace scene_perception {
 
-class ScenePerceptionExtension : public realsense::common::Extension {
+class ScenePerceptionExtension : public xwalk::common::Extension {
  public:
   ScenePerceptionExtension();
   virtual ~ScenePerceptionExtension();
 
  private:
-  // realsense::common::Extension implementation.
-  virtual realsense::common::Instance* CreateInstance();
+  // xwalk::common::Extension implementation.
+  virtual xwalk::common::Instance* CreateInstance();
 };
 
 }  // namespace scene_perception
