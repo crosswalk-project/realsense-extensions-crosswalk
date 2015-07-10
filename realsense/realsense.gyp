@@ -8,6 +8,7 @@
       'target_name': 'realsense',
       'type': 'none',
       'dependencies': [
+        'enhanced_photography/enhanced_photography.gyp:*',
         'scene_perception/scene_perception.gyp:*',
         'session/session.gyp:*',
       ]
