@@ -15,7 +15,9 @@ namespace enhanced_photography {
 // TODO(qjia7): Allow user to config the capture size and framerate
 const int kCaptureWidth = 320;
 const int kCaptureHeight = 240;
-const float kCaptureFramerate = 30.0;
+// Align to SP to allow SP and EP work together.
+// See https://github.com/otcshare/realsense-extensions-crosswalk/issues/86
+const float kCaptureFramerate = 60.0;
 
 EnhancedPhotographyObject::EnhancedPhotographyObject()
     : state_(IDLE),
