@@ -689,7 +689,7 @@ void ScenePerceptionObject::OnCopySample(
       for (int y = 0; y < color_info.height; ++y) {
         for (int x = 0; x < color_info.width; ++x) {
           uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
-          int i = (x + color_info.width * y) * 4;
+          int i = x * 4 + color_data.pitches[0] * y;
           sample.color.data.push_back(rgb32[i + 2]);
           sample.color.data.push_back(rgb32[i + 1]);
           sample.color.data.push_back(rgb32[i]);

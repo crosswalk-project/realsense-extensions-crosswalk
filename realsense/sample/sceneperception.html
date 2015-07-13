@@ -2,6 +2,13 @@
   <head>
     <title>ScenePerception Test</title>
   </head>
+  <style>
+      canvas {
+        width: 320px;
+        height: 240px;
+        border: 1px solid #000000;
+      }
+    </style>
   <body>
     <p id='quality'>Quality: </p>
   <p id='accuracy'>Accuracy: </p>
@@ -15,10 +22,10 @@
     <button id='disableMeshing'>Disable Meshing</button>
   </div>
   <div id='color_container' style='position: absolute; left: 10px; top: 120px;'>
-    <canvas id='color' style='width: 320px; height: 240px;'></canvas>
+    <canvas id='color' width='320' height='240'></canvas>
   </div>
   <div id='depth_container' style='position: absolute; left: 10px; top: 370px'>
-    <canvas id='depth' style='width: 320px; height: 240px;'></canvas>
+    <canvas id='depth' width='320' height='240'></canvas>
   </div>
   <div id='canvas' style='width: 640px; height: 480px; position: absolute; left: 350px; top: 120px'>
   </div>

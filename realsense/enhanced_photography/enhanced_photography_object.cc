@@ -421,7 +421,7 @@ bool EnhancedPhotographyObject::CopyImage(PXCImage* pxcimage, Image* img) {
   uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
   for (int y = 0; y < image_info.height; y++) {
     for (int x = 0; x < image_info.width; x++) {
-      int i = (x + image_info.width * y) * 4;
+      int i = x * 4 + image_data.pitches[0] * y;
       img->data.push_back(rgb32[i + 2]);
       img->data.push_back(rgb32[i + 1]);
       img->data.push_back(rgb32[i]);
