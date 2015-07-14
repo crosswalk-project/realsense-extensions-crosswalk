@@ -16,17 +16,20 @@
     <button id='snapshot'>TakeSnapShot</button>
     <button id='load'>Load</button>
     <button id='save'>Save</button>
-    <button id='measure'>MeasureDistance</button>
   </div>
+  <div>
+    <input type='radio' id='measure'>Measure</input>
+  </div>
+  <p style='position: absolute; left: 140px; top: 330px;'>Preview</p>
+  <p style='position: absolute; left: 500px; top: 330px;'>Photo</p>
   <div id='canvas_container'>
-    <canvas id='preview' width="320" height="240"></canvas>
-    <canvas id='image' width="320" height="240"></canvas>
+    <canvas id='preview' width='320' height='240' style='position: absolute; left: 10px; top: 90px;'></canvas>
+    <canvas id='image' width='320' height='240' style='position: absolute; left: 350px; top: 90px;'></canvas>
+    <canvas id='overlay' width='320' height='240' style='position: absolute; left: 350px; top: 90px;'></cavnas>
   </div>
 
-  <p id='status'></p>
+  <p id='status' style='position: absolute; left: 10px; top: 390px;'></p>
   </body>
-  <script src='libs/three.js'></script>
-  <script src='libs/TrackballControls.js'></script>
   <script src="libs/stats.min.js"></script>
   <script src="enhancedphotography.js"></script>
   <script type="text/javascript">
