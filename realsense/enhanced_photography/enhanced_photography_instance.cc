@@ -8,7 +8,7 @@
 
 #include "base/json/json_string_value_serializer.h"
 #include "realsense/enhanced_photography/enhanced_photography_object.h"
-#include "xwlak/enhanced_photography/enhanced_photography.h"
+#include "xwalk/enhanced_photography/enhanced_photography.h"
 
 namespace realsense {
 namespace enhanced_photography {

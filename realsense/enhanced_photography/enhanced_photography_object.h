@@ -11,7 +11,7 @@
 #include "base/synchronization/lock.h"
 #include "base/threading/thread.h"
 #include "xwalk/common/event_target.h"
-#include "xwlak/enhanced_photography/enhanced_photography.h"
+#include "xwalk/enhanced_photography/enhanced_photography.h"
 
 #include "pxcenhancedphotography.h" //NOLINT
 #include "pxcphoto.h" // NOLINT
