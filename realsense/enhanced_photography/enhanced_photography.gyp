@@ -20,6 +20,9 @@
         'jsapi_component': 'enhanced_photography',
       },
       'sources': [
+        'depth_photo.idl',
+        'depth_photo_object.cc',
+        'depth_photo_object.h',
         'enhanced_photography.idl',
         'enhanced_photography_api.js',
         'enhanced_photography_extension.cc',

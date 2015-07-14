@@ -13,7 +13,7 @@ var overlay_canvas = document.getElementById('overlay');
 var preview_context, preview_data, image_context, image_data;
 var overlay_context;
 var ep;
-
+var currentPhoto;
 var width = 320, height = 240;
 
 var click_count = 0;
@@ -48,7 +48,7 @@ function measureDistance(e) {
     overlay_context.stroke();
     overlay_context.closePath();
     statusElement.innerHTML = 'Status Info : Measure: ';
-    ep.measureDistance({x: start_x, y: start_y}, {x: x, y: y}).then(
+    ep.measureDistance(currentPhoto, {x: start_x, y: start_y}, {x: x, y: y}).then(
         function(d) {
           statusElement.innerHTML += 'distance = ' +
               parseFloat(d.distance).toFixed(2) + ' millimeters';
@@ -68,7 +68,7 @@ function measureDistance(e) {
 }
 
 function main() {
-  ep = new realsense.EnhancedPhotography();
+  ep = realsense.EnhancedPhotography;
 
   preview_context = preview_canvas.getContext('2d');
   image_context = image_canvas.getContext('2d');
@@ -80,7 +80,7 @@ function main() {
     }
   }, false);
 
-  overlay_canvas.addEventListener('mousedown', function (e) {
+  overlay_canvas.addEventListener('mousedown', function(e) {
     if (measureRadio.checked) {
       measureDistance(e);
     }
@@ -96,12 +96,6 @@ function main() {
   document.getElementById('canvas_container').appendChild(image_fps.domElement);
 
   var getting_image = false;
-  ep.onimage = function(e) {
-    overlay_context.clearRect(0, 0, width, height);
-    has_image = true;
-    image_data.data.set(e.data.data);
-    image_context.putImageData(image_data, 0, 0);
-  };
 
   ep.onpreview = function(e) {
     if (getting_image)
@@ -130,14 +124,24 @@ function main() {
   snapShotButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : TakeSnapshot: ';
     ep.takeSnapShot().then(
-        function(e) { statusElement.innerHTML += e; },
+        function(photo) {
+          currentPhoto = photo;
+          currentPhoto.getColorImage().then(
+              function(image) {
+                statusElement.innerHTML += 'Sucess';
+                overlay_context.clearRect(0, 0, width, height);
+                has_image = true;
+                image_data.data.set(image.data);
+                image_context.putImageData(image_data, 0, 0);
+              },
+              function(e) { statusElement.innerHTML += e; });},
         function(e) { statusElement.innerHTML += e; });
   };
 
   saveButton.onclick = function(e) {
     // TODO(qjia7): Allow user to config the file path.
     statusElement.innerHTML = 'Status Info : Save as C:/workspace/photo2.jpg ';
-    ep.saveAsXMP('C:/workspace/photo2.jpg').then(
+    ep.saveAsXMP(currentPhoto, 'C:/workspace/photo2.jpg').then(
         function(e) { statusElement.innerHTML += e; },
         function(e) { statusElement.innerHTML += e; });
   };
@@ -147,7 +151,17 @@ function main() {
     statusElement.innerHTML =
         'Status Info : Load from C:/workspace/photo1.jpg : ';
     ep.loadFromXMP('C:/workspace/photo1.jpg').then(
-        function(e) { statusElement.innerHTML += e; },
+        function(photo) {
+          currentPhoto = photo;
+          currentPhoto.getColorImage().then(
+              function(image) {
+                statusElement.innerHTML += 'Sucess';
+                overlay_context.clearRect(0, 0, width, height);
+                has_image = true;
+                image_data.data.set(image.data);
+                image_context.putImageData(image_data, 0, 0);
+              },
+              function(e) { statusElement.innerHTML += e; });},
         function(e) { statusElement.innerHTML += e; });
   };
 

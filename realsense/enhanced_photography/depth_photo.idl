@@ -1,0 +1,25 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// EnhancedPhotography API
+namespace depth_photo {
+  enum PixelFormat {
+    RGB32,
+    DEPTH
+  };
+
+  dictionary Image {
+    PixelFormat format;
+    long width;
+    long height;
+    long[] data;
+  };
+
+  callback ImagePromise = void(Image image, DOMString error);
+
+  interface Functions {
+    static void getColorImage(ImagePromise promise);
+    static void getDepthImage(ImagePromise promise);
+  };
+};
