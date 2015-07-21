@@ -16,11 +16,11 @@ namespace scene_perception {
 class ScenePerceptionInstance : public xwalk::common::Instance {
  public:
   ScenePerceptionInstance();
-  virtual ~ScenePerceptionInstance();
+  ~ScenePerceptionInstance() override;
 
  private:
-  virtual void HandleMessage(const char* msg);
-  virtual void HandleSyncMessage(const char* msg);
+  void HandleMessage(const char* msg) override;
+  void HandleSyncMessage(const char* msg) override;
 
   // Called on sp_ext_thread_
   void OnHandleMessage(scoped_ptr<base::Value> msg);

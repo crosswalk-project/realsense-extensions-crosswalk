@@ -13,11 +13,11 @@ namespace scene_perception {
 class ScenePerceptionExtension : public xwalk::common::Extension {
  public:
   ScenePerceptionExtension();
-  virtual ~ScenePerceptionExtension();
+  ~ScenePerceptionExtension() override;
 
  private:
   // xwalk::common::Extension implementation.
-  virtual xwalk::common::Instance* CreateInstance();
+  xwalk::common::Instance* CreateInstance() override;
 };
 
 }  // namespace scene_perception

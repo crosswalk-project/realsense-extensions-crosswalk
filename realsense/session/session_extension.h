@@ -13,11 +13,11 @@ namespace session {
 class SessionExtension : public xwalk::common::Extension {
  public:
   SessionExtension();
-  virtual ~SessionExtension();
+  ~SessionExtension() override;
 
  private:
   // xwalk::common::Extension implementation.
-  virtual xwalk::common::Instance* CreateInstance();
+  xwalk::common::Instance* CreateInstance() override;
 };
 
 }  // namespace session
