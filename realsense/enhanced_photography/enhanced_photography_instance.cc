@@ -58,8 +58,18 @@ void EnhancedPhotographyInstance::OnEnhancedPhotographyConstructor(
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
   scoped_ptr<Params> params(Params::Create(*info->arguments()));
 
-  scoped_ptr<BindingObject> obj(new EnhancedPhotographyObject());
+  scoped_ptr<BindingObject> obj(new EnhancedPhotographyObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+}
+
+void EnhancedPhotographyInstance::AddBindingObject(const std::string& object_id,
+    scoped_ptr<BindingObject> obj) {
+  store_.AddBindingObject(object_id, obj.Pass());
+}
+
+BindingObject* EnhancedPhotographyInstance::GetBindingObjectById(
+    const std::string& object_id) {
+  return store_.GetBindingObjectById(object_id);
 }
 
 }  // namespace enhanced_photography

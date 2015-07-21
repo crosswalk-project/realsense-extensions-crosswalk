@@ -5,6 +5,8 @@
 #ifndef REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
 #define REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
 
+#include <string>
+
 #include "base/threading/thread.h"
 #include "base/values.h"
 #include "xwalk/common/extension.h"
@@ -24,6 +26,12 @@ class EnhancedPhotographyInstance : public Instance {
 
   // common::Instance implementation.
   void HandleMessage(const char* msg) override;
+
+  void AddBindingObject(const std::string& object_id,
+      scoped_ptr<xwalk::common::BindingObject> obj);
+
+  xwalk::common::BindingObject* GetBindingObjectById(
+      const std::string& object_id);
 
  private:
   void OnHandleMessage(scoped_ptr<base::Value> msg);

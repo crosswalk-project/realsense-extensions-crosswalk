@@ -6,10 +6,12 @@
 #define REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_OBJECT_H_
 
 #include <string>
+#include <vector>
 
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/synchronization/lock.h"
 #include "base/threading/thread.h"
+#include "realsense/enhanced_photography/enhanced_photography_instance.h"
 #include "xwalk/common/event_target.h"
 #include "xwalk/enhanced_photography/enhanced_photography.h"
 
@@ -25,7 +27,7 @@ using namespace jsapi::enhanced_photography; // NOLINT
 
 class EnhancedPhotographyObject : public xwalk::common::EventTarget {
  public:
-  EnhancedPhotographyObject();
+  explicit EnhancedPhotographyObject(EnhancedPhotographyInstance* instance);
   ~EnhancedPhotographyObject() override;
 
   // EventTarget implementation.
@@ -48,15 +50,17 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   bool CreateSessionInstance();
   bool CreateEPInstance();
-  void DispatchPicture(PXCImage* image);
-  bool CopyImage(PXCImage* pxcimage, Image* image);
+  void CreateDepthPhotoObject(PXCPhoto* pxcphoto, Photo* photo);
+  bool CopyImage(PXCImage* pxcimage, jsapi::enhanced_photography::Image* image);
   void ReleaseMainResources();
   void ReleasePreviewResources();
 
   // Run on ep_preview_thread_
   void OnEnhancedPhotoPreviewPipeline();
+  void CaptureOnPreviewThread(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnStopAndDestroyPipeline(
-      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   enum State {
     IDLE,
@@ -64,9 +68,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   };
   State state_;
 
-  bool on_image_;
   bool on_preview_;
-  bool is_snapshot_;
 
   base::Lock lock_;
   base::Thread ep_preview_thread_;
@@ -75,8 +77,11 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   PXCSession* session_;
   PXCSenseManager* sense_manager_;
   PXCEnhancedPhotography* ep_;
-  PXCPhoto* photo_;
+  PXCPhoto* preview_photo_;
   PXCImage* preview_image_;
+
+  EnhancedPhotographyInstance* instance_;
+  std::vector<std::string> photo_objects_;
 };
 
 }  // namespace enhanced_photography

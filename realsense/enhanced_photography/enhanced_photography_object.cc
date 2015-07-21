@@ -7,7 +7,9 @@
 #include <string>
 
 #include "base/bind.h"
+#include "base/guid.h"
 #include "base/logging.h"
+#include "realsense/enhanced_photography/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -19,18 +21,18 @@ const int kCaptureHeight = 240;
 // See https://github.com/otcshare/realsense-extensions-crosswalk/issues/86
 const float kCaptureFramerate = 60.0;
 
-EnhancedPhotographyObject::EnhancedPhotographyObject()
-    : state_(IDLE),
-      on_image_(false),
-      on_preview_(false),
-      is_snapshot_(false),
-      ep_preview_thread_("EnhancedPhotoPreviewThread"),
-      message_loop_(base::MessageLoopProxy::current()),
-      session_(nullptr),
-      sense_manager_(nullptr),
-      ep_(nullptr),
-      photo_(nullptr),
-      preview_image_(nullptr) {
+EnhancedPhotographyObject::EnhancedPhotographyObject(
+    EnhancedPhotographyInstance* instance)
+        : state_(IDLE),
+          on_preview_(false),
+          ep_preview_thread_("EnhancedPhotoPreviewThread"),
+          message_loop_(base::MessageLoopProxy::current()),
+          session_(nullptr),
+          sense_manager_(nullptr),
+          ep_(nullptr),
+          preview_photo_(nullptr),
+          preview_image_(nullptr),
+          instance_(instance) {
   handler_.Register("startPreview",
                     base::Bind(&EnhancedPhotographyObject::OnStartPreview,
                                base::Unretained(this)));
@@ -90,19 +92,23 @@ bool EnhancedPhotographyObject::CreateEPInstance() {
   return true;
 }
 
+void EnhancedPhotographyObject::CreateDepthPhotoObject(PXCPhoto* pxcphoto,
+                                                       Photo* photo) {
+  std::string object_id = base::GenerateGUID();
+  scoped_ptr<BindingObject> obj(new DepthPhotoObject(pxcphoto));
+  instance_->AddBindingObject(object_id, obj.Pass());
+  photo_objects_.push_back(object_id);
+
+  photo->object_id = object_id;
+}
+
 void EnhancedPhotographyObject::StartEvent(const std::string& type) {
-  if (type == std::string("image")) {
-    on_image_ = true;
-  }
   if (type == std::string("preview")) {
     on_preview_ = true;
   }
 }
 
 void EnhancedPhotographyObject::StopEvent(const std::string& type) {
-  if (type == std::string("image")) {
-    on_image_ = false;
-  }
   if (type == std::string("preview")) {
     on_preview_ = false;
   }
@@ -153,6 +159,8 @@ void EnhancedPhotographyObject::OnStartPreview(
   image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
   preview_image_ = sense_manager_->QuerySession()->CreateImage(&image_info);
 
+  preview_photo_ = sense_manager_->QuerySession()->CreatePhoto();
+
   {
     base::AutoLock lock(lock_);
     state_ = PREVIEW;
@@ -197,19 +205,6 @@ void EnhancedPhotographyObject::OnEnhancedPhotoPreviewPipeline() {
       preview_image_->CopyImage(sample->color);
       DispatchEvent("preview");
     }
-
-    if (is_snapshot_) {
-      if (on_image_) {
-        DispatchPicture(sample->color);
-      }
-      if (photo_) photo_->Release();
-      photo_ = sense_manager_->QuerySession()->CreatePhoto();
-      photo_->ImportFromPreviewSample(sample);
-      {
-        base::AutoLock lock(lock_);
-        is_snapshot_ = false;
-      }
-    }
   }
 
   // Go fetching the next samples
@@ -222,7 +217,7 @@ void EnhancedPhotographyObject::OnEnhancedPhotoPreviewPipeline() {
 
 void EnhancedPhotographyObject::OnGetPreviewImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Image img;
+  jsapi::enhanced_photography::Image img;
   if (state_ != PREVIEW) {
     info->PostResult(GetPreviewImage::Results::Create(img,
         "It's not in preview mode."));
@@ -241,34 +236,55 @@ void EnhancedPhotographyObject::OnGetPreviewImage(
 
 void EnhancedPhotographyObject::OnTakeSnapShot(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
   if (state_ != PREVIEW) {
-    info->PostResult(TakeSnapShot::Results::Create(std::string(),
+    info->PostResult(TakeSnapShot::Results::Create(photo,
         "It's not in preview mode."));
     return;
   }
+
   if (!CreateEPInstance()) {
-    info->PostResult(TakeSnapShot::Results::Create(std::string(),
+    info->PostResult(TakeSnapShot::Results::Create(photo,
         "Failed to create a PXCEnhancedPhotography instance"));
     return;
   }
-  {
-    base::AutoLock lock(lock_);
-    is_snapshot_ = true;
+
+  ep_preview_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&EnhancedPhotographyObject::CaptureOnPreviewThread,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+}
+
+void EnhancedPhotographyObject::CaptureOnPreviewThread(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
+  pxcStatus status = sense_manager_->AcquireFrame(true);
+  if (status < PXC_STATUS_NO_ERROR) {
+    info->PostResult(TakeSnapShot::Results::Create(photo,
+        "Failed to AcquireFrame"));
+    return;
   }
-  info->PostResult(TakeSnapShot::Results::Create(std::string("Succuss"),
-                                                 std::string()));
+
+  PXCCapture::Sample *sample = sense_manager_->QuerySample();
+  preview_photo_->ImportFromPreviewSample(sample);
+  PXCPhoto* pxcphoto = session_->CreatePhoto();
+  pxcphoto->CopyPhoto(preview_photo_);
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  sense_manager_->ReleaseFrame();
+  info->PostResult(TakeSnapShot::Results::Create(photo, std::string()));
 }
 
 void EnhancedPhotographyObject::OnLoadFromXMP(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
   if (!CreateSessionInstance()) {
-    info->PostResult(LoadFromXMP::Results::Create(std::string(),
+    info->PostResult(LoadFromXMP::Results::Create(photo,
         "Failed to create SDK session"));
     return;
   }
 
-  if (photo_) photo_->Release();
-  photo_ = session_->CreatePhoto();
+  PXCPhoto* pxcphoto = session_->CreatePhoto();
 
   scoped_ptr<LoadFromXMP::Params> params(
       LoadFromXMP::Params::Create(*info->arguments()));
@@ -277,47 +293,50 @@ void EnhancedPhotographyObject::OnLoadFromXMP(
   int size = strlen(file) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
-  if (photo_->LoadXMP(wfile) < PXC_STATUS_NO_ERROR) {
-    photo_->Release();
-    photo_ = NULL;
-    info->PostResult(LoadFromXMP::Results::Create(std::string(),
+  if (pxcphoto->LoadXMP(wfile) < PXC_STATUS_NO_ERROR) {
+    pxcphoto->Release();
+    pxcphoto = NULL;
+    info->PostResult(LoadFromXMP::Results::Create(photo,
         "Failed to LoadXMP. Please check if file path is valid."));
     return;
   }
 
   if (!CreateEPInstance()) {
-    info->PostResult(LoadFromXMP::Results::Create(std::string(),
+    info->PostResult(LoadFromXMP::Results::Create(photo,
         "Failed to create a PXCEnhancedPhotography instance"));
     return;
   }
 
-  PXCImage* imColor = photo_->QueryReferenceImage();
-  if (imColor && on_image_) {
-    DispatchPicture(imColor);
-  }
-
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(LoadFromXMP::Results::Create(photo, std::string()));
   delete wfile;
-
-  info->PostResult(LoadFromXMP::Results::Create(std::string("Success"),
-                                                std::string()));
 }
 
 void EnhancedPhotographyObject::OnSaveAsXMP(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  if (!photo_) {
-    info->PostResult(SaveAsXMP::Results::Create(std::string(),
-        "There is no available Photo to save."));
+  scoped_ptr<SaveAsXMP::Params> params(
+    SaveAsXMP::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        SaveAsXMP::Results::Create(std::string(), "Malformed parameters"));
     return;
   }
 
-  scoped_ptr<SaveAsXMP::Params> params(
-      SaveAsXMP::Params::Create(*info->arguments()));
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(SaveAsXMP::Results::Create(std::string(),
+        "Invalid Photo object."));
+    return;
+  }
+
   // TODO(Qjia7): Check if file path exists.
   const char* file = (params->filepath).c_str();
   int size = strlen(file) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
-  if (photo_->SaveXMP(wfile) < PXC_STATUS_NO_ERROR) {
+  if (depthPhotoObject->GetPhoto()->SaveXMP(wfile) < PXC_STATUS_NO_ERROR) {
     info->PostResult(SaveAsXMP::Results::Create(std::string(),
         "Failed to saveXMP. Please check if file path is valid."));
   } else {
@@ -345,17 +364,20 @@ void EnhancedPhotographyObject::OnStopPreview(
 void EnhancedPhotographyObject::OnMeasureDistance(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   Distance distance;
-  if (!photo_) {
-    info->PostResult(MeasureDistance::Results::Create(distance,
-        "Please use TakeSnapshot or Load operation to bind a photo firstly."));
-    return;
-  }
-
   scoped_ptr<MeasureDistance::Params> params(
       MeasureDistance::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
         MeasureDistance::Results::Create(distance, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(MeasureDistance::Results::Create(distance,
+        "Invalid Photo object."));
     return;
   }
 
@@ -365,7 +387,9 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   start.y = params->start.y;
   end.x = params->end.x;
   end.y = params->end.y;
-  double length = ep_->MeasureDistance(photo_, start, end);
+  double length = ep_->MeasureDistance(depthPhotoObject->GetPhoto(),
+                                       start,
+                                       end);
 
   distance.distance = length;
   info->PostResult(MeasureDistance::Results::Create(distance, std::string()));
@@ -389,23 +413,8 @@ void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
   }
 }
 
-void EnhancedPhotographyObject::DispatchPicture(PXCImage* image) {
-  Image img;
-  if (!CopyImage(image, &img)) {
-    ErrorEvent event;
-    event.status = "Fail to access image data.";
-    scoped_ptr<base::ListValue> eventData(new base::ListValue);
-    eventData->Append(event.ToValue().release());
-    DispatchEvent("error", eventData.Pass());
-    return;
-  }
-
-  scoped_ptr<base::ListValue> eventData(new base::ListValue);
-  eventData->Append(img.ToValue().release());
-  DispatchEvent("image", eventData.Pass());
-}
-
-bool EnhancedPhotographyObject::CopyImage(PXCImage* pxcimage, Image* img) {
+bool EnhancedPhotographyObject::CopyImage(
+    PXCImage* pxcimage, jsapi::enhanced_photography::Image* img) {
   if (!pxcimage) return false;
 
   PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
@@ -438,6 +447,10 @@ void EnhancedPhotographyObject::ReleasePreviewResources() {
     preview_image_->Release();
     preview_image_ = nullptr;
   }
+  if (preview_photo_) {
+    preview_photo_->Release();
+    preview_photo_ = nullptr;
+  }
   if (sense_manager_) {
     sense_manager_->Close();
     sense_manager_->Release();
@@ -446,15 +459,19 @@ void EnhancedPhotographyObject::ReleasePreviewResources() {
 }
 
 void EnhancedPhotographyObject::ReleaseMainResources() {
-  if (photo_) {
-    photo_->Release();
-    photo_ = nullptr;
-  }
   if (ep_) {
     ep_->Release();
     ep_ = nullptr;
   }
   if (session_) {
+    std::vector<std::string>::const_iterator it;
+    for (it = photo_objects_.begin(); it != photo_objects_.end(); ++it) {
+      DepthPhotoObject* depthPhotoObject =
+        static_cast<DepthPhotoObject*>(instance_->GetBindingObjectById(*it));
+      if (depthPhotoObject) {
+        depthPhotoObject->DestroyPhoto();
+      }
+    }
     session_->Release();
     session_ = nullptr;
   }
