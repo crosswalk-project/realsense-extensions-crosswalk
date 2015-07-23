@@ -48,6 +48,9 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnSaveAsXMP(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDepthResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnEnhanceDepth(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CreateSessionInstance();
   bool CreateEPInstance();
