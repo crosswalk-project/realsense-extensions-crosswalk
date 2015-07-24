@@ -308,7 +308,6 @@ void ScenePerceptionObject::OnRunPipeline() {
     return;
   }
 
-  float image_quality = 0.0;
   PXCCapture::Sample *sample = scene_manager_->QueryScenePerceptionSample();
   if (!sample) {
     // If the SP module is paused, the sample will be NULL.
