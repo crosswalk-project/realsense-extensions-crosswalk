@@ -13,10 +13,10 @@ namespace bench_image {
 class BenchImageExtension : public xwalk::common::Extension {
  public:
   BenchImageExtension();
-  virtual ~BenchImageExtension();
+  ~BenchImageExtension() override;
  private:
   // realsense::common::Extension implementation.
-  virtual xwalk::common::Instance* CreateInstance();
+  xwalk::common::Instance* CreateInstance() override;
 };
 
 }  // namespace bench_image

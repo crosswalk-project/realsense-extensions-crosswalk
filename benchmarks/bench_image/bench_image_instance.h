@@ -15,11 +15,11 @@ namespace bench_image {
 class BenchImageInstance : public xwalk::common::Instance {
  public:
   BenchImageInstance();
-  virtual ~BenchImageInstance();
+  ~BenchImageInstance() override;
 
  private:
-  virtual void HandleMessage(const char* msg);
-  virtual void HandleSyncMessage(const char* msg);
+  void HandleMessage(const char* msg) override;
+  void HandleSyncMessage(const char* msg) override;
 
   void OnBenchImageConstructor(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
