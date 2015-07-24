@@ -290,7 +290,7 @@ void EnhancedPhotographyObject::OnLoadFromXMP(
       LoadFromXMP::Params::Create(*info->arguments()));
   const char* file = (params->filepath).c_str();
   // TODO(Qjia7): Check if file exists.
-  int size = strlen(file) + 1;
+  int size = static_cast<int>(strlen(file)) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
   if (pxcphoto->LoadXMP(wfile) < PXC_STATUS_NO_ERROR) {
@@ -333,7 +333,7 @@ void EnhancedPhotographyObject::OnSaveAsXMP(
 
   // TODO(Qjia7): Check if file path exists.
   const char* file = (params->filepath).c_str();
-  int size = strlen(file) + 1;
+  int size = static_cast<int>(strlen(file)) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
   if (depthPhotoObject->GetPhoto()->SaveXMP(wfile) < PXC_STATUS_NO_ERROR) {
