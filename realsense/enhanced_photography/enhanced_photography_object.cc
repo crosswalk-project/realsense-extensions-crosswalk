@@ -54,6 +54,15 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
                                base::Unretained(this)));
+  handler_.Register("depthRefocus",
+                    base::Bind(&EnhancedPhotographyObject::OnDepthRefocus,
+                               base::Unretained(this)));
+  handler_.Register("depthResize",
+                    base::Bind(&EnhancedPhotographyObject::OnDepthResize,
+                               base::Unretained(this)));
+  handler_.Register("enhanceDepth",
+                    base::Bind(&EnhancedPhotographyObject::OnEnhanceDepth,
+                               base::Unretained(this)));
 }
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
@@ -381,6 +390,7 @@ void EnhancedPhotographyObject::OnMeasureDistance(
     return;
   }
 
+  DCHECK(ep_);
   PXCPointI32 start;
   PXCPointI32 end;
   start.x = params->start.x;
@@ -393,6 +403,122 @@ void EnhancedPhotographyObject::OnMeasureDistance(
 
   distance.distance = length;
   info->PostResult(MeasureDistance::Results::Create(distance, std::string()));
+}
+
+void EnhancedPhotographyObject::OnDepthRefocus(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
+  scoped_ptr<DepthRefocus::Params> params(
+      DepthRefocus::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        DepthRefocus::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(DepthRefocus::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  PXCPointI32 focus;
+  focus.x = params->focus.x;
+  focus.y = params->focus.y;
+
+  double aperture = params->aperture;
+
+  PXCPhoto* pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(),
+                                         focus,
+                                         aperture);
+  if (!pxcphoto) {
+    info->PostResult(DepthRefocus::Results::Create(photo,
+        "Failed to operate DepthRefocus"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(DepthRefocus::Results::Create(photo, std::string()));
+}
+
+void EnhancedPhotographyObject::OnDepthResize(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
+  scoped_ptr<DepthResize::Params> params(
+      DepthResize::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        DepthResize::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(DepthResize::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  PXCSizeI32 size;
+  size.width = params->size.width;
+  size.height = params->size.height;
+
+  PXCPhoto* pxcphoto = ep_->DepthResize(depthPhotoObject->GetPhoto(), size);
+  if (!pxcphoto) {
+    info->PostResult(DepthResize::Results::Create(photo,
+        "Failed to operate DepthResize"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(DepthResize::Results::Create(photo, std::string()));
+}
+
+void EnhancedPhotographyObject::OnEnhanceDepth(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  Photo photo;
+  scoped_ptr<EnhanceDepth::Params> params(
+      EnhanceDepth::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        EnhanceDepth::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+    instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(EnhanceDepth::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  DepthFillQuality quality = params->quality;
+  PXCEnhancedPhotography::DepthFillQuality pxcquality;
+  if (quality == DepthFillQuality::DEPTH_FILL_QUALITY_HIGH)
+    pxcquality = PXCEnhancedPhotography::DepthFillQuality::HIGH;
+  else
+    pxcquality = PXCEnhancedPhotography::DepthFillQuality::LOW;
+
+  PXCPhoto* pxcphoto = ep_->EnhanceDepth(depthPhotoObject->GetPhoto(),
+                                         pxcquality);
+  if (!pxcphoto) {
+    info->PostResult(EnhanceDepth::Results::Create(photo,
+        "Failed to operate EnhanceDepth"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
 }
 
 void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
