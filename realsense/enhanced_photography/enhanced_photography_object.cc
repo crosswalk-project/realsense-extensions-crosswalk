@@ -14,12 +14,13 @@
 namespace realsense {
 namespace enhanced_photography {
 
-// TODO(qjia7): Allow user to config the capture size and framerate
-const int kCaptureWidth = 320;
-const int kCaptureHeight = 240;
-// Align to SP to allow SP and EP work together.
-// See https://github.com/otcshare/realsense-extensions-crosswalk/issues/86
-const float kCaptureFramerate = 60.0;
+// Default preview config.
+// FIXME(qjia7): Enumerate available device configuration and select one.
+static int kCaptureColorWidth = 320;
+static int kCaptureColorHeight = 240;
+static int kCaptureDepthWidth = 320;
+static int kCaptureDepthHeight = 240;
+static float kCaptureFramerate = 60.0;
 
 EnhancedPhotographyObject::EnhancedPhotographyObject(
     EnhancedPhotographyInstance* instance)
@@ -131,6 +132,14 @@ void EnhancedPhotographyObject::OnStartPreview(
     return;
   }
 
+  scoped_ptr<StartPreview::Params> params(
+      StartPreview::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        StartPreview::Results::Create(std::string(), "Malformed parameters"));
+    return;
+  }
+
   if (!CreateSessionInstance()) {
     info->PostResult(StartPreview::Results::Create(std::string(),
         "Failed to create an SDK session"));
@@ -145,13 +154,26 @@ void EnhancedPhotographyObject::OnStartPreview(
     return;
   }
 
+  if (params->config) {
+    if (params->config->color_width)
+      kCaptureColorWidth = *(params->config->color_width.get());
+    if (params->config->color_height)
+      kCaptureColorHeight = *(params->config->color_height.get());
+    if (params->config->depth_width)
+      kCaptureDepthWidth = *(params->config->depth_width.get());
+    if (params->config->depth_height)
+      kCaptureDepthHeight = *(params->config->depth_height.get());
+    if (params->config->framerate)
+      kCaptureFramerate = *(params->config->framerate.get());
+  }
+
   sense_manager_->EnableStream(PXCCapture::STREAM_TYPE_COLOR,
-                               kCaptureWidth,
-                               kCaptureHeight,
+                               kCaptureColorWidth,
+                               kCaptureColorHeight,
                                kCaptureFramerate);
   sense_manager_->EnableStream(PXCCapture::STREAM_TYPE_DEPTH,
-                               kCaptureWidth,
-                               kCaptureHeight,
+                               kCaptureDepthWidth,
+                               kCaptureDepthHeight,
                                kCaptureFramerate);
 
   if (sense_manager_->Init() < PXC_STATUS_NO_ERROR) {
@@ -163,8 +185,8 @@ void EnhancedPhotographyObject::OnStartPreview(
 
   PXCImage::ImageInfo image_info;
   memset(&image_info, 0, sizeof(image_info));
-  image_info.width = kCaptureWidth;
-  image_info.height = kCaptureHeight;
+  image_info.width = kCaptureColorWidth;
+  image_info.height = kCaptureColorHeight;
   image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
   preview_image_ = sense_manager_->QuerySession()->CreateImage(&image_info);
 
