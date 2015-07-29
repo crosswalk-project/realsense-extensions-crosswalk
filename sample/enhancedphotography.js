@@ -8,6 +8,7 @@ var measureRadio = document.getElementById('measure');
 var refocusRadio = document.getElementById('refocus');
 var depthEnhanceRadio = document.getElementById('depthEnhance');
 var depthUpscaleRadio = document.getElementById('depthUpscale');
+var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
 
 var preview_canvas = document.getElementById('preview');
 var image_canvas = document.getElementById('image');
@@ -175,6 +176,57 @@ function depthUpscale() {
       function(e) { statusElement.innerHTML = e; });
 }
 
+function pasteOnPlane(e) {
+  if (has_image == false)
+    return;
+
+  click_count = click_count + 1;
+  var x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
+  var y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
+  if (click_count % 2 == 0) {
+    drawCross(x, y);
+    overlay_context.beginPath();
+    overlay_context.moveTo(start_x, start_y);
+    overlay_context.lineTo(x, y);
+    overlay_context.strokeStyle = 'blue';
+    overlay_context.lineWidth = 2;
+    overlay_context.stroke();
+    overlay_context.closePath();
+
+    var sticker_data = [];
+    var len = 30 * 30 * 4;
+    for (var i = 0; i < len; i += 4) {
+      sticker_data[i] = 150;
+      sticker_data[i + 1] = 100;
+      sticker_data[i + 2] = 100;
+      sticker_data[i + 3] = 255;
+    }
+    var sticker = {
+      width: 30,
+      height: 30,
+      data: sticker_data
+    };
+
+    ep.pasteOnPlane(currentPhoto, sticker, { x: start_x, y: start_y }, { x: x, y: y }).then(
+        function(photo) {
+          savePhoto = photo;
+          photo.getColorImage().then(
+              function(image) {
+                statusElement.innerHTML = 'Finished paste on plane.';
+                image_data.data.set(image.data);
+                image_context.putImageData(image_data, 0, 0);
+              },
+              function(e) { statusElement.innerHTML = e; });
+        },
+        function(e) { statusElement.innerHTML = e; });
+  } else {
+    overlay_context.clearRect(0, 0, width, height);
+    drawCross(x, y);
+    start_x = x;
+    start_y = y;
+  }
+}
+
 function main() {
   ep = realsense.EnhancedPhotography;
 
@@ -244,12 +296,35 @@ function main() {
     }
   }, false);
 
+  pasteOnPlaneRadio.addEventListener('click', function(e) {
+    if (pasteOnPlaneRadio.checked) {
+      if (has_image == false) {
+        statusElement.innerHTML = 'Please capture/load a photo first.';
+        return;
+      }
+
+      statusElement.innerHTML =
+          'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
+      overlay_context.clearRect(0, 0, width, height);
+      currentPhoto.getColorImage().then(
+          function(image) {
+            image_context.clearRect(0, 0, width, height);
+            image_data.data.set(image.data);
+            image_context.putImageData(image_data, 0, 0);
+          },
+          function(e) { statusElement.innerHTML = e; });
+    }
+  }, false);
+
   overlay_canvas.addEventListener('mousedown', function(e) {
     if (measureRadio.checked) {
       measureDistance(e);
     }
     if (refocusRadio.checked) {
       depthRefocus(e);
+    }
+    if (pasteOnPlaneRadio.checked) {
+      pasteOnPlane(e);
     }
   }, false);
 

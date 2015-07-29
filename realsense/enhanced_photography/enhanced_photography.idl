@@ -70,6 +70,7 @@ namespace enhanced_photography {
     static void depthRefocus(Photo photo, Point focus, double aperture, PhotoPromise promise);
     static void depthResize(Photo photo, Size size, PhotoPromise promise);
     static void enhanceDepth(Photo photo, DepthFillQuality quality, PhotoPromise promise);
+    static void pasteOnPlane(Photo photo, Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);

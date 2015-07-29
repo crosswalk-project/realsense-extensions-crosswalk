@@ -50,6 +50,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('depthRefocus', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('depthResize', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('enhanceDepth', Promise, wrapArgs, wrapReturns);
+  this._addMethodWithPromise('pasteOnPlane', Promise, wrapArgs, wrapReturns);
 
   this._addEvent('error');
   this._addEvent('preview');
