@@ -56,7 +56,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   bool CreateSessionInstance();
   bool CreateEPInstance();
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto, Photo* photo);
-  bool CopyImage(PXCImage* pxcimage, jsapi::enhanced_photography::Image* image);
+  bool CopyImage(PXCImage* pxcimage);
   void ReleaseMainResources();
   void ReleasePreviewResources();
 
@@ -87,6 +87,9 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   EnhancedPhotographyInstance* instance_;
   std::vector<std::string> photo_objects_;
+
+  scoped_ptr<uint8[]> binary_message_;
+  size_t binary_message_size_;
 };
 
 }  // namespace enhanced_photography

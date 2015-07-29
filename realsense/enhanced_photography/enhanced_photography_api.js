@@ -40,9 +40,20 @@ var EnhancedPhotography = function(object_id) {
     return new DepthPhoto(data.objectId);
   };
 
+  function wrapImageReturns(data) {
+    var int32_array = new Int32Array(data);
+    // int32_array[0] is the callback id.
+    var width = int32_array[1];
+    var height = int32_array[2];
+    // 3 int32 (4 bytes) values.
+    var header_byte_offset = 3 * 4;
+    var buffer = new Uint8Array(data, header_byte_offset, width * height * 4);
+    return {width: width, height: height, data: buffer};
+  };
+
   this._addMethodWithPromise('startPreview', Promise);
   this._addMethodWithPromise('stopPreview', Promise);
-  this._addMethodWithPromise('getPreviewImage', Promise);
+  this._addMethodWithPromise('getPreviewImage', Promise, null, wrapImageReturns);
   this._addMethodWithPromise('takeSnapShot', Promise, null, wrapReturns);
   this._addMethodWithPromise('loadFromXMP', Promise, null, wrapReturns);
   this._addMethodWithPromise('saveAsXMP', Promise, wrapArgs);
