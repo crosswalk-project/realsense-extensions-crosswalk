@@ -8,8 +8,8 @@
       'target_name': 'all_extensions',
       'type': 'none',
       'dependencies': [
+        'benchmarks/benchmarks.gyp:*',
         'realsense/realsense.gyp:*',
-        'realsense/benchmarks/benchmarks.gyp:*',
       ]
     },
   ],
