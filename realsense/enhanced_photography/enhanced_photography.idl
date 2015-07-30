@@ -37,6 +37,14 @@ namespace enhanced_photography {
     low
   };
 
+  dictionary PreviewConfiguration{
+    long? colorWidth;
+    long? colorHeight;
+    long? depthWidth;
+    long? depthHeight;
+    double? framerate;
+  };
+
   callback DistancePromise = void(Distance distance, DOMString error);
   callback ImagePromise = void(Image image, DOMString error);
   callback PhotoPromise = void(Photo photo, DOMString error);
@@ -48,7 +56,7 @@ namespace enhanced_photography {
   };
 
   interface Functions {
-    static void startPreview(Promise promise);
+    static void startPreview(optional PreviewConfiguration config, Promise promise);
     static void stopPreview(Promise promise);
     static void getPreviewImage(ImagePromise promise);
     static void takeSnapShot(PhotoPromise promise);
