@@ -91,6 +91,9 @@ ScenePerceptionObject::~ScenePerceptionObject() {
   if (state_ != IDLE) {
     OnStop(NULL);
   }
+
+  binary_message_.reset();
+  meshing_data_message_.reset();
 }
 
 void ScenePerceptionObject::ReleaseResources() {
@@ -277,6 +280,12 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
   latest_depth_image_ = session_->CreateImage(&image_info);
 
+  // binary message: call_id (i32), width (i32), height (i32),
+  // color (int8 buffer), depth (int16 buffer)
+  binary_message_size_ = 4 * 3 + kCaptureWidth * kCaptureHeight * (4 + 2);
+  binary_message_.reset(
+      new uint8[binary_message_size_]);
+
   state_ = CHECKING;
 
   scenemanager_thread_.message_loop()->PostTask(
@@ -316,27 +325,27 @@ void ScenePerceptionObject::OnRunPipeline() {
     // Query the raw color/depth images to support live preview and
     // calculation of scene quality
     sample = scene_manager_->QuerySample();
+  }
 
-    if (!sample || !sample->color || !sample->depth) {
-      ErrorEvent event;
-      event.status = "fail to query sample";
+  if (!sample || !sample->color || !sample->depth) {
+    ErrorEvent event;
+    event.status = "fail to query sample";
 
-      scoped_ptr<base::ListValue> eventData(new base::ListValue);
-      eventData->Append(event.ToValue().release());
+    scoped_ptr<base::ListValue> eventData(new base::ListValue);
+    eventData->Append(event.ToValue().release());
 
-      DispatchEvent("error", eventData.Pass());
+    DispatchEvent("error", eventData.Pass());
 
-      ReleaseResources();
-      state_ = IDLE;
-      return;
-    }
+    ReleaseResources();
+    state_ = IDLE;
+    return;
+  }
 
-    if (on_sample_) {
-      latest_color_image_->CopyImage(sample->color);
-      latest_depth_image_->CopyImage(sample->depth);
+  if (on_sample_) {
+    latest_color_image_->CopyImage(sample->color);
+    latest_depth_image_->CopyImage(sample->depth);
 
-      DispatchEvent("sample");
-    }
+    DispatchEvent("sample");
   }
 
   if (state_ == CHECKING) {
@@ -398,7 +407,7 @@ void ScenePerceptionObject::OnRunPipeline() {
         DLOG(INFO) << "Request meshing";
         meshing_thread_.message_loop()->PostTask(
             FROM_HERE,
-            base::Bind(&ScenePerceptionObject::OnDoMeshingUpdate,
+            base::Bind(&ScenePerceptionObject::DoMeshingUpdateOnMeshingThread,
                        base::Unretained(this)));
       }
     }
@@ -605,66 +614,85 @@ void ScenePerceptionObject::OnDisableMeshing(
                  base::Passed(&info)));
 }
 
-void ScenePerceptionObject::OnDoMeshingUpdate() {
+void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread() {
   DCHECK_EQ(meshing_thread_.message_loop(), base::MessageLoop::current());
   DLOG(INFO) << "Meshing starts";
   pxcStatus status = scene_perception_->DoMeshingUpdate(block_meshing_data_,
-                                                       0,
-                                                       &meshing_update_info_);
+                                                        0,
+                                                        &meshing_update_info_);
   scene_perception_->SetMeshingThresholds(0.03f, 0.005f);
-  if (status < PXC_STATUS_NO_ERROR)
-    return;
+  if (status < PXC_STATUS_NO_ERROR) {
+    scenemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::OnMeshingResult,
+                 base::Unretained(this)));
+  }
 
   DLOG(INFO) << "Meshing succeeds";
 
-  MeshingEvent event;
-
   float* vertices = block_meshing_data_->QueryVertices();
   int num_of_vertices = block_meshing_data_->QueryNumberOfVertices();
-  event.number_of_vertices = num_of_vertices;
-  for (int i = 0; i < 4 * num_of_vertices; ++i) {
-    event.vertices.push_back(vertices[i]);
-  }
-
-  DLOG(INFO) << "event.number_of_vertices: " << num_of_vertices;
-  DLOG(INFO) << "event.vertices: " << event.vertices.size();
-
   unsigned char* colors = block_meshing_data_->QueryVerticesColor();
-  for (int i = 0; i < 3 * num_of_vertices; ++i) {
-    event.colors.push_back(colors[i]);
-  }
-  DLOG(INFO) << "event.colors: " << event.colors.size();
-
   int* faces = block_meshing_data_->QueryFaces();
   int num_of_faces = block_meshing_data_->QueryNumberOfFaces();
-  event.number_of_faces = num_of_faces;
-  for (int i = 0; i < 3 * num_of_faces; ++i) {
-    event.faces.push_back(faces[i]);
-  }
-
-  DLOG(INFO) << "event.number_of_faces: " << num_of_faces;
-  DLOG(INFO) << "event.faces: " << event.faces.size();
-
   int num_of_blockmeshes = block_meshing_data_->QueryNumberOfBlockMeshes();
+
+  const int header_byte_length = 4 * sizeof(int);
+  const int blockmesh_int_length = 5;
+  const int blockmesh_byte_length = blockmesh_int_length * sizeof(int);
+  const int vertices_byte_length = num_of_vertices * 4 * sizeof(float);
+  const int faces_byte_length = num_of_faces * 3 * sizeof(int);
+  const int colors_byte_length = num_of_vertices * 3 * sizeof(unsigned char);
+
+  meshing_data_message_size_ =
+      header_byte_length
+      + num_of_blockmeshes * blockmesh_byte_length
+      + vertices_byte_length
+      + faces_byte_length
+      + colors_byte_length;
+
+  meshing_data_message_.reset(
+      new uint8[meshing_data_message_size_]);
+  int* int_array = reinterpret_cast<int*>(meshing_data_message_.get());
+  int_array[1] = num_of_blockmeshes;
+  int_array[2] = num_of_vertices;
+  int_array[3] = num_of_faces;
+
   PXCBlockMeshingData::PXCBlockMesh *block_mesh_data =
       block_meshing_data_->QueryBlockMeshes();
+  char* block_meshes_offset =
+      reinterpret_cast<char*>(meshing_data_message_.get()) +
+      header_byte_length;
+  int* block_meshes_array = reinterpret_cast<int*>(block_meshes_offset);
   for (int i = 0; i < num_of_blockmeshes; ++i, ++block_mesh_data) {
-    linked_ptr<BlockMesh> block_mesh(new BlockMesh);
-    std::ostringstream id_str;
-    id_str << block_mesh_data->meshId;
-    block_mesh->mesh_id = id_str.str();
-    block_mesh->vertex_start_index = block_mesh_data->vertexStartIndex;
-    block_mesh->num_vertices = block_mesh_data->numVertices;
-    block_mesh->face_start_index = block_mesh_data->faceStartIndex;
-    block_mesh->num_faces = block_mesh_data->numFaces;
-    event.block_meshes.push_back(block_mesh);
+    block_meshes_array[i * blockmesh_int_length] = block_mesh_data->meshId;
+    block_meshes_array[i * blockmesh_int_length + 1] =
+        block_mesh_data->vertexStartIndex;
+    block_meshes_array[i * blockmesh_int_length + 2] =
+        block_mesh_data->numVertices;
+    block_meshes_array[i * blockmesh_int_length + 3] =
+        block_mesh_data->faceStartIndex;
+    block_meshes_array[i * blockmesh_int_length + 4] =
+        block_mesh_data->numFaces;
   }
 
-  scoped_ptr<base::ListValue> eventData(new base::ListValue);
-  eventData->Append(event.ToValue().release());
+  char* vertices_offset = block_meshes_offset
+      + num_of_blockmeshes * blockmesh_byte_length;
+  memcpy(vertices_offset, reinterpret_cast<char*>(vertices),
+         vertices_byte_length);
+
+  char* faces_offset = vertices_offset + vertices_byte_length;
+  memcpy(faces_offset, reinterpret_cast<char*>(faces), faces_byte_length);
+
+  char* colors_offset = faces_offset + faces_byte_length;
+  memcpy(colors_offset, reinterpret_cast<char*>(colors), colors_byte_length);
+
+  scoped_ptr<base::ListValue> eventData(new base::ListValue());
+  eventData->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(meshing_data_message_.get()),
+      meshing_data_message_size_));
 
   DispatchEvent("meshing", eventData.Pass());
-  DLOG(INFO) << "Dispatch meshing event";
 
   scenemanager_thread_.message_loop()->PostTask(
       FROM_HERE,
@@ -699,55 +727,61 @@ void ScenePerceptionObject::OnCopySample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(scenemanager_thread_.message_loop(), base::MessageLoop::current());
 
-  Sample sample;
-
   PXCImage* color = latest_color_image_;
   PXCImage* depth = latest_depth_image_;
 
   if (color && depth) {
     PXCImage::ImageInfo color_info = color->QueryInfo();
-    sample.color.width = color_info.width;
-    sample.color.height = color_info.height;
+    int* int_array = reinterpret_cast<int*>(binary_message_.get());
+    int_array[1] = color_info.width;
+    int_array[2] = color_info.height;
+    int length = color_info.width * color_info.height;
     PXCImage::ImageData color_data;
     pxcStatus status = color->AcquireAccess(
         PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_RGB32, &color_data);
+    uint8_t* uint8_array =
+        reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
     if (status >= PXC_STATUS_NO_ERROR) {
+      int k = 0;
       for (int y = 0; y < color_info.height; ++y) {
         for (int x = 0; x < color_info.width; ++x) {
           uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
-          int i = x * 4 + color_data.pitches[0] * y;
-          sample.color.data.push_back(rgb32[i + 2]);
-          sample.color.data.push_back(rgb32[i + 1]);
-          sample.color.data.push_back(rgb32[i]);
-          sample.color.data.push_back(rgb32[i + 3]);
+          int i = (x + color_info.width * y) * 4;
+          uint8_array[k++] = rgb32[i + 2];
+          uint8_array[k++] = rgb32[i + 1];
+          uint8_array[k++] = rgb32[i];
+          uint8_array[k++] = rgb32[i + 3];
         }
       }
       color->ReleaseAccess(&color_data);
     }
 
     PXCImage::ImageInfo depth_info = depth->QueryInfo();
-    sample.depth.width = depth_info.width;
-    sample.depth.height = depth_info.height;
     PXCImage::ImageData depth_data;
     status = depth->AcquireAccess(
         PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_DEPTH, &depth_data);
+    uint16_t* uint16_array = reinterpret_cast<uint16_t*>(
+        binary_message_.get() + 3 * sizeof(int) + length * 4);
     if (status >= PXC_STATUS_NO_ERROR) {
+      int k = 0;
       for (int y = 0; y < depth_info.height; ++y) {
         for (int x = 0; x < depth_info.width; ++x) {
           uint16_t* depth16 =
               reinterpret_cast<uint16_t*>(
                   depth_data.planes[0] + depth_data.pitches[0] * y);
-          sample.depth.data.push_back(depth16[x]);
+          uint16_array[k++] = depth16[x];
         }
       }
       depth->ReleaseAccess(&depth_data);
     }
 
-    info->PostResult(GetSample::Results::Create(sample, std::string()));
+    scoped_ptr<base::ListValue> result(new base::ListValue());
+    result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(binary_message_.get()),
+        binary_message_size_));
+    info->PostResult(result.Pass());
   } else {
-    info->PostResult(
-        GetSample::Results::Create(sample, std::string("no sample")));
-    return;
+    // TODO(ningxin): support error in binary message
   }
 }
 

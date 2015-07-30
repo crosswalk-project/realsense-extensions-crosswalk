@@ -102,7 +102,7 @@ function main() {
     updateCameraPose(e.data.cameraPose, e.data.accuracy);
   };
   sp.onmeshing = function(e) {
-    var func = updateMeshes.bind(this, e.data);
+    var func = updateMeshes.bind(this, e.meshes);
     // do the updateMeshes asynchronously
     setTimeout(func, 0);
   };
