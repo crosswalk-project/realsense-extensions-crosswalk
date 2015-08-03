@@ -17,7 +17,8 @@ var preview_context, preview_data, image_context, image_data;
 var overlay_context;
 var ep;
 var currentPhoto, savePhoto;
-var width = 320, height = 240;
+var width = 640, height = 480;
+var canvas_width = 400, canvas_height = 300;
 
 var click_count = 0;
 var start_x = 0;
@@ -26,7 +27,8 @@ var has_image = false;
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
-  var imageSize = 320 * 240;
+  var depthImageData = depthImage.data;
+  var imageSize = depthImage.width * depthImage.height;
   for (var l = 0; l < imageSize; ++l) {
     rgbImage[l * 4] = 0;
     rgbImage[l * 4 + 1] = 0;
@@ -35,10 +37,9 @@ function ConvertDepthToRGBUsingHistogram(
   }
   // Produce a cumulative histogram of depth values
   var histogram = new Int32Array(256 * 256);
-  var imageSize = 320 * 240;
   for (var i = 0; i < imageSize; ++i) {
-    if (depthImage[i]) {
-      ++histogram[depthImage[i]];
+    if (depthImageData[i]) {
+      ++histogram[depthImageData[i]];
     }
   }
   for (var j = 1; j < 256 * 256; ++j) {
@@ -52,10 +53,10 @@ function ConvertDepthToRGBUsingHistogram(
 
   // Produce RGB image by using the histogram to interpolate between two colors
   for (var l = 0; l < imageSize; ++l) {
-    if (depthImage[l]) { // For valid depth values (depth > 0)
+    if (depthImageData[l]) { // For valid depth values (depth > 0)
       // Use the histogram entry (in the range of 0..256) to interpolate between nearColor and
       // farColor
-      var t = histogram[depthImage[l]];
+      var t = histogram[depthImageData[l]];
       rgbImage[l * 4] = ((256 - t) * nearColor[0] + t * farColor[0]) >> 8;
       rgbImage[l * 4 + 1] = ((256 - t) * nearColor[1] + t * farColor[1]) >> 8;
       rgbImage[l * 4 + 2] = ((256 - t) * nearColor[2] + t * farColor[2]) >> 8;
@@ -82,8 +83,8 @@ function measureDistance(e) {
     return;
 
   click_count = click_count + 1;
-  var x = e.clientX - overlay_canvas.offsetLeft;
-  var y = e.clientY - overlay_canvas.offsetTop;
+  var x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
+  var y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
   if (click_count % 2 == 0) {
     drawCross(x, y);
     overlay_context.beginPath();
@@ -117,8 +118,8 @@ function depthRefocus(e) {
   if (has_image == false)
     return;
 
-  var x = e.clientX - overlay_canvas.offsetLeft;
-  var y = e.clientY - overlay_canvas.offsetTop;
+  var x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
+  var y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
 
   overlay_context.clearRect(0, 0, width, height);
   drawCross(x, y);
@@ -128,6 +129,7 @@ function depthRefocus(e) {
         savePhoto = photo;
         photo.getColorImage().then(
             function(image) {
+              image_data = image_context.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Depth refocus success. Please select focus point again.';
               overlay_context.clearRect(0, 0, width, height);
               image_data.data.set(image.data);
@@ -144,9 +146,11 @@ function depthEnhance() {
         savePhoto = photo;
         photo.getDepthImage().then(
             function(image) {
+              image_context.clearRect(0, 0, width, height);
+              image_data = image_context.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Finished depth enhancing.';
               ConvertDepthToRGBUsingHistogram(
-                  image.data, [255, 255, 255], [0, 0, 0], image_data.data);
+                  image, [255, 255, 255], [0, 0, 0], image_data.data);
               image_context.putImageData(image_data, 0, 0);
             },
             function(e) { statusElement.innerHTML = e; });
@@ -155,14 +159,15 @@ function depthEnhance() {
 }
 
 function depthUpscale() {
-  ep.depthResize(currentPhoto, { width: 320, height: 240 }).then(
+  ep.depthResize(currentPhoto, { width: width, height: height }).then(
       function(photo) {
         savePhoto = photo;
         photo.getDepthImage().then(
             function(image) {
+              image_data = image_context.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Finished depth upscaling.';
               ConvertDepthToRGBUsingHistogram(
-                  image.data, [255, 255, 255], [0, 0, 0], image_data.data);
+                  image, [255, 255, 255], [0, 0, 0], image_data.data);
               image_context.putImageData(image_data, 0, 0);
             },
             function(e) { statusElement.innerHTML = e; });
@@ -188,6 +193,8 @@ function main() {
       overlay_context.clearRect(0, 0, width, height);
       currentPhoto.getColorImage().then(
           function(image) {
+            image_context.clearRect(0, 0, width, height);
+            image_data = image_context.createImageData(image.width, image.height);
             image_data.data.set(image.data);
             image_context.putImageData(image_data, 0, 0);
           },
@@ -206,6 +213,8 @@ function main() {
       overlay_context.clearRect(0, 0, width, height);
       currentPhoto.getColorImage().then(
           function(image) {
+            image_context.clearRect(0, 0, width, height);
+            image_data = image_context.createImageData(image.width, image.height);
             image_data.data.set(image.data);
             image_context.putImageData(image_data, 0, 0);
           },
@@ -245,7 +254,6 @@ function main() {
   }, false);
 
   preview_data = preview_context.createImageData(width, height);
-  image_data = image_context.createImageData(width, height);
 
   var image_fps = new Stats();
   image_fps.domElement.style.position = 'absolute';
@@ -287,6 +295,7 @@ function main() {
           savePhoto = photo;
           currentPhoto.getColorImage().then(
               function(image) {
+                image_data = image_context.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
                 overlay_context.clearRect(0, 0, width, height);
                 image_data.data.set(image.data);
@@ -322,6 +331,8 @@ function main() {
           savePhoto = photo;
           currentPhoto.getColorImage().then(
               function(image) {
+                image_context.clearRect(0, 0, width, height);
+                image_data = image_context.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
                 overlay_context.clearRect(0, 0, width, height);
                 image_data.data.set(image.data);

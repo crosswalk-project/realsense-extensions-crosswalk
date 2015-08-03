@@ -3,8 +3,8 @@
     <title>RealSense Enhanced Photography API Test</title>
     <style>
       canvas {
-        width: 320px;
-        height: 240px;
+        width: 400px;
+        height: 300px;
         border: 1px solid #000000;
       }
     </style>
@@ -23,15 +23,15 @@
     <input type='radio' id='depthEnhance' name='RadioMethod'>Depth Enhance</input>
     <input type='radio' id='depthUpscale' name='RadioMethod'>Depth Upscale</input>
   </div>
-  <p style='position: absolute; left: 140px; top: 330px;'>Preview</p>
-  <p style='position: absolute; left: 500px; top: 330px;'>Photo</p>
+  <p style='position: absolute; left: 140px; top: 390px;'>Preview</p>
+  <p style='position: absolute; left: 600px; top: 390px;'>Photo</p>
   <div id='canvas_container'>
-    <canvas id='preview' width='320' height='240' style='position: absolute; left: 10px; top: 90px;'></canvas>
-    <canvas id='image' width='320' height='240' style='position: absolute; left: 350px; top: 90px;'></canvas>
-    <canvas id='overlay' width='320' height='240' style='position: absolute; left: 350px; top: 90px;'></cavnas>
-  </div>
+    <canvas id='preview' width='640' height='480' style='position: absolute; left: 10px; top: 90px;'></canvas>
+    <canvas id='image' width='640' height='480' style='position: absolute; left: 425px; top: 90px;'></canvas>
+    <canvas id='overlay' width='640' height='480' style='position: absolute; left: 425px; top: 90px;'></cavnas>
+</div>
 
-  <p id='status' style='position: absolute; left: 10px; top: 390px;'></p>
+  <p id='status' style='position: absolute; left: 10px; top: 430px;'></p>
   </body>
   <script src="libs/stats.min.js"></script>
   <script src="enhancedphotography.js"></script>
