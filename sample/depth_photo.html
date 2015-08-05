@@ -1,0 +1,90 @@
+<html>
+<head>
+  <title>RealSense Depth Photo API Test</title>
+  <style>
+    canvas {
+      width: 400px;
+      height: 300px;
+      border: 1px solid #000000;
+    }
+  </style>
+</head>
+<body>
+  <div style='margin-bottom:23px;'>
+    <button id='load' style='position: absolute; left: 190px; top: 20px;'>Load</button>
+    <button id='setImageColor' style='position: absolute; left: 550px; top: 20px;'>SetImageColor</button>
+  </div>
+  <div id='canvas_container'>
+    <canvas id='old' width='640' height='480' style='position: absolute; left: 10px; top: 70px;'></canvas>
+    <canvas id='new' width='640' height='480' style='position: absolute; left: 425px; top: 70px;'></canvas>
+  </div>
+  <p id='status' style='position: absolute; left: 10px; top: 370px;'></p>
+</body>
+<script>
+  var ep = realsense.EnhancedPhotography;
+  var old_canvas = document.getElementById('old');
+  var new_canvas = document.getElementById('new');
+  var loadButton = document.getElementById('load');
+  var setButton = document.getElementById('setImageColor');
+  var statusElement = document.getElementById('status');
+
+  var width, height;
+  var old_context = old_canvas.getContext('2d');
+  var new_context = new_canvas.getContext('2d');
+  var old_context_data, new_context_data;
+  var currentPhoto;
+  loadButton.onclick = function (e) {
+     statusElement.innerHTML =
+        'Status Info : Load from C:/workspace/photo1.jpg : ';
+    ep.loadFromXMP('C:/workspace/photo1.jpg').then(
+        function(photo) {
+          currentPhoto = photo;
+          currentPhoto.getColorImage().then(
+              function(image) {
+                width = image.width; height = image.height;
+                old_context.clearRect(0, 0, width, height);
+                old_context_data = old_context.createImageData(image.width, image.height);
+                statusElement.innerHTML += 'Sucess';
+                old_context_data.data.set(image.data);
+                old_context.putImageData(old_context_data, 0, 0);
+              },
+              function(e) { statusElement.innerHTML += e; });
+        },
+        function(e) { statusElement.innerHTML += e; });
+  };
+
+  setButton.onclick = function(e) {
+    if (!currentPhoto) {
+      statusElement.innerHTML = 'Please load a DepthPhoto first';
+      return;
+    }
+    var test_data = [];
+    var len = width * height * 4;
+    for (var i = 0; i < len; i += 4) {
+      test_data[i] = 150;
+      test_data[i + 1] = 100;
+      test_data[i + 2] = 100;
+      test_data[i + 3] = 255;
+    }
+    var testImage = {
+      format: 'RGB32',
+      width: width,
+      height: height,
+      data: test_data
+    };
+    currentPhoto.setColorImage(testImage).then(
+        function() { statusElement.innerHTML = 'Set color image successful'; },
+        function(e) { statusElement.innerHTML = e; });
+
+    currentPhoto.getColorImage().then(
+        function(image) {
+          new_context.clearRect(0, 0, width, height);
+          new_context_data = new_context.createImageData(image.width, image.height);
+          new_context_data.data.set(image.data);
+          new_context.putImageData(new_context_data, 0, 0);
+        },
+        function(e) { statusElement.innerHTML += e; });
+  };
+
+</script>
+</html>

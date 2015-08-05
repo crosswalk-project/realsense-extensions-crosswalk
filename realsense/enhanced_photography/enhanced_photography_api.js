@@ -10,6 +10,8 @@ var DepthPhoto = function(object_id) {
 
   this._addMethodWithPromise('getColorImage', Promise);
   this._addMethodWithPromise('getDepthImage', Promise);
+  this._addMethodWithPromise('setColorImage', Promise);
+  this._addMethodWithPromise('setDepthImage', Promise);
 
   Object.defineProperties(this, {
     'photoId': {
