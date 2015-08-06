@@ -1,0 +1,37 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("bench_image_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "bench_image.idl" ]
+}
+
+xwalk_js2c("bench_image_js") {
+  sources = [ "bench_image_api.js" ]
+}
+
+shared_library("bench_image") {
+  sources = [
+    "bench_image_extension.cc",
+    "bench_image_extension.h",
+    "bench_image_instance.cc",
+    "bench_image_instance.h",
+    "bench_image_object.cc",
+    "bench_image_object.h"
+  ]
+  deps = [
+    ":bench_image_idl",
+    ":bench_image_js",
+    "//xwalk/common:common_static",
+  ]
+  configs += [
+    "//extensions/realsense/common:rssdk_config",
+  ]
+  include_dirs = [
+    "../..",
+    "$target_gen_dir",
+  ]
+}

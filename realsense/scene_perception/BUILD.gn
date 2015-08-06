@@ -1,0 +1,37 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("scene_perception_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "scene_perception.idl" ]
+}
+
+xwalk_js2c("scene_perception_js") {
+  sources = [ "scene_perception_api.js" ]
+}
+
+shared_library("scene_perception") {
+  sources = [
+    "scene_perception_extension.cc",
+    "scene_perception_extension.h",
+    "scene_perception_instance.cc",
+    "scene_perception_instance.h",
+    "scene_perception_object.cc",
+    "scene_perception_object.h",
+  ]
+  deps = [
+    ":scene_perception_idl",
+    ":scene_perception_js",
+    "//xwalk/common:common_static",
+  ]
+  configs += [
+    "//extensions/realsense/common:rssdk_config",
+  ]
+  include_dirs = [
+    "../..",
+    "$target_gen_dir",
+  ]
+}
