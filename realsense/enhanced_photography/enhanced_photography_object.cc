@@ -64,6 +64,9 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("enhanceDepth",
                     base::Bind(&EnhancedPhotographyObject::OnEnhanceDepth,
                                base::Unretained(this)));
+  handler_.Register("pasteOnPlane",
+                    base::Bind(&EnhancedPhotographyObject::OnPasteOnPlane,
+                               base::Unretained(this)));
 }
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
@@ -541,6 +544,76 @@ void EnhancedPhotographyObject::OnEnhanceDepth(
 
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
+}
+
+void EnhancedPhotographyObject::OnPasteOnPlane(
+    scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
+  Photo photo;
+  scoped_ptr<PasteOnPlane::Params> params(
+      PasteOnPlane::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        PasteOnPlane::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(PasteOnPlane::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  PXCImage::ImageInfo img_info;
+  PXCImage::ImageData img_data;
+  memset(&img_info, 0, sizeof(img_info));
+  memset(&img_data, 0, sizeof(img_data));
+
+  img_info.width = params->image.width;
+  img_info.height = params->image.height;
+  img_info.format = PXCImage::PIXEL_FORMAT_RGB32;
+
+  int bufSize = img_info.width * img_info.height * 4;
+  img_data.planes[0] = new BYTE[bufSize];
+  img_data.pitches[0] = img_info.width * 4;
+  img_data.format = img_info.format;
+
+  for (int y = 0; y < img_info.height; y++) {
+    for (int x = 0; x < img_info.width; x++) {
+      int i = x * 4 + img_data.pitches[0] * y;
+      img_data.planes[0][i] = params->image.data[i + 2];
+      img_data.planes[0][i + 1] = params->image.data[i + 1];
+      img_data.planes[0][i + 2] = params->image.data[i];
+      img_data.planes[0][i + 3] = params->image.data[i + 3];
+    }
+  }
+
+  PXCImage* pxcimg = session_->CreateImage(&img_info, &img_data);
+
+  PXCPointI32 start, end;
+  start.x = params->top_left.x;
+  start.y = params->top_left.y;
+
+  end.x = params->bottom_left.x;
+  end.y = params->bottom_left.y;
+
+  PXCPhoto* pxcphoto = ep_->PasteOnPlane(depthPhotoObject->GetPhoto(),
+                                         pxcimg,
+                                         start,
+                                         end);
+  if (!pxcphoto) {
+    info->PostResult(PasteOnPlane::Results::Create(photo,
+        "Failed to operate PasteOnPlane"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(PasteOnPlane::Results::Create(photo, std::string()));
+
+  pxcimg->Release();
 }
 
 void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
