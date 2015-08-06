@@ -28,6 +28,8 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
  private:
   void OnGetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CopyColorImage(PXCImage* pxcimage, jsapi::depth_photo::Image* image);
   bool CopyDepthImage(PXCImage* pxcimage, jsapi::depth_photo::Image* image);
