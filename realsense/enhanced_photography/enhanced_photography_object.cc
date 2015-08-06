@@ -16,10 +16,10 @@ namespace enhanced_photography {
 
 // Default preview config.
 // FIXME(qjia7): Enumerate available device configuration and select one.
-static int kCaptureColorWidth = 320;
-static int kCaptureColorHeight = 240;
-static int kCaptureDepthWidth = 320;
-static int kCaptureDepthHeight = 240;
+static int kCaptureColorWidth = 640;
+static int kCaptureColorHeight = 480;
+static int kCaptureDepthWidth = 480;
+static int kCaptureDepthHeight = 360;
 static float kCaptureFramerate = 60.0;
 
 EnhancedPhotographyObject::EnhancedPhotographyObject(
