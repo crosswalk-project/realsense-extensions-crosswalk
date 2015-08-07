@@ -8,6 +8,16 @@ var DepthPhoto = function(object_id) {
   if (object_id == undefined)
     internal.postMessage('depthPhotoConstructor', [this._id]);
 
+  function wrapColorImageArgs(args) {
+    if (args[0].data instanceof Uint8Array ||
+        args[0].data instanceof Uint8ClampedArray) {
+      var uint8_array = args[0].data;
+      var buffer = Array.prototype.slice.call(uint8_array);
+      args[0].data = buffer;
+    }
+    return args;
+  };
+
   function wrapColorImageReturns(data) {
     var int32_array = new Int32Array(data);
     // int32_array[0] is the callback id.
@@ -34,7 +44,7 @@ var DepthPhoto = function(object_id) {
   this._addMethodWithPromise('queryOriginalImage', Promise, null, wrapColorImageReturns);
   this._addMethodWithPromise('queryDepthImage', Promise, null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', Promise, null, wrapDepthImageReturns);
-  this._addMethodWithPromise('setColorImage', Promise);
+  this._addMethodWithPromise('setColorImage', Promise, wrapColorImageArgs);
   this._addMethodWithPromise('setDepthImage', Promise);
 
   Object.defineProperties(this, {
@@ -72,7 +82,17 @@ var EnhancedPhotography = function(object_id) {
     // 3 int32 (4 bytes) values.
     var header_byte_offset = 3 * 4;
     var buffer = new Uint8Array(data, header_byte_offset, width * height * 4);
-    return {width: width, height: height, data: buffer};
+    return { format: 'RGB32', width: width, height: height, data: buffer };
+  };
+
+  function wrapMaskImageReturns(data) {
+    var fload32_array = new Float32Array(data);
+    var width = parseInt(fload32_array[1]);
+    var height = parseInt(fload32_array[2]);
+    // 3 float32 (4 bytes) values.
+    var header_byte_offset = 3 * 4;
+    var buffer = new Float32Array(data, header_byte_offset, width * height);
+    return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
   };
 
   this._addMethodWithPromise('startPreview', Promise);
@@ -88,6 +108,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('depthResize', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('enhanceDepth', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('pasteOnPlane', Promise, wrapArgs, wrapReturns);
+  this._addMethodWithPromise('computeMaskFromCoordinate', Promise, wrapArgs, wrapMaskImageReturns);
 
   this._addEvent('error');
   this._addEvent('preview');

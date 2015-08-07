@@ -52,11 +52,14 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnDepthResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnEnhanceDepth(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPasteOnPlane(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnComputeMaskFromCoordinate(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CreateSessionInstance();
   bool CreateEPInstance();
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto, Photo* photo);
-  bool CopyImage(PXCImage* pxcimage);
+  bool CopyColorImage(PXCImage* pxcimage);
+  bool CopyMaskImage(PXCImage* pxcimage);
   void ReleaseMainResources();
   void ReleasePreviewResources();
 
@@ -89,6 +92,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   std::vector<std::string> photo_objects_;
 
   scoped_ptr<uint8[]> binary_message_;
+  scoped_ptr<float_t[]> float_binary_message_;
   size_t binary_message_size_;
 };
 

@@ -68,6 +68,9 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("pasteOnPlane",
                     base::Bind(&EnhancedPhotographyObject::OnPasteOnPlane,
                                base::Unretained(this)));
+  handler_.Register("computeMaskFromCoordinate",
+      base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromCoordinate,
+                 base::Unretained(this)));
 }
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
@@ -252,14 +255,14 @@ void EnhancedPhotographyObject::OnEnhancedPhotoPreviewPipeline() {
 
 void EnhancedPhotographyObject::OnGetPreviewImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::enhanced_photography::Image img;
+  jsapi::depth_photo::Image img;
   if (state_ != PREVIEW) {
     info->PostResult(GetPreviewImage::Results::Create(img,
         "It's not in preview mode."));
     return;
   }
 
-  if (!CopyImage(preview_image_)) {
+  if (!CopyColorImage(preview_image_)) {
     info->PostResult(GetPreviewImage::Results::Create(img,
         "Failed to get preview image data."));
     return;
@@ -620,6 +623,48 @@ void EnhancedPhotographyObject::OnPasteOnPlane(
   pxcimg->Release();
 }
 
+void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::MaskImage image;
+  scoped_ptr<ComputeMaskFromCoordinate::Params> params(
+      ComputeMaskFromCoordinate::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(ComputeMaskFromCoordinate::Results::Create(
+        image, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+    instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  PXCPointI32 point;
+  point.x = params->point.x;
+  point.y = params->point.y;
+
+  PXCImage* pxcimage =
+      ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(), point);
+  if (!CopyMaskImage(pxcimage)) {
+    info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
+        "Failed to get image data."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(float_binary_message_.get()),
+      binary_message_size_ * 4));
+  info->PostResult(result.Pass());
+
+  pxcimage->Release();
+}
+
 void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_preview_thread_.message_loop(), base::MessageLoop::current());
@@ -638,7 +683,7 @@ void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
   }
 }
 
-bool EnhancedPhotographyObject::CopyImage(PXCImage* pxcimage) {
+bool EnhancedPhotographyObject::CopyColorImage(PXCImage* pxcimage) {
   if (!pxcimage) return false;
 
   PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
@@ -675,6 +720,39 @@ bool EnhancedPhotographyObject::CopyImage(PXCImage* pxcimage) {
   }
 
   pxcimage->ReleaseAccess(&image_data);
+  return true;
+}
+
+bool EnhancedPhotographyObject::CopyMaskImage(PXCImage* mask) {
+  if (!mask) return false;
+
+  PXCImage::ImageInfo mask_info = mask->QueryInfo();
+  PXCImage::ImageData mask_data;
+  if (mask->AcquireAccess(PXCImage::ACCESS_READ,
+      mask_info.format, &mask_data) < PXC_STATUS_NO_ERROR) {
+    return false;
+  }
+
+  // binary image message: call_id (i32), width (i32), height (i32),
+  // mask data (float_t buffer, size = width * height)
+  size_t requset_size = 3 + mask_info.width * mask_info.height;
+  float_binary_message_.reset(new float_t[requset_size]);
+  binary_message_size_ = requset_size;
+
+  float_t* float_array = float_binary_message_.get();
+  float_array[1] = mask_info.width;
+  float_array[2] = mask_info.height;
+
+  float_t* float_data_array = float_binary_message_.get() + 3;
+  int k = 0;
+  for (int y = 0; y < mask_info.height; ++y) {
+    for (int x = 0; x < mask_info.width; ++x) {
+      float_t* depth32 = reinterpret_cast<float_t*>(
+          mask_data.planes[0] + mask_data.pitches[0] * y);
+      float_data_array[k++] = depth32[x];
+    }
+  }
+  mask->ReleaseAccess(&mask_data);
   return true;
 }
 

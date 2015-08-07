@@ -9,6 +9,7 @@ var refocusRadio = document.getElementById('refocus');
 var depthEnhanceRadio = document.getElementById('depthEnhance');
 var depthUpscaleRadio = document.getElementById('depthUpscale');
 var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
+var popColorRadio = document.getElementById('popColor');
 
 var preview_canvas = document.getElementById('preview');
 var image_canvas = document.getElementById('image');
@@ -202,6 +203,7 @@ function pasteOnPlane(e) {
       sticker_data[i + 3] = 255;
     }
     var sticker = {
+      format: 'RGB32',
       width: 30,
       height: 30,
       data: sticker_data
@@ -225,6 +227,58 @@ function pasteOnPlane(e) {
     start_x = x;
     start_y = y;
   }
+}
+
+function popColor(e) {
+  if (has_image == false)
+    return;
+
+  var x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
+  var y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
+
+  overlay_context.clearRect(0, 0, width, height);
+  drawCross(x, y);
+
+  ep.computeMaskFromCoordinate(currentPhoto, { x: x, y: y }).then(
+      function(mask_image) {
+        currentPhoto.queryReferenceImage().then(
+          function(color_image) {
+            for (var x = 0; x < color_image.width; x++)
+            {
+              for (var y = 0; y < color_image.height; y++)
+              {
+                var index = y * color_image.width * 4 + x * 4;
+                var mask_index = y * mask_image.width + x;
+                var alpha = 1.0 - mask_image.data[mask_index];
+
+                // BGR
+                var grey = 0.0722 * color_image.data[index + 2] +
+                    0.7152 * color_image.data[index + 1] + 0.2126 * color_image.data[index];
+
+                color_image.data[index] =
+                    parseInt(color_image.data[index] * (1 - alpha) + grey * (alpha));
+                color_image.data[index + 1] =
+                    parseInt(color_image.data[index + 1] * (1 - alpha) + grey * (alpha));
+                color_image.data[index + 2] =
+                    parseInt(color_image.data[index + 2] * (1 - alpha) + grey * (alpha));
+              }
+            }
+
+            image_context.clearRect(0, 0, width, height);
+            image_data = image_context.createImageData(color_image.width, color_image.height);
+            image_data.data.set(color_image.data);
+            image_context.putImageData(image_data, 0, 0);
+
+            savePhoto.setColorImage(color_image).then(
+                function() {
+                  statusElement.innerHTML =
+                      'Finish processing color pop, select again!';
+                },
+                function(e) { statusElement.innerHTML = e; });
+          },
+          function(e) { statusElement.innerHTML = e; });
+      },
+      function(e) { statusElement.innerHTML = e; });
 }
 
 function main() {
@@ -316,6 +370,25 @@ function main() {
     }
   }, false);
 
+  popColorRadio.addEventListener('click', function(e) {
+    if (popColorRadio.checked) {
+      if (has_image == false) {
+        statusElement.innerHTML = 'Please capture/load a photo first.';
+        return;
+      }
+
+      statusElement.innerHTML = 'Select the point to pop color.';
+      overlay_context.clearRect(0, 0, width, height);
+      currentPhoto.queryReferenceImage().then(
+          function(image) {
+            image_context.clearRect(0, 0, width, height);
+            image_data.data.set(image.data);
+            image_context.putImageData(image_data, 0, 0);
+          },
+          function(e) { statusElement.innerHTML = e; });
+    }
+  }, false);
+
   overlay_canvas.addEventListener('mousedown', function(e) {
     if (measureRadio.checked) {
       measureDistance(e);
@@ -325,6 +398,9 @@ function main() {
     }
     if (pasteOnPlaneRadio.checked) {
       pasteOnPlane(e);
+    }
+    if (popColorRadio.checked) {
+      popColor(e);
     }
   }, false);
 
