@@ -9,6 +9,7 @@
       'type': 'none',
       'dependencies': [
         'enhanced_photography/enhanced_photography.gyp:*',
+        'face_tracking/face_tracking.gyp:*',
         'scene_perception/scene_perception.gyp:*',
         'session/session.gyp:*',
       ]
