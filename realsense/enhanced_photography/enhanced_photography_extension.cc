@@ -6,7 +6,10 @@
 
 #include <string>
 
+#include "base/at_exit.h"
 #include "realsense/enhanced_photography/enhanced_photography_instance.h"
+
+base::AtExitManager exit_manager;
 
 xwalk::common::Extension* CreateExtension() {
   return new realsense::enhanced_photography::EnhancedPhotographyExtension;
