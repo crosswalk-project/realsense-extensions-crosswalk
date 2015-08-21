@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "pxcenhancedphotography.h" //NOLINT
+#include "pxcenhancedphoto.h" //NOLINT
 #include "pxcphoto.h" // NOLINT
 #include "pxcsensemanager.h"  // NOLINT
 
@@ -81,7 +81,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   PXCSession* session_;
   PXCSenseManager* sense_manager_;
-  PXCEnhancedPhotography* ep_;
+  PXCEnhancedPhoto* ep_;
   PXCPhoto* preview_photo_;
   PXCImage* preview_image_;
 

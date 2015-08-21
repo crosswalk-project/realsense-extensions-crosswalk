@@ -98,7 +98,7 @@ bool EnhancedPhotographyObject::CreateEPInstance() {
   }
 
   pxcStatus sts = PXC_STATUS_NO_ERROR;
-  sts = session_->CreateImpl<PXCEnhancedPhotography>(&ep_);
+  sts = session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
   if (sts != PXC_STATUS_NO_ERROR) {
     return false;
   }
@@ -279,7 +279,7 @@ void EnhancedPhotographyObject::OnTakeSnapShot(
 
   if (!CreateEPInstance()) {
     info->PostResult(TakeSnapShot::Results::Create(photo,
-        "Failed to create a PXCEnhancedPhotography instance"));
+        "Failed to create a PXCEnhancedPhoto instance"));
     return;
   }
 
@@ -327,7 +327,7 @@ void EnhancedPhotographyObject::OnLoadFromXMP(
   int size = static_cast<int>(strlen(file)) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
-  if (pxcphoto->LoadXMP(wfile) < PXC_STATUS_NO_ERROR) {
+  if (pxcphoto->LoadXDM(wfile) < PXC_STATUS_NO_ERROR) {
     pxcphoto->Release();
     pxcphoto = NULL;
     info->PostResult(LoadFromXMP::Results::Create(photo,
@@ -337,7 +337,7 @@ void EnhancedPhotographyObject::OnLoadFromXMP(
 
   if (!CreateEPInstance()) {
     info->PostResult(LoadFromXMP::Results::Create(photo,
-        "Failed to create a PXCEnhancedPhotography instance"));
+        "Failed to create a PXCEnhancedPhoto instance"));
     return;
   }
 
@@ -370,7 +370,7 @@ void EnhancedPhotographyObject::OnSaveAsXMP(
   int size = static_cast<int>(strlen(file)) + 1;
   wchar_t* wfile = new wchar_t[size];
   mbstowcs(wfile, file, size);
-  if (depthPhotoObject->GetPhoto()->SaveXMP(wfile) < PXC_STATUS_NO_ERROR) {
+  if (depthPhotoObject->GetPhoto()->SaveXDM(wfile) < PXC_STATUS_NO_ERROR) {
     info->PostResult(SaveAsXMP::Results::Create(std::string(),
         "Failed to saveXMP. Please check if file path is valid."));
   } else {
@@ -422,11 +422,10 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   start.y = params->start.y;
   end.x = params->end.x;
   end.y = params->end.y;
-  double length = ep_->MeasureDistance(depthPhotoObject->GetPhoto(),
-                                       start,
-                                       end);
+  PXCEnhancedPhoto::MeasureData data;
+  ep_->MeasureDistance(depthPhotoObject->GetPhoto(), start, end, &data);
 
-  distance.distance = length;
+  distance.distance = data.distance;
   info->PostResult(MeasureDistance::Results::Create(distance, std::string()));
 }
 
@@ -528,11 +527,11 @@ void EnhancedPhotographyObject::OnEnhanceDepth(
 
   DCHECK(ep_);
   DepthFillQuality quality = params->quality;
-  PXCEnhancedPhotography::DepthFillQuality pxcquality;
+  PXCEnhancedPhoto::DepthFillQuality pxcquality;
   if (quality == DepthFillQuality::DEPTH_FILL_QUALITY_HIGH)
-    pxcquality = PXCEnhancedPhotography::DepthFillQuality::HIGH;
+    pxcquality = PXCEnhancedPhoto::DepthFillQuality::HIGH;
   else
-    pxcquality = PXCEnhancedPhotography::DepthFillQuality::LOW;
+    pxcquality = PXCEnhancedPhoto::DepthFillQuality::LOW;
 
   PXCPhoto* pxcphoto = ep_->EnhanceDepth(depthPhotoObject->GetPhoto(),
                                          pxcquality);
