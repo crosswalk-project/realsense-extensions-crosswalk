@@ -17,7 +17,7 @@ namespace scene_perception {
   dictionary Image {
     long width;
     long height;
-    long[] data;
+    ArrayBuffer data;
   };
 
   dictionary Sample {
@@ -31,20 +31,20 @@ namespace scene_perception {
   };
 
   dictionary BlockMesh {
-    DOMString meshId;
-    double vertexStartIndex;
-    double numVertices;
-    double faceStartIndex;
-    double numFaces;
+    long meshId;
+    long vertexStartIndex;
+    long numVertices;
+    long faceStartIndex;
+    long numFaces;
   };
 
   dictionary MeshingEvent {
     BlockMesh[] blockMeshes;
-    double numberOfVertices;
-    double[] vertices;
-    double[] colors;
-    double numberOfFaces;
-    double[] faces;
+    long numberOfVertices;
+    ArrayBuffer vertices;
+    ArrayBuffer colors;
+    long numberOfFaces;
+    ArrayBuffer faces;
   };
 
   dictionary ErrorEvent {
