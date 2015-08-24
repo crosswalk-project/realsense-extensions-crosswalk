@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Enhanced Photography</title>
+    <meta charset='utf-8'>
+    <script src='js/respec-w3c-common.js'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, WG-NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          
+          shortName:            "enhanced-photography",
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              {
+                  name:       "Ningxin Hu"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+              {
+                  name:       "Jiajia Qin"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+          ],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This specification describes support for accessing 3D camera for enhanced photography on the Web.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
+        as an Editor's Draft.
+        If you wish to make comments regarding this document, please send them to 
+        <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
+        All comments are welcome.
+      </p>
+    </section>
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+      </p>
+    </section>
+    <section>
+      <h2>
+        Interfaces
+      </h2>
+      <section>
+        <h2>
+          <code><a>DepthPhoto</a></code> interface
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum PixelFormat">
+          <dt>
+            RGBA32
+          </dt>
+          <dd>
+            <p>
+              The 32-bit RGBA32 color format.
+            </p>
+          </dd>
+          <dt>
+            DEPTH
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 16-bit unsigned integer.
+            </p>
+          </dd>
+        </dl>
+        <dl class="idl" title="[Constructor(unsigned long width, unsigned long height), &nbsp;Constructor(ArrayBuffer data, unsigned long width, unsigned long height)] interface Image">
+          <dt>
+            readonly attribute PixelFormat format
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            readonly attribute unsigned long width
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            readonly attribute unsigned long height
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            readonly attribute ArrayBuffer data
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+        <dl title='interface DepthPhoto' class='idl'>
+          <dt>
+            Promise&lt;Image&gt; getColorImage()
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setColorImage(Image colorImage)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getDepthImage()
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setDepthImage(Image depthImage)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>EnhancedPhotography</a></code> interface
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum DepthFillQuality">
+          <dt>
+            high
+          </dt>
+          <dd>
+            <p>
+              Use the high quality depth filling algorithm for the case of offline photo processing.
+            </p>
+          </dd>
+          <dt>
+            low
+          </dt>
+          <dd>
+            <p>
+              Use the low quality depth filling algorithm for the case of real time live streaming.
+            </p>
+          </dd>
+        </dl>
+        <dl title='dictionary Point' class='idl'>
+          <dt>
+            unsigned long x
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            unsigned long y
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+        <dl title='dictionary Size' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+        <dl title='dictionary CaptureConfiguration' class='idl'>
+          <dt>
+            unsigned long? width
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            unsigned long? height
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            double? frameRate
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+        <dl title='dictionary PreviewConfiguration' class='idl'>
+          <dt>
+            CaptureConfiguration? color
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            CaptureConfiguration? depth
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+        <dl class="idl" title="interface PreviewErrorEvent : Event">
+          <dt>
+            readonly attribute DOMString message
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>  
+        <dl title='interface EnhancedPhotography' class='idl'>
+          <dt>
+            Promise&lt;void&gt; startPreview(optional PreviewConfiguration config)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;void&gt; stopPreview()
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getPreviewImage()
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; takePhoto()
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Distance&gt; measureDistance(DepthPhoto photo)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; depthRefocus(DepthPhoto photo, Point focus, double aperture)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; depthResize(DepthPhoto photo, Size size)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; enhanceDepth(DepthPhoto photo, DepthFillQuality quality)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; pasteOnPlane(DepthPhoto photo, Image image, Point topLeft, Point bottomLeft)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; importFromXDM(ArrayBuffer buffer)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;ArrayBuffer&gt; exportToXDM(DepthPhoto photo)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            attribute EventHandler onerror
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>PreviewErrorEvent</code></a> that is dispatched
+              to <code><a>EnhancedPhotography</a></code> when an error happens
+              in preview.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onpreview
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>EnhancedPhotography</a></code> when a new preview
+              image is ready.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section class='appendix'>
+      <h2>Acknowledgements</h2>
+      <p>
+      </p>
+    </section>
+  </body>
+</html>
