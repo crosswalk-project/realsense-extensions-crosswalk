@@ -33,7 +33,8 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
           ep_(nullptr),
           preview_photo_(nullptr),
           preview_image_(nullptr),
-          instance_(instance) {
+          instance_(instance),
+          binary_message_size_(0) {
   handler_.Register("startPreview",
                     base::Bind(&EnhancedPhotographyObject::OnStartPreview,
                                base::Unretained(this)));
@@ -258,13 +259,17 @@ void EnhancedPhotographyObject::OnGetPreviewImage(
     return;
   }
 
-  if (!CopyImage(preview_image_, &img)) {
+  if (!CopyImage(preview_image_)) {
     info->PostResult(GetPreviewImage::Results::Create(img,
         "Failed to get preview image data."));
     return;
   }
 
-  info->PostResult(GetPreviewImage::Results::Create(img, std::string()));
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
   return;
 }
 
@@ -633,8 +638,7 @@ void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
   }
 }
 
-bool EnhancedPhotographyObject::CopyImage(
-    PXCImage* pxcimage, jsapi::enhanced_photography::Image* img) {
+bool EnhancedPhotographyObject::CopyImage(PXCImage* pxcimage) {
   if (!pxcimage) return false;
 
   PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
@@ -644,17 +648,29 @@ bool EnhancedPhotographyObject::CopyImage(
     return false;
   }
 
-  img->width = image_info.width;
-  img->height = image_info.height;
+  // binary image message: call_id (i32), width (i32), height (i32),
+  // color (int8 buffer, size = width * height * 4)
+  size_t requset_size = 4 * 3 + image_info.width * image_info.height * 4;
+  if (binary_message_size_ != requset_size) {
+    binary_message_.reset(new uint8[requset_size]);
+    binary_message_size_ = requset_size;
+  }
+
+  int* int_array = reinterpret_cast<int*>(binary_message_.get());
+  int_array[1] = image_info.width;
+  int_array[2] = image_info.height;
 
   uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
+  uint8_t* uint8_data_array =
+      reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
+  int k = 0;
   for (int y = 0; y < image_info.height; y++) {
     for (int x = 0; x < image_info.width; x++) {
       int i = x * 4 + image_data.pitches[0] * y;
-      img->data.push_back(rgb32[i + 2]);
-      img->data.push_back(rgb32[i + 1]);
-      img->data.push_back(rgb32[i]);
-      img->data.push_back(rgb32[i + 3]);
+      uint8_data_array[k++] = rgb32[i + 2];
+      uint8_data_array[k++] = rgb32[i + 1];
+      uint8_data_array[k++] = rgb32[i];
+      uint8_data_array[k++] = rgb32[i + 3];
     }
   }
 
