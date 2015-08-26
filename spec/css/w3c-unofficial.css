@@ -86,13 +86,6 @@ body {
   background-image: url(logo-ED-unofficial.png);
 }
 
-
-.content {
-  background-image: url(//www.w3.org/StyleSheets/TR/watermark-unoffficial.png);
-  background-repeat: repeat;
-  background-attachment: fixed;
-}
-
 .disclaimer {
   font-weight: bold;
   font-style: italic;
