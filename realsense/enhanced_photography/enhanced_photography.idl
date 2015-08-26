@@ -15,7 +15,7 @@ namespace enhanced_photography {
   dictionary Image {
     long width;
     long height;
-    ArrayBuffer data;
+    long[] data;
   };
 
   dictionary Point {
