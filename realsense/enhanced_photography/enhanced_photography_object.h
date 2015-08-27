@@ -54,6 +54,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnPasteOnPlane(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDepthBlend(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CreateSessionInstance();
   bool CreateEPInstance();

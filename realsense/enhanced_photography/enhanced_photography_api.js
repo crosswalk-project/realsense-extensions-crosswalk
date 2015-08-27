@@ -70,6 +70,17 @@ var EnhancedPhotography = function(object_id) {
     return data;
   };
 
+  function wrapImageArgs(args) {
+    args[0] = { objectId: args[0].photoId };
+    if ((args[1].data instanceof Uint8Array) ||
+        (args[1].data instanceof Uint8ClampedArray)) {
+      var uint8_array = args[1].data;
+      var buffer = Array.prototype.slice.call(uint8_array);
+      args[1].data = buffer;
+    }
+    return args;
+  };
+
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
   };
@@ -107,8 +118,9 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('depthRefocus', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('depthResize', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('enhanceDepth', Promise, wrapArgs, wrapReturns);
-  this._addMethodWithPromise('pasteOnPlane', Promise, wrapArgs, wrapReturns);
+  this._addMethodWithPromise('pasteOnPlane', Promise, wrapImageArgs, wrapReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', Promise, wrapArgs, wrapMaskImageReturns);
+  this._addMethodWithPromise('depthBlend', Promise, wrapImageArgs, wrapReturns);
 
   this._addEvent('error');
   this._addEvent('preview');

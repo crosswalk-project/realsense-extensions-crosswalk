@@ -22,6 +22,12 @@ namespace enhanced_photography {
     long height;
   };
 
+  dictionary Rotation{
+    long pitch;
+    long yaw;
+    long roll;
+  };
+
   dictionary Photo {
     DOMString objectId;
   };
@@ -67,6 +73,7 @@ namespace enhanced_photography {
     static void enhanceDepth(Photo photo, DepthFillQuality quality, PhotoPromise promise);
     static void pasteOnPlane(Photo photo, depth_photo.Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
     static void computeMaskFromCoordinate(Photo photo, Point point, MaskImagePromise promise);
+    static void depthBlend(Photo photo, depth_photo.Image image, Point point, long depth, Rotation rotation, double scale, PhotoPromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);

@@ -208,6 +208,32 @@
             &nbsp;
           </dd>
         </dl>
+        <dl title='dictionary Rotation' class='idl'>
+          <dt>
+            unsigned long pitch
+          </dt>
+          <dd>
+            <p>
+              The pitch value, in degrees. A positive pitch value indicates that rotates with X axis.
+            </p>
+          </dd>
+          <dt>
+            unsigned long yaw
+          </dt>
+          <dd>
+            <p>
+              The yaw value, in degrees. A positive yaw value indicates that rotates with Y axis.
+            </p>
+          </dd>
+          <dt>
+            unsigned long roll
+          </dt>
+          <dd>
+            <p>
+              The roll value, in degrees. A positive roll value indicates that clockwise rotates.
+            </p>
+          </dd>
+        </dl>
         <dl title='dictionary CaptureConfiguration' class='idl'>
           <dt>
             unsigned long? width
@@ -307,6 +333,12 @@
           </dd>
           <dt>
             Promise&lt;Image&gt; computeMaskFromCoordinate(DepthPhoto photo, Point point)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;DepthPhoto&gt; depthBlend(DepthPhoto photo, Image image, Point point, long depth, Rotation rotation, double scale)
           </dt>
           <dd>
             &nbsp;
