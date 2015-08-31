@@ -31,10 +31,12 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   void OnSetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  bool CopyColorImage(PXCImage* pxcimage, jsapi::depth_photo::Image* image);
-  bool CopyDepthImage(PXCImage* pxcimage, jsapi::depth_photo::Image* image);
+  bool CopyColorImage(PXCImage* pxcimage);
+  bool CopyDepthImage(PXCImage* pxcimage);
 
   PXCPhoto* photo_;
+  scoped_ptr<uint8[]> binary_message_;
+  size_t binary_message_size_;
 };
 
 }  // namespace enhanced_photography
