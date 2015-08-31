@@ -8,8 +8,30 @@ var DepthPhoto = function(object_id) {
   if (object_id == undefined)
     internal.postMessage('depthPhotoConstructor', [this._id]);
 
-  this._addMethodWithPromise('getColorImage', Promise);
-  this._addMethodWithPromise('getDepthImage', Promise);
+  function wrapColorImageReturns(data) {
+    var int32_array = new Int32Array(data);
+    // int32_array[0] is the callback id.
+    var width = int32_array[1];
+    var height = int32_array[2];
+    // 3 int32 (4 bytes) values.
+    var header_byte_offset = 3 * 4;
+    var buffer = new Uint8Array(data, header_byte_offset, width * height * 4);
+    return { format: 'RGB32', width: width, height: height, data: buffer };
+  };
+
+  function wrapDepthImageReturns(data) {
+    var int32_array = new Int32Array(data);
+    // int32_array[0] is the callback id.
+    var width = int32_array[1];
+    var height = int32_array[2];
+    // 3 int32 (4 bytes) values.
+    var header_byte_offset = 3 * 4;
+    var buffer = new Uint16Array(data, header_byte_offset, width * height);
+    return { format: 'DEPTH', width: width, height: height, data: buffer };
+  };
+
+  this._addMethodWithPromise('getColorImage', Promise, null, wrapColorImageReturns);
+  this._addMethodWithPromise('getDepthImage', Promise, null, wrapDepthImageReturns);
   this._addMethodWithPromise('setColorImage', Promise);
   this._addMethodWithPromise('setDepthImage', Promise);
 

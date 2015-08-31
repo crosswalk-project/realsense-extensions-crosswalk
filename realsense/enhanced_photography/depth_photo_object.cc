@@ -13,7 +13,8 @@ namespace realsense {
 namespace enhanced_photography {
 
 DepthPhotoObject::DepthPhotoObject(PXCPhoto* photo)
-    : photo_(photo) {
+    : photo_(photo),
+      binary_message_size_(0) {
   handler_.Register("getColorImage",
                     base::Bind(&DepthPhotoObject::OnGetColorImage,
                                base::Unretained(this)));
@@ -49,13 +50,17 @@ void DepthPhotoObject::OnGetColorImage(
   }
 
   PXCImage* imColor = photo_->QueryReferenceImage();
-  if (!CopyColorImage(imColor, &img)) {
+  if (!CopyColorImage(imColor)) {
     info->PostResult(GetColorImage::Results::Create(img,
         "Failed to get color image data."));
     return;
   }
 
-  info->PostResult(GetColorImage::Results::Create(img, std::string()));
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
 }
 
 void DepthPhotoObject::OnGetDepthImage(
@@ -68,13 +73,17 @@ void DepthPhotoObject::OnGetDepthImage(
   }
 
   PXCImage* imDepth = photo_->QueryDepthImage();
-  if (!CopyDepthImage(imDepth, &img)) {
+  if (!CopyDepthImage(imDepth)) {
     info->PostResult(GetDepthImage::Results::Create(img,
         "Failed to get depth image data."));
     return;
   }
 
-  info->PostResult(GetDepthImage::Results::Create(img, std::string()));
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
 }
 
 void DepthPhotoObject::OnSetColorImage(
@@ -177,8 +186,7 @@ void DepthPhotoObject::OnSetDepthImage(
                                                   std::string()));
 }
 
-bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage,
-                                      jsapi::depth_photo::Image* img) {
+bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage) {
   if (!pxcimage) return false;
 
   PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
@@ -188,18 +196,29 @@ bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage,
     return false;
   }
 
-  img->format = PixelFormat::PIXEL_FORMAT_RGB32;
-  img->width = image_info.width;
-  img->height = image_info.height;
+  // binary image message: call_id (i32), width (i32), height (i32),
+  // color (int8 buffer, size = width * height * 4)
+  size_t requset_size = 4 * 3 + image_info.width * image_info.height * 4;
+  if (binary_message_size_ != requset_size) {
+    binary_message_.reset(new uint8[requset_size]);
+    binary_message_size_ = requset_size;
+  }
+
+  int* int_array = reinterpret_cast<int*>(binary_message_.get());
+  int_array[1] = image_info.width;
+  int_array[2] = image_info.height;
 
   uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
+  uint8_t* uint8_data_array =
+      reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
+  int k = 0;
   for (int y = 0; y < image_info.height; y++) {
     for (int x = 0; x < image_info.width; x++) {
       int i = x * 4 + image_data.pitches[0] * y;
-      img->data.push_back(rgb32[i + 2]);
-      img->data.push_back(rgb32[i + 1]);
-      img->data.push_back(rgb32[i]);
-      img->data.push_back(rgb32[i + 3]);
+      uint8_data_array[k++] = rgb32[i + 2];
+      uint8_data_array[k++] = rgb32[i + 1];
+      uint8_data_array[k++] = rgb32[i];
+      uint8_data_array[k++] = rgb32[i + 3];
     }
   }
 
@@ -207,26 +226,36 @@ bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage,
   return true;
 }
 
-bool DepthPhotoObject::CopyDepthImage(PXCImage* depth,
-                                      jsapi::depth_photo::Image* img) {
+bool DepthPhotoObject::CopyDepthImage(PXCImage* depth) {
   if (!depth) return false;
 
   PXCImage::ImageInfo depth_info = depth->QueryInfo();
-  img->format = PixelFormat::PIXEL_FORMAT_DEPTH;
-  img->width = depth_info.width;
-  img->height = depth_info.height;
-
   PXCImage::ImageData depth_data;
   if (depth->AcquireAccess(PXCImage::ACCESS_READ,
       PXCImage::PIXEL_FORMAT_DEPTH, &depth_data) < PXC_STATUS_NO_ERROR) {
     return false;
   }
 
+  // binary image message: call_id (i32), width (i32), height (i32),
+  // depth (int16 buffer, size = width * height * 2)
+  size_t requset_size = 4 * 3 + depth_info.width * depth_info.height * 2;
+  if (binary_message_size_ != requset_size) {
+    binary_message_.reset(new uint8[requset_size]);
+    binary_message_size_ = requset_size;
+  }
+
+  int* int_array = reinterpret_cast<int*>(binary_message_.get());
+  int_array[1] = depth_info.width;
+  int_array[2] = depth_info.height;
+
+  uint16_t* uint16_data_array = reinterpret_cast<uint16_t*>(
+      binary_message_.get() + 3 * sizeof(int));
+  int k = 0;
   for (int y = 0; y < depth_info.height; ++y) {
     for (int x = 0; x < depth_info.width; ++x) {
       uint16_t* depth16 = reinterpret_cast<uint16_t*>(
           depth_data.planes[0] + depth_data.pitches[0] * y);
-      img->data.push_back(depth16[x]);
+      uint16_data_array[k++] = depth16[x];
     }
   }
   depth->ReleaseAccess(&depth_data);
