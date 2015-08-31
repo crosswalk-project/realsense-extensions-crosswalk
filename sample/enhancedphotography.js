@@ -128,7 +128,7 @@ function depthRefocus(e) {
   ep.depthRefocus(currentPhoto, { x: x, y: y }, 50.0).then(
       function(photo) {
         savePhoto = photo;
-        photo.getColorImage().then(
+        photo.queryReferenceImage().then(
             function(image) {
               image_data = image_context.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Depth refocus success. Please select focus point again.';
@@ -145,7 +145,7 @@ function depthEnhance() {
   ep.enhanceDepth(currentPhoto, 'low').then(
       function(photo) {
         savePhoto = photo;
-        photo.getDepthImage().then(
+        photo.queryDepthImage().then(
             function(image) {
               image_context.clearRect(0, 0, width, height);
               image_data = image_context.createImageData(image.width, image.height);
@@ -163,7 +163,7 @@ function depthUpscale() {
   ep.depthResize(currentPhoto, { width: width, height: height }).then(
       function(photo) {
         savePhoto = photo;
-        photo.getDepthImage().then(
+        photo.queryDepthImage().then(
             function(image) {
               image_data = image_context.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Finished depth upscaling.';
@@ -210,7 +210,7 @@ function pasteOnPlane(e) {
     ep.pasteOnPlane(currentPhoto, sticker, { x: start_x, y: start_y }, { x: x, y: y }).then(
         function(photo) {
           savePhoto = photo;
-          photo.getColorImage().then(
+          photo.queryReferenceImage().then(
               function(image) {
                 statusElement.innerHTML = 'Finished paste on plane.';
                 image_data.data.set(image.data);
@@ -243,7 +243,7 @@ function main() {
 
       statusElement.innerHTML = 'Select two points to measure distance.';
       overlay_context.clearRect(0, 0, width, height);
-      currentPhoto.getColorImage().then(
+      currentPhoto.queryReferenceImage().then(
           function(image) {
             image_context.clearRect(0, 0, width, height);
             image_data = image_context.createImageData(image.width, image.height);
@@ -263,7 +263,7 @@ function main() {
 
       statusElement.innerHTML = 'Select the refocus point.';
       overlay_context.clearRect(0, 0, width, height);
-      currentPhoto.getColorImage().then(
+      currentPhoto.queryReferenceImage().then(
           function(image) {
             image_context.clearRect(0, 0, width, height);
             image_data = image_context.createImageData(image.width, image.height);
@@ -306,7 +306,7 @@ function main() {
       statusElement.innerHTML =
           'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
       overlay_context.clearRect(0, 0, width, height);
-      currentPhoto.getColorImage().then(
+      currentPhoto.queryReferenceImage().then(
           function(image) {
             image_context.clearRect(0, 0, width, height);
             image_data.data.set(image.data);
@@ -368,7 +368,7 @@ function main() {
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
-          currentPhoto.getColorImage().then(
+          currentPhoto.queryReferenceImage().then(
               function(image) {
                 image_data = image_context.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
@@ -404,7 +404,7 @@ function main() {
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
-          currentPhoto.getColorImage().then(
+          currentPhoto.queryReferenceImage().then(
               function(image) {
                 image_context.clearRect(0, 0, width, height);
                 image_data = image_context.createImageData(image.width, image.height);

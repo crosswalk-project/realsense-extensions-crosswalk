@@ -20,8 +20,10 @@ namespace depth_photo {
   callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    static void getColorImage(ImagePromise promise);
-    static void getDepthImage(ImagePromise promise);
+    static void queryReferenceImage(ImagePromise promise);
+    static void queryOriginalImage(ImagePromise promise);
+    static void queryDepthImage(ImagePromise promise);
+    static void queryRawDepthImage(ImagePromise promise);
     static void setColorImage(Image image, Promise promise);
     static void setDepthImage(Image image, Promise promise);
   };

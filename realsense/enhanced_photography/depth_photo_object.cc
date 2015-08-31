@@ -15,11 +15,17 @@ namespace enhanced_photography {
 DepthPhotoObject::DepthPhotoObject(PXCPhoto* photo)
     : photo_(photo),
       binary_message_size_(0) {
-  handler_.Register("getColorImage",
-                    base::Bind(&DepthPhotoObject::OnGetColorImage,
+  handler_.Register("queryReferenceImage",
+                    base::Bind(&DepthPhotoObject::OnQueryReferenceImage,
                                base::Unretained(this)));
-  handler_.Register("getDepthImage",
-                    base::Bind(&DepthPhotoObject::OnGetDepthImage,
+  handler_.Register("queryOriginalImage",
+                    base::Bind(&DepthPhotoObject::OnQueryOriginalImage,
+                               base::Unretained(this)));
+  handler_.Register("queryDepthImage",
+                    base::Bind(&DepthPhotoObject::OnQueryDepthImage,
+                               base::Unretained(this)));
+  handler_.Register("queryRawDepthImage",
+                    base::Bind(&DepthPhotoObject::OnQueryRawDepthImage,
                                base::Unretained(this)));
   handler_.Register("setColorImage",
                     base::Bind(&DepthPhotoObject::OnSetColorImage,
@@ -40,19 +46,19 @@ void DepthPhotoObject::DestroyPhoto() {
   }
 }
 
-void DepthPhotoObject::OnGetColorImage(
+void DepthPhotoObject::OnQueryReferenceImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(GetColorImage::Results::Create(img,
+    info->PostResult(QueryReferenceImage::Results::Create(img,
         "Invalid photo object"));
     return;
   }
 
   PXCImage* imColor = photo_->QueryReferenceImage();
   if (!CopyColorImage(imColor)) {
-    info->PostResult(GetColorImage::Results::Create(img,
-        "Failed to get color image data."));
+    info->PostResult(QueryReferenceImage::Results::Create(img,
+        "Failed to QueryReferenceImage."));
     return;
   }
 
@@ -63,19 +69,65 @@ void DepthPhotoObject::OnGetColorImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnGetDepthImage(
+void DepthPhotoObject::OnQueryOriginalImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(GetDepthImage::Results::Create(img,
+    info->PostResult(QueryOriginalImage::Results::Create(img,
+        "Invalid photo object"));
+    return;
+  }
+
+  PXCImage* imColor = photo_->QueryOriginalImage();
+  if (!CopyColorImage(imColor)) {
+    info->PostResult(QueryOriginalImage::Results::Create(img,
+        "Failed to QueryOriginalImage."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
+}
+
+void DepthPhotoObject::OnQueryDepthImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Image img;
+  if (!photo_) {
+    info->PostResult(QueryDepthImage::Results::Create(img,
         "Invalid photo object."));
     return;
   }
 
   PXCImage* imDepth = photo_->QueryDepthImage();
   if (!CopyDepthImage(imDepth)) {
-    info->PostResult(GetDepthImage::Results::Create(img,
-        "Failed to get depth image data."));
+    info->PostResult(QueryDepthImage::Results::Create(img,
+        "Failed to QueryDepthImage."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
+}
+
+void DepthPhotoObject::OnQueryRawDepthImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Image img;
+  if (!photo_) {
+    info->PostResult(QueryRawDepthImage::Results::Create(img,
+        "Invalid photo object."));
+    return;
+  }
+
+  PXCImage* imDepth = photo_->QueryRawDepthImage();
+  if (!CopyDepthImage(imDepth)) {
+    info->PostResult(QueryRawDepthImage::Results::Create(img,
+        "Failed to QueryRawDepthImage."));
     return;
   }
 

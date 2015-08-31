@@ -39,7 +39,7 @@
     ep.loadFromXMP('C:/workspace/photo1.jpg').then(
         function(photo) {
           currentPhoto = photo;
-          currentPhoto.getColorImage().then(
+          currentPhoto.queryReferenceImage().then(
               function(image) {
                 width = image.width; height = image.height;
                 old_context.clearRect(0, 0, width, height);
@@ -76,7 +76,7 @@
         function() { statusElement.innerHTML = 'Set color image successful'; },
         function(e) { statusElement.innerHTML = e; });
 
-    currentPhoto.getColorImage().then(
+    currentPhoto.queryReferenceImage().then(
         function(image) {
           new_context.clearRect(0, 0, width, height);
           new_context_data = new_context.createImageData(image.width, image.height);
