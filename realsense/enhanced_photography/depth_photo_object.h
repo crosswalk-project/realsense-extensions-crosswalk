@@ -26,8 +26,10 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   void DestroyPhoto();
 
  private:
-  void OnGetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnGetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryReferenceImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryOriginalImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
 

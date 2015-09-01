@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html>
   <head>
@@ -105,19 +105,39 @@
         </dl>
         <dl title='interface DepthPhoto' class='idl'>
           <dt>
-            Promise&lt;Image&gt; getColorImage()
+            Promise&lt;Image&gt; queryReferenceImage()
           </dt>
           <dd>
-            &nbsp;
+            <p>
+              The queryReferenceImage function returns the reference photo image.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryOriginalImage()
+          </dt>
+          <dd>
+            <p>
+              The queryOriginalImage function returns the not-processed original color image.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryDepthImage()
+          </dt>
+          <dd>
+            <p>
+              The queryDepthImage function returns the depth image.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryRawDepthImage()
+          </dt>
+          <dd>
+            <p>
+              The queryRawDepthImage function returns the not-processed original depth image.
+            </p>
           </dd>
           <dt>
             Promise&lt;void&gt; setColorImage(Image colorImage)
-          </dt>
-          <dd>
-            &nbsp;
-          </dd>
-          <dt>
-            Promise&lt;Image&gt; getDepthImage()
           </dt>
           <dd>
             &nbsp;

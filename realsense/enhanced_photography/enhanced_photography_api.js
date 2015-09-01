@@ -30,8 +30,10 @@ var DepthPhoto = function(object_id) {
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
-  this._addMethodWithPromise('getColorImage', Promise, null, wrapColorImageReturns);
-  this._addMethodWithPromise('getDepthImage', Promise, null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryReferenceImage', Promise, null, wrapColorImageReturns);
+  this._addMethodWithPromise('queryOriginalImage', Promise, null, wrapColorImageReturns);
+  this._addMethodWithPromise('queryDepthImage', Promise, null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryRawDepthImage', Promise, null, wrapDepthImageReturns);
   this._addMethodWithPromise('setColorImage', Promise);
   this._addMethodWithPromise('setDepthImage', Promise);
 
