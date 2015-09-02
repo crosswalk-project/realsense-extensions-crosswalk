@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>FaceTracking Test</title>
+  </head>
+  <style>
+      canvas {
+        width: 640px;
+        height: 480px;
+        border: 1px solid #000000;
+      }
+  </style>
+  <body>
+    <div style='margin-bottom:23px; position: absolute; top: 20px;'>
+      <button id='start'>Start</button>
+      <button id='stop'>Stop</button>
+    </div>
+    <div style='margin-bottom:23px; position: absolute; top: 60px;'>
+      <input type='checkbox' id='enableDetection'>Detection</input>
+    </div>
+    <div id='color_container' style='position: absolute; left: 10px; top: 90px;'>
+      <canvas id='color' width='640' height='480'></canvas>
+    </div>
+    <div id='depth_container' style='position: absolute; left: 660px; top: 90px'>
+      <canvas id='depth' width='640' height='480'></canvas>
+    </div>
+    <p id='2DSize' style='position: absolute; left: 300px; top: 580px;'>2D</p>
+    <p id='3DSize' style='position: absolute; left: 930px; top: 580px;'>3D</p>
+    <p id='status' style='position: absolute; left: 10px; top: 600px;'>Status</p>
+  </body>
+  <script src="libs/stats.min.js"></script>
+  <script src="facetracking.js"></script>
+  <script type="text/javascript">
+    window.onload = main();
+  </script>
+</html>

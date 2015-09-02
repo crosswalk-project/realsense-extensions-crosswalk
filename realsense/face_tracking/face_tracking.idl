@@ -1,0 +1,100 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// FaceTracking API
+namespace face_tracking {
+  dictionary ErrorEvent {
+    DOMString status;
+  };
+
+  enum TrackingModeType {
+    color,
+    color_depth
+  };
+
+  enum TrackingStrategyType {
+    appearance_time,
+    closest_farthest,
+    farthest_closest,
+    left_right,
+    right_left
+  };
+
+  enum PixelFormat {
+    RGB32,
+    DEPTH
+  };
+
+  dictionary FaceConfiguration {
+    boolean? enableDetection;
+    boolean? enableLandmarks;
+    long? maxFaces;
+    TrackingModeType? mode;
+    TrackingStrategyType? strategy;
+  };
+
+  dictionary Image {
+    PixelFormat format;
+    long width;
+    long height;
+    long[] data;
+  };
+
+  dictionary Rect {
+    long x;
+    long y;
+    long w;
+    long h;
+  };
+
+  // DetectionData
+  dictionary Detection {
+    Rect boundingRect; 
+    double avgDepth;
+  };
+
+  // TODO(leonhsl): specify correct data member.
+  dictionary LandmarkPoint {
+    long x;
+    long y;
+  };
+
+  // LandmarksData
+  dictionary Landmark {
+    LandmarkPoint[] points;
+  };
+
+  // Single Face Data
+  dictionary Face {
+    Detection? detection;
+    Landmark? landmark;
+  };
+
+  // All detected faces 
+  dictionary FaceResults {
+    Face[] faces;
+  };
+
+  dictionary ProcessedSample {
+    Image color;
+    Image? depth;
+    FaceResults faceResults;  
+  };
+
+  callback ProcessedSamplePromise = void (ProcessedSample sample, DOMString error);
+  callback Promise = void (DOMString success, DOMString error);
+
+  interface Events {
+    static void onerror();
+    static void onprocessedsample();
+  };
+
+  interface Functions {
+    static void start(optional FaceConfiguration config, Promise promise);
+    static void stop(Promise promise);
+    static void getProcessedSample(ProcessedSamplePromise promise);
+
+    [nodoc] static FaceTracking faceTrackingConstructor(DOMString objectId);
+  };
+};
