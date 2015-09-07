@@ -76,6 +76,9 @@ function main() {
       colorImageSizeElement.innerHTML =
           '2D(' + processed_sample.color.width + ', ' +
           processed_sample.color.height + ')';
+      color_canvas.width = processed_sample.color.width;
+      color_canvas.height = processed_sample.color.height;
+
       if (!color_image_data) {
         color_image_data = color_context.createImageData(
             processed_sample.color.width, processed_sample.color.height);
@@ -103,6 +106,9 @@ function main() {
         depthImageSizeElement.innerHTML =
             '3D(' + processed_sample.depth.width + ', ' +
             processed_sample.depth.height + ')';
+        depth_canvas.width = processed_sample.depth.width;
+        depth_canvas.height = processed_sample.depth.height;
+
         if (!depth_image_data) {
           depth_image_data = depth_context.createImageData(
               processed_sample.depth.width, processed_sample.depth.height);

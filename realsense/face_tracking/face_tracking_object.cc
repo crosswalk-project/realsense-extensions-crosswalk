@@ -132,7 +132,10 @@ FaceTrackingObject::FaceTrackingObject()
       sense_manager_(NULL),
       face_output_(NULL),
       latest_color_image_(NULL),
-      latest_depth_image_(NULL) {
+      latest_depth_image_(NULL),
+      detection_enabled_(false),
+      landmark_enabled_(false),
+      binary_message_size_(0) {
   handler_.Register("start",
                     base::Bind(&FaceTrackingObject::OnStart,
                                base::Unretained(this)));
@@ -286,10 +289,10 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
     return;
   }
 
-  // Quote from C++ SDK FaceTracking sample application.
   PXCFaceConfiguration* config = faceModule->CreateActiveConfiguration();
   if (config->GetTrackingMode() ==
       PXCFaceConfiguration::TrackingModeType::FACE_MODE_COLOR_PLUS_DEPTH) {
+    // Quote from C++ SDK FaceTracking sample application.
     PXCCapture::DeviceInfo device_info;
     sense_manager_->QueryCaptureManager()->QueryDevice()
         ->QueryDeviceInfo(&device_info);
@@ -301,6 +304,8 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
           ->SetDepthConfidenceThreshold(0);
     }
   }
+  detection_enabled_ = config->detection.isEnabled;
+  landmark_enabled_ = config->landmarks.isEnabled;
   config->Release();
   config = NULL;
 
@@ -411,9 +416,9 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
 
   bool fail = false;
-  ProcessedSample processed_sample;
 
   if (state_ != TRACKING) {
+    ProcessedSample processed_sample;
     info->PostResult(
         GetProcessedSample::Results::Create(
             processed_sample,
@@ -424,101 +429,137 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
   PXCImage* color = latest_color_image_;
   PXCImage* depth = latest_depth_image_;
 
+  const size_t post_data_size = CalculateBinaryMessageSize();
+  if (binary_message_size_ < post_data_size) {
+    binary_message_.reset(new uint8[post_data_size]);
+    binary_message_size_ = post_data_size;
+  }
+
+  int offset = 0;
+  int* int_array = reinterpret_cast<int*>(binary_message_.get());
   // Fill ProcessedSample::color image.
   PXCImage::ImageInfo color_info = color->QueryInfo();
-  processed_sample.color.format = PixelFormat::PIXEL_FORMAT_RGB32;
-  processed_sample.color.width = color_info.width;
-  processed_sample.color.height = color_info.height;
+  int_array[1] = 1;  // 1 for PixelFormat::PIXEL_FORMAT_RGB32
+  int_array[2] = color_info.width;
+  int_array[3] = color_info.height;
+  offset += 4 * sizeof(int);
   PXCImage::ImageData color_data;
   pxcStatus status = color->AcquireAccess(
       PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_RGB32, &color_data);
+  uint8_t* uint8_array =
+      reinterpret_cast<uint8_t*>(binary_message_.get() + offset);
   if (status >= PXC_STATUS_NO_ERROR) {
+    int k = 0;
     uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
     for (int y = 0; y < color_info.height; ++y) {
       for (int x = 0; x < color_info.width; ++x) {
-        int i = x * 4 + color_data.pitches[0] * y;
-        processed_sample.color.data.push_back(rgb32[i + 2]);
-        processed_sample.color.data.push_back(rgb32[i + 1]);
-        processed_sample.color.data.push_back(rgb32[i]);
-        processed_sample.color.data.push_back(rgb32[i + 3]);
+        int i = (x + color_info.width * y) * 4;
+        uint8_array[k++] = rgb32[i + 2];
+        uint8_array[k++] = rgb32[i + 1];
+        uint8_array[k++] = rgb32[i];
+        uint8_array[k++] = rgb32[i + 3];
       }
     }
+    offset += color_info.width * color_info.height * 4;
     color->ReleaseAccess(&color_data);
   } else {
     fail = true;
     DLOG(INFO) << "Failed to access color image data: " << status;
   }
 
+  int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
   // Fill ProcessedSample::depth image.
-  if (!fail && latest_depth_image_) {
-    processed_sample.depth.reset(new realsense::jsapi::face_tracking::Image());
-    PXCImage::ImageInfo depth_info = depth->QueryInfo();
-    processed_sample.depth->format = PixelFormat::PIXEL_FORMAT_DEPTH;
-    processed_sample.depth->width = depth_info.width;
-    processed_sample.depth->height = depth_info.height;
-    PXCImage::ImageData depth_data;
-    status = depth->AcquireAccess(
-        PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_DEPTH, &depth_data);
-    if (status >= PXC_STATUS_NO_ERROR) {
-      for (int y = 0; y < depth_info.height; ++y) {
-        for (int x = 0; x < depth_info.width; ++x) {
-          uint16_t* depth16 =
-              reinterpret_cast<uint16_t*>(
-                  depth_data.planes[0] + depth_data.pitches[0] * y);
-          processed_sample.depth->data.push_back(depth16[x]);
+  if (!fail) {
+    if (depth) {
+      PXCImage::ImageInfo depth_info = depth->QueryInfo();
+      int_array[0] = 2;  // 2 for PixelFormat::PIXEL_FORMAT_DEPTH
+      int_array[1] = depth_info.width;
+      int_array[2] = depth_info.height;
+      offset += 3 * sizeof(int);
+      PXCImage::ImageData depth_data;
+      status = depth->AcquireAccess(
+          PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_DEPTH, &depth_data);
+      uint16_t* uint16_array = reinterpret_cast<uint16_t*>(
+          binary_message_.get() + offset);
+      if (status >= PXC_STATUS_NO_ERROR) {
+        int k = 0;
+        for (int y = 0; y < depth_info.height; ++y) {
+          for (int x = 0; x < depth_info.width; ++x) {
+            uint16_t* depth16 =
+                reinterpret_cast<uint16_t*>(
+                    depth_data.planes[0] + depth_data.pitches[0] * y);
+            uint16_array[k++] = depth16[x];
+          }
         }
+        offset += depth_info.width * depth_info.height * 2;
+        depth->ReleaseAccess(&depth_data);
+      } else {
+        fail = true;
+        DLOG(INFO) << "Failed to access depth image data: " << status;
       }
-      depth->ReleaseAccess(&depth_data);
     } else {
-      fail = true;
-      DLOG(INFO) << "Failed to access depth image data: " << status;
+      // If no depth stream, only set depth width and height as 0.
+      int_array[0] = 2;
+      int_array[1] = 0;
+      int_array[2] = 0;
+      offset += 3 * sizeof(int);
     }
   }
 
   // Fill ProcessedSample::faceResults data.
   if (!fail) {
-    const int numFaces = face_output_->QueryNumberOfDetectedFaces();
-    DLOG(INFO) << "Tracked faces number: " << numFaces;
+    const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
+    DLOG(INFO) << "Tracked faces number: " << num_of_faces;
 
-    for (int i = 0; i < numFaces; i++) {
-      linked_ptr<Face> face(new Face);
+    int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
+    int_array[0] = num_of_faces;
+    int_array[1] = detection_enabled_ ? 1 : 0;
+    int_array[2] = landmark_enabled_ ? 1 : 0;
+    offset += 3 * sizeof(int);
+
+    for (int i = 0; i < num_of_faces; i++) {
+      int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
       PXCFaceData::Face* trackedFace = face_output_->QueryFaceByIndex(i);
       const PXCFaceData::DetectionData* detectionData =
           trackedFace->QueryDetection();
 
       // Fill Face::detection data.
       if (detectionData) {
-        face->detection.reset(new Detection);
-
         PXCRectI32 rectangle;
         if (detectionData->QueryBoundingRect(&rectangle)) {
           DLOG(INFO) << "Traced face No." << i << ": "
               << rectangle.x << ", " << rectangle.y << ", "
               << rectangle.w << ", " << rectangle.h;
-          face->detection->bounding_rect.x = rectangle.x;
-          face->detection->bounding_rect.y = rectangle.y;
-          face->detection->bounding_rect.w = rectangle.w;
-          face->detection->bounding_rect.h = rectangle.h;
+          int_array[0] = rectangle.x;
+          int_array[1] = rectangle.y;
+          int_array[2] = rectangle.w;
+          int_array[3] = rectangle.h;
         }
+        offset += 4 * sizeof(int);
 
         pxcF32 avgDepth;
         if (detectionData->QueryFaceAverageDepth(&avgDepth)) {
-          face->detection->avg_depth = avgDepth;
+          *(reinterpret_cast<float*>(binary_message_.get() + offset)) =
+              avgDepth;
         }
+        offset += sizeof(float);
       }
-
-      processed_sample.face_results.faces.push_back(face);
     }
   }
 
   if (fail) {
+    ProcessedSample processed_sample;
     info->PostResult(
         GetProcessedSample::Results::Create(
             processed_sample,
             std::string("Failed to prepare processed_sample")));
   } else {
-    info->PostResult(
-        GetProcessedSample::Results::Create(processed_sample, std::string()));
+    DCHECK(offset == post_data_size);
+    scoped_ptr<base::ListValue> result(new base::ListValue());
+    result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(binary_message_.get()),
+        offset));
+    info->PostResult(result.Pass());
   }
 }
 
@@ -584,6 +625,9 @@ bool FaceTrackingObject::CreateProcessedSampleImages() {
 void FaceTrackingObject::ReleaseResources() {
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
 
+  binary_message_.reset();
+  binary_message_size_ = 0;
+
   if (latest_color_image_) {
     latest_color_image_->Release();
     latest_color_image_ = NULL;
@@ -614,6 +658,46 @@ void FaceTrackingObject::OnStopFaceTrackingThread() {
   if (face_tracking_thread_.IsRunning()) {
     face_tracking_thread_.Stop();
   }
+}
+
+// binary message: call_id (int32),
+// color format (int32), width (int32), height (int32), data (int8 buffer),
+// depth format (int32), width (int32), height (int32), data (int16 buffer),
+// number of faces (int32),
+// detection data available (int32),
+// landmark data available (int32),
+// face #1 detection data: rect x, y, w, h (int32), avgDepth (float32),
+//         landmark data: TODO(leonhsl): specify details
+// face #2 detection data: rect x, y, w, h (int32), avgDepth (float32),
+//         landmark data: TODO(leonhsl): specify details
+// ......
+size_t FaceTrackingObject::CalculateBinaryMessageSize() {
+  const int image_header_size = 3 * sizeof(int);  // format, width, height
+  PXCImage::ImageInfo color_info = latest_color_image_->QueryInfo();
+  const int color_image_size = color_info.width * color_info.height * 4;
+
+  int depth_image_size = 0;
+  if (latest_depth_image_) {
+    PXCImage::ImageInfo depth_info = latest_depth_image_->QueryInfo();
+    depth_image_size = depth_info.width * depth_info.height * 2;
+  }
+
+  const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
+  int one_face_size = 0;
+  if (detection_enabled_) {
+    one_face_size += 4 * sizeof(int) + sizeof(float);
+  }
+
+  const int message_size =
+      // call_id
+      sizeof(int)
+      // color image
+      + image_header_size + color_image_size
+      // depth image
+      + image_header_size + depth_image_size
+      // faceResults
+      + 3 * sizeof(int) + num_of_faces * one_face_size;
+  return message_size;
 }
 
 }  // namespace face_tracking

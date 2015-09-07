@@ -38,7 +38,7 @@ namespace face_tracking {
     PixelFormat format;
     long width;
     long height;
-    long[] data;
+    ArrayBuffer data;
   };
 
   dictionary Rect {
