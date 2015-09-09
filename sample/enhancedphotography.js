@@ -4,6 +4,7 @@ var stopButton = document.getElementById('stop');
 var snapShotButton = document.getElementById('snapshot');
 var loadButton = document.getElementById('load');
 var saveButton = document.getElementById('save');
+var fileInput = document.getElementById('fileInput');
 var measureRadio = document.getElementById('measure');
 var refocusRadio = document.getElementById('refocus');
 var depthEnhanceRadio = document.getElementById('depthEnhance');
@@ -25,7 +26,10 @@ var canvas_width = 400, canvas_height = 300;
 var click_count = 0;
 var start_x = 0;
 var start_y = 0;
+var end_x = 0, end_y = 0;
 var has_image = false;
+var sticker;
+var has_select_points = false;
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
@@ -177,55 +181,54 @@ function depthUpscale() {
       function(e) { statusElement.innerHTML = e; });
 }
 
+function doPasteOnPlane() {
+  if (!has_image)
+    return;
+
+  if (!has_select_points && pasteOnPlaneRadio.checked) {
+    statusElement.innerHTML =
+        'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
+    return;
+  }
+
+  ep.pasteOnPlane(currentPhoto, sticker, { x: start_x, y: start_y }, { x: end_x, y: end_y }).then(
+      function(photo) {
+        savePhoto = photo;
+        photo.queryReferenceImage().then(
+            function(image) {
+              statusElement.innerHTML = 'Finished paste on plane.';
+              image_data.data.set(image.data);
+              image_context.putImageData(image_data, 0, 0);
+            },
+            function(e) { statusElement.innerHTML = e; });
+      },
+      function(e) { statusElement.innerHTML = e; });
+}
+
 function pasteOnPlane(e) {
-  if (has_image == false)
+  if (has_image == false || !sticker)
     return;
 
   click_count = click_count + 1;
-  var x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
-  var y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
+  end_x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
+  end_y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
   if (click_count % 2 == 0) {
-    drawCross(x, y);
+    drawCross(end_x, end_y);
     overlay_context.beginPath();
     overlay_context.moveTo(start_x, start_y);
-    overlay_context.lineTo(x, y);
+    overlay_context.lineTo(end_x, end_y);
     overlay_context.strokeStyle = 'blue';
     overlay_context.lineWidth = 2;
     overlay_context.stroke();
     overlay_context.closePath();
 
-    var sticker_data = [];
-    var len = 30 * 30 * 4;
-    for (var i = 0; i < len; i += 4) {
-      sticker_data[i] = 150;
-      sticker_data[i + 1] = 100;
-      sticker_data[i + 2] = 100;
-      sticker_data[i + 3] = 255;
-    }
-    var sticker = {
-      format: 'RGB32',
-      width: 30,
-      height: 30,
-      data: sticker_data
-    };
-
-    ep.pasteOnPlane(currentPhoto, sticker, { x: start_x, y: start_y }, { x: x, y: y }).then(
-        function(photo) {
-          savePhoto = photo;
-          photo.queryReferenceImage().then(
-              function(image) {
-                statusElement.innerHTML = 'Finished paste on plane.';
-                image_data.data.set(image.data);
-                image_context.putImageData(image_data, 0, 0);
-              },
-              function(e) { statusElement.innerHTML = e; });
-        },
-        function(e) { statusElement.innerHTML = e; });
+    has_select_points = true;
+    doPasteOnPlane();
   } else {
     overlay_context.clearRect(0, 0, width, height);
-    drawCross(x, y);
-    start_x = x;
-    start_y = y;
+    drawCross(end_x, end_y);
+    start_x = end_x;
+    start_y = end_y;
   }
 }
 
@@ -287,6 +290,39 @@ function main() {
   preview_context = preview_canvas.getContext('2d');
   image_context = image_canvas.getContext('2d');
   overlay_context = overlay.getContext('2d');
+
+  fileInput.addEventListener('change', function(e) {
+    var file = fileInput.files[0];
+    var imageType = /image.*/;
+
+    if (file.type.match(imageType)) {
+      var reader = new FileReader();
+
+      reader.onload = function(e) {
+        var pasted_image = new Image();
+        pasted_image.src = reader.result;
+
+        var temp_canvas = document.createElement('canvas');
+        var temp_context = temp_canvas.getContext('2d');
+        temp_context.drawImage(pasted_image, 0, 0);
+        var pasted_image_data = temp_context.getImageData(
+            0, 0, pasted_image.width, pasted_image.height);
+
+        sticker = {
+          format: 'RGB32',
+          width: pasted_image.width,
+          height: pasted_image.height,
+          data: pasted_image_data.data
+        };
+
+        doPasteOnPlane();
+      };
+
+      reader.readAsDataURL(file);
+    } else {
+      statusElement.innerHTML = 'File not supported!';
+    }
+  });
 
   measureRadio.addEventListener('click', function(e) {
     if (measureRadio.checked) {
@@ -357,8 +393,14 @@ function main() {
         return;
       }
 
-      statusElement.innerHTML =
+      if (!sticker) {
+        statusElement.innerHTML =
+            'Please click [Choose file] button to load the pasted image.';
+      } else {
+        statusElement.innerHTML =
           'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
+      }
+
       overlay_context.clearRect(0, 0, width, height);
       currentPhoto.queryReferenceImage().then(
           function(image) {
