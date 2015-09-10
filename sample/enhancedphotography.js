@@ -182,10 +182,10 @@ function depthUpscale() {
 }
 
 function doPasteOnPlane() {
-  if (!has_image)
+  if (!has_image || !pasteOnPlaneRadio.checked)
     return;
 
-  if (!has_select_points && pasteOnPlaneRadio.checked) {
+  if (!has_select_points) {
     statusElement.innerHTML =
         'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
     return;
@@ -272,10 +272,15 @@ function popColor(e) {
             image_data.data.set(color_image.data);
             image_context.putImageData(image_data, 0, 0);
 
-            savePhoto.setColorImage(color_image).then(
-                function() {
-                  statusElement.innerHTML =
-                      'Finish processing color pop, select again!';
+            currentPhoto.clone().then(
+                function(photo) {
+                  savePhoto = photo;
+                  savePhoto.setColorImage(color_image).then(
+                      function() {
+                        statusElement.innerHTML =
+                            'Finish processing color pop, select again!';
+                      },
+                      function(e) { statusElement.innerHTML = e; });
                 },
                 function(e) { statusElement.innerHTML = e; });
           },

@@ -12,9 +12,11 @@
 namespace realsense {
 namespace enhanced_photography {
 
-DepthPhotoObject::DepthPhotoObject(PXCPhoto* photo)
-    : photo_(photo),
-      binary_message_size_(0) {
+DepthPhotoObject::DepthPhotoObject(
+    PXCPhoto* photo, EnhancedPhotographyObject* enhanced_photo)
+        : photo_(photo),
+          enhanced_photo_(enhanced_photo),
+          binary_message_size_(0) {
   handler_.Register("queryReferenceImage",
                     base::Bind(&DepthPhotoObject::OnQueryReferenceImage,
                                base::Unretained(this)));
@@ -32,6 +34,9 @@ DepthPhotoObject::DepthPhotoObject(PXCPhoto* photo)
                                base::Unretained(this)));
   handler_.Register("setDepthImage",
                     base::Bind(&DepthPhotoObject::OnSetDepthImage,
+                               base::Unretained(this)));
+  handler_.Register("clone",
+                    base::Bind(&DepthPhotoObject::OnClone,
                                base::Unretained(this)));
 }
 
@@ -236,6 +241,20 @@ void DepthPhotoObject::OnSetDepthImage(
 
   info->PostResult(SetDepthImage::Results::Create(std::string("Success"),
                                                   std::string()));
+}
+
+void DepthPhotoObject::OnClone(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Photo photo;
+  if (!photo_) {
+    info->PostResult(Clone::Results::Create(photo,
+        "Invalid photo object"));
+    return;
+  }
+
+  DCHECK(enhanced_photo_);
+  enhanced_photo_->CopyDepthPhoto(photo_, &photo);
+  info->PostResult(Clone::Results::Create(photo, std::string()));
 }
 
 bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage) {
