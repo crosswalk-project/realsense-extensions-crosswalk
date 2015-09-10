@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RealSense Enhanced Photography Depth Blending Test</title>
+  <style>
+    canvas {
+      width: 400px;
+      height: 300px;
+      border: 1px solid #000000;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="yaw" style='position: absolute; left: 20px; top: 20px;'>Yaw</label>
+    <input type="range" id="yaw" min="0" max="359" value="0" step="1" style='position: absolute; left: 90px; top: 20px;' oninput="outputYawUpdate(value)">
+    <output for="yaw" id="yaw_value" style='position: absolute; left: 250px; top: 20px;'>0</output>
+    <label style='position: absolute; left: 275px; top: 20px;'>&#176;</label>
+  </div>
+  <div>
+    <label for="pitch" style='position: absolute; left: 20px; top: 50px;'>Pitch</label>
+    <input type="range" id="pitch" min="0" max="359" value="0" step="1" style='position: absolute; left: 90px; top: 50px;' oninput="outputPitchUpdate(value)">
+    <output for="pitch" id="pitch_value" style='position: absolute; left: 250px; top: 50px;'>0</output>
+    <label style='position: absolute; left: 275px; top: 50px;'>&#176;</label>
+  </div>
+  <div>
+    <label for="roll" style='position: absolute; left: 20px; top: 80px;'>Roll</label>
+    <input type="range" id="roll" min="0" max="359" value="0" step="1" style='position: absolute; left: 90px; top: 80px;' oninput="outputRollUpdate(value)">
+    <output for="roll" id="roll_value" style='position: absolute; left: 250px; top: 80px;'>0</output>
+    <label style='position: absolute; left: 275px; top: 80px;'>&#176;</label>
+  </div>
+  <div>
+    <label for="zoffset" style='position: absolute; left: 20px; top: 110px;'>Z offset</label>
+    <input type="range" id="zoffset" min="-50" max="50" value="0" step="1" style='position: absolute; left: 90px; top: 110px;' oninput="outputZoffetUpdate(value)">
+    <output for="zoffset" id="zoffset_value" style='position: absolute; left: 250px; top: 110px;'>0</output>
+    <div id="page-wrapper" style='position: absolute; left: 300px; top: 20px;'>
+      <div>
+        Select an image file:
+        <input type="file" id="fileInput">
+      </div>
+      <div id="fileDisplayArea"></div>
+    </div>
+  </div>
+  <div style='position: absolute; left: 20px; top: 150px;'>
+    <button id='start'>Start Preview</button>
+    <button id='takePhoto'>Take Photo</button>
+    <button id='stop'>Stop Preview</button>
+    <button id='load'>Load</button>
+    <button id='save'>Save</button>
+    <button id='depthBlend'>DepthBlend</button>
+  </div>
+  <div id='canvas_container'>
+    <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 180px;'></canvas>
+    <canvas id='image' width='640' height='480' style='position: absolute; left: 435px; top: 180px;'></canvas>
+    <canvas id='overlay' width='640' height='480' style='position: absolute; left: 435px; top: 180px;'></cavnas>
+  </div>
+  <p id='status' style='position: absolute; left: 10px; top: 480px;'></p>
+</body>
+<script src="libs/stats.min.js"></script>
+<script src="depth_blend.js"></script>
+<script type="text/javascript">
+  window.onload = main();
+</script>
+</html>
