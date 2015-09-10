@@ -7,7 +7,8 @@ namespace depth_photo {
   enum PixelFormat {
     RGB32,
     DEPTH,
-    DEPTH_F32
+    DEPTH_F32,
+    Y8
   };
 
   dictionary Image {

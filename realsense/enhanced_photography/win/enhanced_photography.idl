@@ -22,7 +22,7 @@ namespace enhanced_photography {
     long height;
   };
 
-  dictionary Rotation{
+  dictionary Rotation {
     long pitch;
     long yaw;
     long roll;
@@ -33,7 +33,7 @@ namespace enhanced_photography {
     low
   };
 
-  dictionary PreviewConfiguration{
+  dictionary PreviewConfiguration {
     long? colorWidth;
     long? colorHeight;
     long? depthWidth;
@@ -70,6 +70,8 @@ namespace enhanced_photography {
     static void pasteOnPlane(depth_photo.Photo photo, depth_photo.Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
     static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, MaskImagePromise promise);
     static void depthBlend(depth_photo.Photo photo, depth_photo.Image image, Point point, long depth, Rotation rotation, double scale, PhotoPromise promise);
+    static void objectSegment(depth_photo.Photo photo, Point topLeft, Point bottomRight, ImagePromise promise);
+    static void refineMask(depth_photo.Image image, ImagePromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);
