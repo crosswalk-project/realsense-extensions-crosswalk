@@ -56,6 +56,8 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   // Run on face extension thread
   void OnStopFaceTrackingThread();
 
+  size_t CalculateBinaryMessageSize();
+
   enum State {
     IDLE,
     TRACKING,
@@ -74,6 +76,11 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
 
   PXCImage* latest_color_image_;
   PXCImage* latest_depth_image_;
+  bool detection_enabled_;
+  bool landmark_enabled_;
+
+  scoped_ptr<uint8[]> binary_message_;
+  size_t binary_message_size_;
 };
 
 }  // namespace face_tracking
