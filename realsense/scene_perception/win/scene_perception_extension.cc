@@ -5,8 +5,8 @@
 #include <string>
 
 #include "base/at_exit.h"
-#include "realsense/scene_perception/scene_perception_extension.h"
-#include "realsense/scene_perception/scene_perception_instance.h"
+#include "realsense/scene_perception/win/scene_perception_extension.h"
+#include "realsense/scene_perception/win/scene_perception_instance.h"
 
 base::AtExitManager exit_manager;
 

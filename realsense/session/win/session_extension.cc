@@ -4,8 +4,8 @@
 
 #include <string>
 
-#include "realsense/session/session_extension.h"
-#include "realsense/session/session_instance.h"
+#include "realsense/session/win/session_extension.h"
+#include "realsense/session/win/session_instance.h"
 
 xwalk::common::Extension* CreateExtension() {
   return new realsense::session::SessionExtension;

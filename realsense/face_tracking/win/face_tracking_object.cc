@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/face_tracking/face_tracking_object.h"
+#include "realsense/face_tracking/win/face_tracking_object.h"
 
 #include "pxcfaceconfiguration.h" //NOLINT
 
