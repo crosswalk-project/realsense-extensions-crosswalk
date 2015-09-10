@@ -76,6 +76,14 @@
               The depth map data in 16-bit unsigned integer.
             </p>
           </dd>
+          <dt>
+            DEPTH_F32
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 32-bit floating point.
+            </p>
+          </dd>
         </dl>
         <dl class="idl" title="[Constructor(unsigned long width, unsigned long height), &nbsp;Constructor(ArrayBuffer data, unsigned long width, unsigned long height)] interface Image">
           <dt>
@@ -293,6 +301,12 @@
           </dd>
           <dt>
             Promise&lt;DepthPhoto&gt; pasteOnPlane(DepthPhoto photo, Image image, Point topLeft, Point bottomLeft)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; computeMaskFromCoordinate(DepthPhoto photo, Point point)
           </dt>
           <dd>
             &nbsp;

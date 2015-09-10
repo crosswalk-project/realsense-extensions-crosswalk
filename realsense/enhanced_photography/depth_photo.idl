@@ -6,7 +6,8 @@
 namespace depth_photo {
   enum PixelFormat {
     RGB32,
-    DEPTH
+    DEPTH,
+    DEPTH_F32
   };
 
   dictionary Image {
@@ -14,6 +15,13 @@ namespace depth_photo {
     long width;
     long height;
     long[] data;
+  };
+
+  dictionary MaskImage{
+    PixelFormat format;
+    long width;
+    long height;
+    double[] data;
   };
 
   callback ImagePromise = void(Image image, DOMString error);
