@@ -26,6 +26,53 @@ namespace face_tracking {
     DEPTH
   };
 
+  enum LandmarkType {
+    NOT_NAMED,
+    
+    EYE_RIGHT_CENTER,
+    EYE_LEFT_CENTER,
+    
+    EYELID_RIGHT_TOP,
+    EYELID_RIGHT_BOTTOM,
+    EYELID_RIGHT_RIGHT,
+    EYELID_RIGHT_LEFT,
+    
+    EYELID_LEFT_TOP,
+    EYELID_LEFT_BOTTOM,
+    EYELID_LEFT_RIGHT,
+    EYELID_LEFT_LEFT,
+    
+    EYEBROW_RIGHT_CENTER,
+    EYEBROW_RIGHT_RIGHT,
+    EYEBROW_RIGHT_LEFT,
+    
+    EYEBROW_LEFT_CENTER,
+    EYEBROW_LEFT_RIGHT,
+    EYEBROW_LEFT_LEFT,
+    
+    NOSE_TIP,
+    NOSE_TOP,
+    NOSE_BOTTOM,
+    NOSE_RIGHT,
+    NOSE_LEFT,
+    
+    LIP_RIGHT,
+    LIP_LEFT,
+    
+    UPPER_LIP_CENTER,
+    UPPER_LIP_RIGHT,
+    UPPER_LIP_LEFT,
+    
+    LOWER_LIP_CENTER,
+    LOWER_LIP_RIGHT,
+    LOWER_LIP_LEFT,
+    
+    FACE_BORDER_TOP_RIGHT,
+    FACE_BORDER_TOP_LEFT,
+    
+    CHIN
+  };
+
   dictionary FaceConfiguration {
     boolean? enableDetection;
     boolean? enableLandmarks;
@@ -48,16 +95,30 @@ namespace face_tracking {
     long h;
   };
 
+  dictionary Point3DFloat {
+    double x;
+    double y;
+    double z;
+  };
+
+  dictionary Point2DFloat {
+    double x;
+    double y;
+  };
+
   // DetectionData
   dictionary Detection {
     Rect boundingRect; 
     double avgDepth;
   };
 
-  // TODO(leonhsl): specify correct data member.
+  // LandmarkPoint
   dictionary LandmarkPoint {
-    long x;
-    long y;
+    LandmarkType type;
+    long confidenceImage;
+    long confidenceWorld;
+    Point3DFloat coordinateWorld;
+    Point2DFloat coordinateImage;
   };
 
   // LandmarksData
