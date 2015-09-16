@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RealSense Enhanced Photography Motion Effect Test</title>
+  <style>
+    canvas {
+      width: 400px;
+      height: 300px;
+      border: 1px solid #000000;
+    }
+    .slider-with {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <label for="Left/Right" style='position: absolute; left: 20px; top: 20px;'>Left/Right</label>
+    <input type="range" id="right" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 120px; top: 20px;' oninput="outputRightUpdate(value)">
+  </div>
+  <div>
+    <label for="Up/Down" style='position: absolute; left: 20px; top: 50px;'>Up/Down</label>
+    <input type="range" id="up" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 120px; top: 50px;' oninput="outputUpUpdate(value)">
+  </div>
+  <div>
+    <label for="Forward/Back" style='position: absolute; left: 20px; top: 80px;'>Forward/Back</label>
+    <input type="range" id="forward" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 120px; top: 80px;' oninput="outputforwardUpdate(value)">
+  </div>
+  <div>
+    <label for="zoom" style='position: absolute; left: 20px; top: 110px;'>Zoom</label>
+    <input type="range" id="zoom" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 120px; top: 110px;' oninput="outputZoomUpdate(value)">
+  </div>
+
+  <div>
+    <label for="yaw" style='position: absolute; left: 430px; top: 20px;'>Yaw</label>
+    <input type="range" id="yaw" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 480px; top: 20px;' oninput="outputYawUpdate(value)">
+  </div>
+  <div>
+    <label for="pitch" style='position: absolute; left: 430px; top: 50px;'>Pitch</label>
+    <input type="range" id="pitch" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 480px; top: 50px;' oninput="outputPitchUpdate(value)">
+  </div>
+  <div>
+    <label for="roll" style='position: absolute; left: 430px; top: 80px;'>Roll</label>
+    <input type="range" id="roll" min="-10" max="10" value="0" step="1" class="slider-with" style='position: absolute; left: 480px; top: 80px;' oninput="outputRollUpdate(value)">
+  </div>
+
+  <div style='position: absolute; left: 20px; top: 150px;'>
+    <button id='start'>Start Preview</button>
+    <button id='takePhoto'>Take Photo</button>
+    <button id='stop'>Stop Preview</button>
+    <button id='load'>Load</button>
+  </div>
+  <div id='canvas_container'>
+    <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 180px;'></canvas>
+    <canvas id='image' width='640' height='480' style='position: absolute; left: 435px; top: 180px;'></canvas>
+  </div>
+  <p id='status' style='position: absolute; left: 10px; top: 480px;'></p>
+</body>
+<script src="libs/stats.min.js"></script>
+<script src="motion_effect.js"></script>
+<script type="text/javascript">
+  window.onload = main();
+</script>
+</html>

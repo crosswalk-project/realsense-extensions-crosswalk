@@ -139,6 +139,8 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('depthBlend', Promise, wrapImageArgs, wrapReturns);
   this._addMethodWithPromise('objectSegment', Promise, wrapArgs, wrapY8ImageReturns);
   this._addMethodWithPromise('refineMask', Promise, null, wrapY8ImageReturns);
+  this._addMethodWithPromise('initMotionEffect', Promise, wrapArgs);
+  this._addMethodWithPromise('applyMotionEffect', Promise, null, wrapRGB32ImageReturns);
 
   this._addEvent('error');
   this._addEvent('preview');

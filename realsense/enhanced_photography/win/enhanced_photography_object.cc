@@ -81,6 +81,12 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("refineMask",
                     base::Bind(&EnhancedPhotographyObject::OnRefineMask,
                                base::Unretained(this)));
+  handler_.Register("initMotionEffect",
+                    base::Bind(&EnhancedPhotographyObject::OnInitMotionEffect,
+                               base::Unretained(this)));
+  handler_.Register("applyMotionEffect",
+                    base::Bind(&EnhancedPhotographyObject::OnApplyMotionEffect,
+                               base::Unretained(this)));
 }
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
@@ -717,6 +723,82 @@ void EnhancedPhotographyObject::OnDepthBlend(
   delete img_data.planes[0];
 }
 
+void EnhancedPhotographyObject::OnInitMotionEffect(
+    scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
+  scoped_ptr<InitMotionEffect::Params> params(
+      InitMotionEffect::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(InitMotionEffect::Results::Create(
+        std::string(), "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(InitMotionEffect::Results::Create(std::string(),
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+  pxcStatus sts = ep_->InitMotionEffect(depthPhotoObject->GetPhoto());
+  if (sts < PXC_STATUS_NO_ERROR) {
+    info->PostResult(InitMotionEffect::Results::Create(
+        std::string(), "InitMotionEffect failed"));
+    return;
+  }
+
+  info->PostResult(
+      InitMotionEffect::Results::Create(std::string("Success"), std::string()));
+}
+
+void EnhancedPhotographyObject::OnApplyMotionEffect(
+    scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Image img;
+  scoped_ptr<ApplyMotionEffect::Params> params(
+      ApplyMotionEffect::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        ApplyMotionEffect::Results::Create(img, "Malformed parameters"));
+    return;
+  }
+
+  DCHECK(ep_);
+  pxcF32 motion[3];
+  motion[0] = params->motion.horizontal;
+  motion[1] = params->motion.vertical;
+  motion[2] = params->motion.distance;
+
+  pxcF32 rotation[3];
+  rotation[0] = params->rotation.pitch;
+  rotation[1] = params->rotation.yaw;
+  rotation[2] = params->rotation.roll;
+
+  PXCImage* pxcimage = ep_->ApplyMotionEffect(motion, rotation, params->zoom);
+
+  if (!pxcimage) {
+    info->PostResult(ApplyMotionEffect::Results::Create(img,
+        "Failed to operate ApplyMotionEffect"));
+    return;
+  }
+
+  if (!CopyColorImage(pxcimage)) {
+    info->PostResult(ApplyMotionEffect::Results::Create(img,
+        "Failed to get image data."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
+
+  pxcimage->Release();
+}
+
 void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::MaskImage image;
@@ -730,7 +812,7 @@ void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
 
   std::string object_id = params->photo.object_id;
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-    instance_->GetBindingObjectById(object_id));
+      instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
     info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
         "Invalid Photo object."));
@@ -867,7 +949,7 @@ void EnhancedPhotographyObject::OnStopAndDestroyPipeline(
   if (info) {
     ReleasePreviewResources();
     info->PostResult(StopPreview::Results::Create(std::string("Success"),
-                                                              std::string()));
+                                                  std::string()));
   } else {
     ReleasePreviewResources();
     ReleaseMainResources();
