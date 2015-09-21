@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/enhanced_photography/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 #include <string>
 

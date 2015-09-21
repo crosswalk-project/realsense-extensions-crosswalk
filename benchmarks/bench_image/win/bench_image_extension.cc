@@ -4,8 +4,8 @@
 
 #include <string>
 
-#include "benchmarks/bench_image/bench_image_extension.h"
-#include "benchmarks/bench_image/bench_image_instance.h"
+#include "benchmarks/bench_image/win/bench_image_extension.h"
+#include "benchmarks/bench_image/win/bench_image_instance.h"
 
 xwalk::common::Extension* CreateExtension() {
   return new realsense::bench_image::BenchImageExtension;

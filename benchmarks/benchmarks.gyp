@@ -7,9 +7,13 @@
     {
       'target_name': 'benchmarks',
       'type': 'none',
-      'dependencies': [
-        'bench_image/bench_image.gyp:*',
-      ]
+      'conditions': [
+        ['OS=="win"', {
+          'dependencies': [
+            'bench_image/win/bench_image.gyp:*',
+          ]
+        }],
+      ],
     },
   ],
 }

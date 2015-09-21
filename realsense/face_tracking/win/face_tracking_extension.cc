@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/face_tracking/face_tracking_extension.h"
+#include "realsense/face_tracking/win/face_tracking_extension.h"
 
 #include <string>
 
 #include "base/at_exit.h"
-#include "realsense/face_tracking/face_tracking_instance.h"
+#include "realsense/face_tracking/win/face_tracking_instance.h"
 
 base::AtExitManager exit_manager;
 

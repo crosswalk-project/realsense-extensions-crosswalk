@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/enhanced_photography/enhanced_photography_extension.h"
+#include "realsense/enhanced_photography/win/enhanced_photography_extension.h"
 
 #include <string>
 
 #include "base/at_exit.h"
-#include "realsense/enhanced_photography/enhanced_photography_instance.h"
+#include "realsense/enhanced_photography/win/enhanced_photography_instance.h"
 
 base::AtExitManager exit_manager;
 

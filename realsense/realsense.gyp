@@ -7,12 +7,21 @@
     {
       'target_name': 'realsense',
       'type': 'none',
-      'dependencies': [
-        'enhanced_photography/enhanced_photography.gyp:*',
-        'face_tracking/face_tracking.gyp:*',
-        'scene_perception/scene_perception.gyp:*',
-        'session/session.gyp:*',
-      ]
+      'conditions': [
+        ['OS=="win"', {
+          'dependencies': [
+            'enhanced_photography/win/enhanced_photography.gyp:*',
+            'face_tracking/win/face_tracking.gyp:*',
+            'scene_perception/win/scene_perception.gyp:*',
+            'session/win/session.gyp:*',
+          ]
+        }],
+        ['OS=="android"', {
+          'dependencies': [
+            'enhanced_photography/android/enhanced_photography.gyp:*',
+          ]
+        }],
+      ], # conditions
     },
   ],
 }

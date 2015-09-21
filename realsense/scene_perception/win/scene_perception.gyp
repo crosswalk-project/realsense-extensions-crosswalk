@@ -8,12 +8,12 @@
       'target_name': 'scene_perception',
       'type': 'loadable_module',
       'includes': [
-        '../common/rssdk.gypi',
-        '../../../xwalk/common/xwalk_js2c.gypi',
-        '../../../xwalk/common/xwalk_idlgen.gypi',
+        '../../common/rssdk.gypi',
+        '../../../../xwalk/common/xwalk_js2c.gypi',
+        '../../../../xwalk/common/xwalk_idlgen.gypi',
       ],
       'include_dirs': [
-        '../..',
+        '../../..',
       ],
       'variables': {
         'jsapi_namespace': 'realsense::jsapi',

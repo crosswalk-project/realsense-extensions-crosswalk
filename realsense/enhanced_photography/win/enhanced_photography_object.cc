@@ -2,14 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/enhanced_photography/enhanced_photography_object.h"
+#include "realsense/enhanced_photography/win/enhanced_photography_object.h"
 
 #include <string>
 
 #include "base/bind.h"
 #include "base/guid.h"
 #include "base/logging.h"
-#include "realsense/enhanced_photography/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
