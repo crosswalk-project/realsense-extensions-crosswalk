@@ -33,6 +33,7 @@ var depthValue;
 var insert_depth;
 
 var has_image = false;
+var is_depth_blend = false;
 
 function outputYawUpdate(value) {
   yawValueLabel.value = value;
@@ -89,7 +90,7 @@ function doDepthBlend() {
 }
 
 function depthBlend(e) {
-  if (has_image == false)
+  if (!has_image || !has_blend_image)
     return;
 
   x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
@@ -138,7 +139,7 @@ function main() {
       var reader = new FileReader();
 
       reader.onload = function(e) {
-        fileDisplayArea.innerHTML = '';
+        fileDisplayArea.src = reader.result;
 
         blend_image = new Image();
         blend_image.src = reader.result;
@@ -156,12 +157,13 @@ function main() {
         };
 
         has_blend_image = true;
-        fileDisplayArea.appendChild(blend_image);
+        if (has_image && is_depth_blend)
+          statusElement.innerHTML = 'Select a point on photo to Blend';
       };
 
       reader.readAsDataURL(file);
     } else {
-      fileDisplayArea.innerHTML = 'File not supported!';
+      statusElement.innerHTML = 'File not supported!';
     }
   });
 
@@ -173,7 +175,6 @@ function main() {
   preview_data = preview_context.createImageData(width, height);
 
   var getting_image = false;
-  var is_depth_blend = false;
 
   overlay_canvas.addEventListener('mousedown', function(e) {
     if (is_depth_blend) {
@@ -262,11 +263,26 @@ function main() {
   };
 
   depthBlendButton.onclick = function(e) {
+    if (!has_image) {
+      statusElement.innerHTML = 'There is no image to process';
+      return;
+    }
+
     is_depth_blend = true;
+
     if (!has_blend_image) {
       statusElement.innerHTML = 'Load an image to blend';
       return;
     }
+    currentPhoto.queryReferenceImage().then(
+        function(image) {
+          image_context.clearRect(0, 0, width, height);
+          image_data = image_context.createImageData(image.width, image.height);
+          overlay_context.clearRect(0, 0, width, height);
+          image_data.data.set(image.data);
+          image_context.putImageData(image_data, 0, 0);
+        },
+        function(e) { statusElement.innerHTML += e; });
     statusElement.innerHTML = 'Select a point on photo to Blend';
   };
 }
