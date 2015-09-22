@@ -23,7 +23,14 @@ var FaceTracking = function(object_id) {
 
     // Face layout:
     // detection data: rect x, y, w, h (int32), avgDepth (float32),
-    // landmark data: TODO(leonhsl): specify details
+    // landmark data: number of landmark points (int32),
+    //                landmark point array
+    //                    landmark point layout:
+    //                    type (int32),
+    //                    image confidence (int32),
+    //                    world confidence (int32),
+    //                    world point x, y, z (float32),
+    //                    image point x, y (float32)
     var int32_array = new Int32Array(data, 0, 4);
     // color format
     var color_format = '';
@@ -86,6 +93,30 @@ var FaceTracking = function(object_id) {
           avgDepth: float32_array[0]
         };
       }
+      if (landmark_enabled) {
+        var landmark_points_array = [];
+        int32_array = new Int32Array(data, offset, 1);
+        var num_of_points = int32_array[0];
+        offset = offset + 4; // 1 int32(4 bytes)
+
+        for (var i = 0; i < num_of_points; ++i) {
+          int32_array = new Int32Array(data, offset, 3);
+          offset = offset + 3 * 4; // 3 int32(4 bytes)
+          var float32_array = new Float32Array(data, offset, 5);
+          offset = offset + 5 * 4; // 5 float32(4 bytes)
+
+          var landmark_point = {
+            type: int32_array[0],
+            confidenceImage: int32_array[1],
+            confidenceWorld: int32_array[2],
+            coordinateWorld: { x: float32_array[0], y: float32_array[1], z: float32_array[2] },
+            coordinateImage: { x: float32_array[3], y: float32_array[4] },
+          };
+          landmark_points_array.push(landmark_point);
+        }
+        landmark_value = { points: landmark_points_array };
+      }
+
       var face = {
         detection: detection_value,
         landmark: landmark_value

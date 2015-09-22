@@ -78,6 +78,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   PXCImage* latest_depth_image_;
   bool detection_enabled_;
   bool landmark_enabled_;
+  int num_of_landmark_points_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;

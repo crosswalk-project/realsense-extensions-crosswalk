@@ -1,6 +1,7 @@
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var detectionCheckbox = document.getElementById('enableDetection');
+var landmarksCheckbox = document.getElementById('enableLandmarks');
 
 var colorImageSizeElement = document.getElementById('2DSize');
 var depthImageSizeElement = document.getElementById('3DSize');
@@ -100,6 +101,24 @@ function main() {
               rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h +
               ' avgDepth: ' + face.detection.avgDepth);
         }
+        // Draw landmark points on every tracked faces.
+        if (face.landmark) {
+          for (var i = 0; i < face.landmark.points.length; ++i) {
+            var landmark_point = face.landmark.points[i];
+            color_context.font = '6px';
+            if (landmark_point.confidenceImage) {
+              // White color for confidence point.
+              color_context.fillStyle = 'white';
+              color_context.fillText('*',
+                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y - 3);
+            } else {
+              // Red color for non-confidence point.
+              color_context.fillStyle = 'red';
+              color_context.fillText('x',
+                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y - 3);
+            }
+          }
+        }
       }
 
       if (processed_sample.depth) {
@@ -136,7 +155,9 @@ function main() {
 
   startButton.onclick = function(e) {
     getting_processed_sample = false;
-    ft.start({enableDetection: detectionCheckbox.checked}).then(
+    ft.start({
+      enableDetection: detectionCheckbox.checked,
+      enableLandmarks: landmarksCheckbox.checked}).then(
         function(e) {
           statusElement.innerHTML = 'Status: start succeeds';
           console.log('start succeeds');},

@@ -135,6 +135,7 @@ FaceTrackingObject::FaceTrackingObject()
       latest_depth_image_(NULL),
       detection_enabled_(false),
       landmark_enabled_(false),
+      num_of_landmark_points_(0),
       binary_message_size_(0) {
   handler_.Register("start",
                     base::Bind(&FaceTrackingObject::OnStart,
@@ -306,6 +307,9 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
   }
   detection_enabled_ = config->detection.isEnabled;
   landmark_enabled_ = config->landmarks.isEnabled;
+  num_of_landmark_points_ = config->landmarks.numLandmarks;
+  DLOG(INFO) << "Number of landmark points: " << num_of_landmark_points_;
+
   config->Release();
   config = NULL;
 
@@ -435,7 +439,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
     binary_message_size_ = post_data_size;
   }
 
-  int offset = 0;
+  size_t offset = 0;
   int* int_array = reinterpret_cast<int*>(binary_message_.get());
   // Fill ProcessedSample::color image.
   PXCImage::ImageInfo color_info = color->QueryInfo();
@@ -509,7 +513,6 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
   // Fill ProcessedSample::faceResults data.
   if (!fail) {
     const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
-    DLOG(INFO) << "Tracked faces number: " << num_of_faces;
 
     int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
     int_array[0] = num_of_faces;
@@ -518,31 +521,77 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
     offset += 3 * sizeof(int);
 
     for (int i = 0; i < num_of_faces; i++) {
-      int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
       PXCFaceData::Face* trackedFace = face_output_->QueryFaceByIndex(i);
-      const PXCFaceData::DetectionData* detectionData =
-          trackedFace->QueryDetection();
 
-      // Fill Face::detection data.
-      if (detectionData) {
-        PXCRectI32 rectangle;
-        if (detectionData->QueryBoundingRect(&rectangle)) {
-          DLOG(INFO) << "Traced face No." << i << ": "
-              << rectangle.x << ", " << rectangle.y << ", "
-              << rectangle.w << ", " << rectangle.h;
-          int_array[0] = rectangle.x;
-          int_array[1] = rectangle.y;
-          int_array[2] = rectangle.w;
-          int_array[3] = rectangle.h;
-        }
-        offset += 4 * sizeof(int);
+      if (detection_enabled_) {
+        const PXCFaceData::DetectionData* detectionData =
+            trackedFace->QueryDetection();
+        // Fill Face::detection data.
+        if (detectionData) {
+          int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
+          PXCRectI32 rectangle;
+          if (detectionData->QueryBoundingRect(&rectangle)) {
+            DLOG(INFO) << "Traced face No." << i << ": "
+                << rectangle.x << ", " << rectangle.y << ", "
+                << rectangle.w << ", " << rectangle.h;
+            int_array[0] = rectangle.x;
+            int_array[1] = rectangle.y;
+            int_array[2] = rectangle.w;
+            int_array[3] = rectangle.h;
+          }
+          offset += 4 * sizeof(int);
 
-        pxcF32 avgDepth;
-        if (detectionData->QueryFaceAverageDepth(&avgDepth)) {
-          *(reinterpret_cast<float*>(binary_message_.get() + offset)) =
-              avgDepth;
+          pxcF32 avgDepth;
+          if (detectionData->QueryFaceAverageDepth(&avgDepth)) {
+            *(reinterpret_cast<float*>(binary_message_.get() + offset)) =
+                avgDepth;
+          }
+          offset += sizeof(float);
+        } else {
+          // In case of no detection data.
+          memset(binary_message_.get() + offset,
+                 0,
+                 4 * sizeof(int) + sizeof(float));
+          offset += (4 * sizeof(int) + sizeof(float));
         }
-        offset += sizeof(float);
+      }
+
+      if (landmark_enabled_) {
+        const PXCFaceData::LandmarksData* landmarkData =
+            trackedFace->QueryLandmarks();
+        // Fill Face::landmark data.
+        if (landmarkData) {
+          const int num_of_points = landmarkData->QueryNumPoints();
+          DCHECK(num_of_points == num_of_landmark_points_);
+          *(reinterpret_cast<int*>(binary_message_.get() + offset)) =
+              num_of_points;
+          offset += sizeof(int);
+
+          PXCFaceData::LandmarkPoint landmark_point;
+          for (int j = 0; j < num_of_points; j++) {
+            int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
+            landmarkData->QueryPoint(j, &landmark_point);
+
+            DCHECK(landmark_point.source.index == j);
+            int_array[0] = landmark_point.source.alias;
+            int_array[1] = landmark_point.confidenceImage;
+            int_array[2] = landmark_point.confidenceWorld;
+            offset += 3 * sizeof(int);
+
+            float* float_array =
+                reinterpret_cast<float*>(binary_message_.get() + offset);
+            float_array[0] = landmark_point.world.x;
+            float_array[1] = landmark_point.world.y;
+            float_array[2] = landmark_point.world.z;
+            float_array[3] = landmark_point.image.x;
+            float_array[4] = landmark_point.image.y;
+            offset += 5 * sizeof(float);
+          }
+        } else {
+          // No landmark data for this face.
+          *(reinterpret_cast<int*>(binary_message_.get() + offset)) = 0;
+          offset += sizeof(int);
+        }
       }
     }
   }
@@ -554,7 +603,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
             processed_sample,
             std::string("Failed to prepare processed_sample")));
   } else {
-    DCHECK(offset == post_data_size);
+    DCHECK(offset <= post_data_size);
     scoped_ptr<base::ListValue> result(new base::ListValue());
     result->Append(base::BinaryValue::CreateWithCopiedBuffer(
         reinterpret_cast<const char*>(binary_message_.get()),
@@ -666,11 +715,16 @@ void FaceTrackingObject::OnStopFaceTrackingThread() {
 // number of faces (int32),
 // detection data available (int32),
 // landmark data available (int32),
-// face #1 detection data: rect x, y, w, h (int32), avgDepth (float32),
-//         landmark data: TODO(leonhsl): specify details
-// face #2 detection data: rect x, y, w, h (int32), avgDepth (float32),
-//         landmark data: TODO(leonhsl): specify details
-// ......
+// face data array:
+//     array element: rect x, y, w, h (int32), avgDepth (float32),
+//                    landmark data: number of landmark points (int32),
+//                                   landmark point data array:
+//                                      array element:
+//                                               type (int32),
+//                                               image confidence (int32),
+//                                               world confidence (int32),
+//                                               world point x, y, z (float32),
+//                                               image point x, y (float32),
 size_t FaceTrackingObject::CalculateBinaryMessageSize() {
   const int image_header_size = 3 * sizeof(int);  // format, width, height
   PXCImage::ImageInfo color_info = latest_color_image_->QueryInfo();
@@ -685,7 +739,17 @@ size_t FaceTrackingObject::CalculateBinaryMessageSize() {
   const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
   int one_face_size = 0;
   if (detection_enabled_) {
-    one_face_size += 4 * sizeof(int) + sizeof(float);
+    one_face_size += (4 * sizeof(int) + sizeof(float));
+  }
+  if (landmark_enabled_) {
+    int landmark_size = 0;
+    // size for "number of landmark points"
+    landmark_size += sizeof(int);
+    // size for "one landmark point data"
+    const int landmark_point_size = 3 * sizeof(int) + 5 * sizeof(float);
+    landmark_size += num_of_landmark_points_ * landmark_point_size;
+
+    one_face_size += landmark_size;
   }
 
   const int message_size =
