@@ -11,13 +11,14 @@
   </style>
 </head>
 <body>
-  <div style='position: absolute; left: 20px; top: 20px;'>
-    <button id='start'>Start Preview</button>
-    <button id='takePhoto'>Take Photo</button>
-    <button id='stop'>Stop Preview</button>
-    <button id='load'>Load</button>
-    <button id='save'>Save</button>
-    <button id='segmentation'>Restart Segmentation</button>
+  <div>
+    <button id='start' style='position: absolute; left: 20px; top: 15px; width: 100px; height: 25px'>Start Preview</button>
+    <button id='takePhoto' style='position: absolute; left: 125px; top: 15px; width: 100px; height: 25px'>Take Photo</button>
+    <button id='stop' style='position: absolute; left: 230px; top: 15px; width: 100px; height: 25px'>Stop Preview</button>
+    <button id='load' style='position: absolute; left: 335px; top: 15px; width: 100px; height: 25px'>Load</button>
+    <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 335px; top: 15px; width: 100px; opacity:0; height: 25px' />
+    <button id='save' style='position: absolute; left: 440px; top: 15px; width: 100px; height: 25px'>Save</button>
+    <button id='segmentation' style='position: absolute; left: 545px; top: 10px; width: 100px;'> restart segmentation</button>
   </div>
   <div id='canvas_container'>
     <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 50px;'></canvas>

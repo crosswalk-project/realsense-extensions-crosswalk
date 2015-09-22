@@ -2,7 +2,7 @@ var statusElement = document.getElementById('status');
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var snapShotButton = document.getElementById('snapshot');
-var loadButton = document.getElementById('load');
+var loadPhoto = document.getElementById('loadPhoto');
 var saveButton = document.getElementById('save');
 var fileInput = document.getElementById('fileInput');
 var measureRadio = document.getElementById('measure');
@@ -519,19 +519,17 @@ function main() {
         function(e) { statusElement.innerHTML += e; });
   };
 
-  loadButton.onclick = function(e) {
-    // TODO(qjia7): Allow user to config the file path.
-    statusElement.innerHTML =
-        'Status Info : Load from C:/workspace/photo1.jpg : ';
-    ep.loadFromXMP('C:/workspace/photo1.jpg').then(
-        function(photo) {
+  loadPhoto.addEventListener('change', function (e) {
+    var file = loadPhoto.files[0];
+    ep.loadDepthPhoto(file).then(
+        function (photo) {
           currentPhoto = photo;
           savePhoto = photo;
           currentPhoto.queryReferenceImage().then(
               function(image) {
                 image_context.clearRect(0, 0, width, height);
                 image_data = image_context.createImageData(image.width, image.height);
-                statusElement.innerHTML += 'Sucess';
+                statusElement.innerHTML = 'Sucess';
                 overlay_context.clearRect(0, 0, width, height);
                 image_data.data.set(image.data);
                 image_context.putImageData(image_data, 0, 0);
@@ -543,9 +541,10 @@ function main() {
                   depthUpscale();
                 }
               },
-              function(e) { statusElement.innerHTML += e; });},
-        function(e) { statusElement.innerHTML += e; });
-  };
+              function(e) { statusElement.innerHTML = e; });
+        },
+        function(e) { statusElement.innerHTML = e; });
+  });
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';

@@ -2,7 +2,7 @@ var statusElement = document.getElementById('status');
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var takePhotoButton = document.getElementById('takePhoto');
-var loadButton = document.getElementById('load');
+var loadPhoto = document.getElementById('loadPhoto');
 var saveButton = document.getElementById('save');
 var depthBlendButton = document.getElementById('depthBlend');
 
@@ -19,7 +19,7 @@ var image_canvas = document.getElementById('image');
 var overlay_canvas = document.getElementById('overlay');
 
 var ep;
-var preview_context, preview_data, image_context, image_data, overlay_context;
+var preview_context, preview_data, image_context, image_data;
 var currentPhoto, savePhoto;
 
 var width = 640, height = 480;
@@ -96,8 +96,6 @@ function depthBlend(e) {
   x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
   y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
 
-  overlay_context.clearRect(0, 0, width, height);
-
   var click_x = x;
   var click_y = y;
   currentPhoto.queryRawDepthImage().then(
@@ -171,7 +169,6 @@ function main() {
 
   preview_context = preview_canvas.getContext('2d');
   image_context = image_canvas.getContext('2d');
-  overlay_context = overlay.getContext('2d');
   preview_data = preview_context.createImageData(width, height);
 
   var getting_image = false;
@@ -216,7 +213,6 @@ function main() {
                 image_data =
                     image_context.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
-                overlay_context.clearRect(0, 0, width, height);
                 image_data.data.set(image.data);
                 image_context.putImageData(image_data, 0, 0);
                 has_image = true;
@@ -233,28 +229,25 @@ function main() {
         function(e) { statusElement.innerHTML += e; });
   };
 
-  loadButton.onclick = function(e) {
-    statusElement.innerHTML =
-        'Status Info : Load from C:/workspace/photo1.jpg : ';
-    ep.loadFromXMP('C:/workspace/photo1.jpg').then(
+  loadPhoto.addEventListener('change', function(e) {
+    var file = loadPhoto.files[0];
+    ep.loadDepthPhoto(file).then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
           currentPhoto.queryReferenceImage().then(
               function(image) {
                 image_context.clearRect(0, 0, width, height);
-                image_data =
-                    image_context.createImageData(image.width, image.height);
-                statusElement.innerHTML += 'Sucess';
-                overlay_context.clearRect(0, 0, width, height);
+                image_data = image_context.createImageData(image.width, image.height);
+                statusElement.innerHTML = 'Load Sucess';
                 image_data.data.set(image.data);
                 image_context.putImageData(image_data, 0, 0);
                 has_image = true;
               },
-              function(e) { statusElement.innerHTML += e; });
+              function(e) { statusElement.innerHTML = e; });
         },
-        function(e) { statusElement.innerHTML += e; });
-  };
+        function(e) { statusElement.innerHTML = e; });
+  });
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';
@@ -278,7 +271,6 @@ function main() {
         function(image) {
           image_context.clearRect(0, 0, width, height);
           image_data = image_context.createImageData(image.width, image.height);
-          overlay_context.clearRect(0, 0, width, height);
           image_data.data.set(image.data);
           image_context.putImageData(image_data, 0, 0);
         },
