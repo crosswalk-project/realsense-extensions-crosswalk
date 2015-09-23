@@ -28,10 +28,6 @@ namespace enhanced_photography {
     long roll;
   };
 
-  dictionary Photo {
-    DOMString objectId;
-  };
-
   enum DepthFillQuality {
     high,
     low
@@ -48,7 +44,7 @@ namespace enhanced_photography {
   callback DistancePromise = void(Distance distance, DOMString error);
   callback ImagePromise = void(depth_photo.Image image, DOMString error);
   callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
-  callback PhotoPromise = void(Photo photo, DOMString error);
+  callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
   callback Promise = void(DOMString success, DOMString error);
 
   interface Events {
@@ -66,14 +62,14 @@ namespace enhanced_photography {
     // TODO(qjia7): Use an ArrayBuffer to instead of the string file path.
     // https://github.com/otcshare/realsense-extensions-crosswalk/issues/81
     static void loadFromXMP(DOMString filepath, PhotoPromise promise);
-    static void saveAsXMP(Photo photo, DOMString filepath, Promise promise);
-    static void measureDistance(Photo photo, Point start, Point end, DistancePromise promise);
-    static void depthRefocus(Photo photo, Point focus, double aperture, PhotoPromise promise);
-    static void depthResize(Photo photo, Size size, PhotoPromise promise);
-    static void enhanceDepth(Photo photo, DepthFillQuality quality, PhotoPromise promise);
-    static void pasteOnPlane(Photo photo, depth_photo.Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
-    static void computeMaskFromCoordinate(Photo photo, Point point, MaskImagePromise promise);
-    static void depthBlend(Photo photo, depth_photo.Image image, Point point, long depth, Rotation rotation, double scale, PhotoPromise promise);
+    static void saveAsXMP(depth_photo.Photo photo, DOMString filepath, Promise promise);
+    static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
+    static void depthRefocus(depth_photo.Photo photo, Point focus, double aperture, PhotoPromise promise);
+    static void depthResize(depth_photo.Photo photo, Size size, PhotoPromise promise);
+    static void enhanceDepth(depth_photo.Photo photo, DepthFillQuality quality, PhotoPromise promise);
+    static void pasteOnPlane(depth_photo.Photo photo, depth_photo.Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
+    static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, MaskImagePromise promise);
+    static void depthBlend(depth_photo.Photo photo, depth_photo.Image image, Point point, long depth, Rotation rotation, double scale, PhotoPromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);

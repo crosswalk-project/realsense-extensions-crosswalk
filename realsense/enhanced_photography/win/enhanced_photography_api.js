@@ -40,12 +40,17 @@ var DepthPhoto = function(object_id) {
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
+  function wrapPhotoReturns(data) {
+    return new DepthPhoto(data.objectId);
+  };
+
   this._addMethodWithPromise('queryReferenceImage', Promise, null, wrapColorImageReturns);
   this._addMethodWithPromise('queryOriginalImage', Promise, null, wrapColorImageReturns);
   this._addMethodWithPromise('queryDepthImage', Promise, null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', Promise, null, wrapDepthImageReturns);
   this._addMethodWithPromise('setColorImage', Promise, wrapColorImageArgs);
   this._addMethodWithPromise('setDepthImage', Promise);
+  this._addMethodWithPromise('clone', Promise, null, wrapPhotoReturns);
 
   Object.defineProperties(this, {
     'photoId': {
@@ -112,7 +117,6 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('takeSnapShot', Promise, null, wrapReturns);
   this._addMethodWithPromise('loadFromXMP', Promise, null, wrapReturns);
   this._addMethodWithPromise('saveAsXMP', Promise, wrapArgs);
-
 
   this._addMethodWithPromise('measureDistance', Promise, wrapArgs);
   this._addMethodWithPromise('depthRefocus', Promise, wrapArgs, wrapReturns);

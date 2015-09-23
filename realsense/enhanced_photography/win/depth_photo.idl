@@ -24,8 +24,13 @@ namespace depth_photo {
     double[] data;
   };
 
+  dictionary Photo{
+    DOMString objectId;
+  };
+
   callback ImagePromise = void(Image image, DOMString error);
   callback Promise = void(DOMString success, DOMString error);
+  callback PhotoPromise = void(Photo photo, DOMString error);
 
   interface Functions {
     static void queryReferenceImage(ImagePromise promise);
@@ -34,5 +39,6 @@ namespace depth_photo {
     static void queryRawDepthImage(ImagePromise promise);
     static void setColorImage(Image image, Promise promise);
     static void setDepthImage(Image image, Promise promise);
+    static void clone(PhotoPromise promise);
   };
 };

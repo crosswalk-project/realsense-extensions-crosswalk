@@ -112,10 +112,10 @@ bool EnhancedPhotographyObject::CreateEPInstance() {
   return true;
 }
 
-void EnhancedPhotographyObject::CreateDepthPhotoObject(PXCPhoto* pxcphoto,
-                                                       Photo* photo) {
+void EnhancedPhotographyObject::CreateDepthPhotoObject(
+    PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
   std::string object_id = base::GenerateGUID();
-  scoped_ptr<BindingObject> obj(new DepthPhotoObject(pxcphoto));
+  scoped_ptr<BindingObject> obj(new DepthPhotoObject(pxcphoto, this));
   instance_->AddBindingObject(object_id, obj.Pass());
   photo_objects_.push_back(object_id);
 
@@ -132,6 +132,13 @@ void EnhancedPhotographyObject::StopEvent(const std::string& type) {
   if (type == std::string("preview")) {
     on_preview_ = false;
   }
+}
+
+void EnhancedPhotographyObject::CopyDepthPhoto(
+    PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
+  PXCPhoto* newphoto = session_->CreatePhoto();
+  newphoto->CopyPhoto(pxcphoto);
+  CreateDepthPhotoObject(newphoto, photo);
 }
 
 void EnhancedPhotographyObject::OnStartPreview(
@@ -281,7 +288,7 @@ void EnhancedPhotographyObject::OnGetPreviewImage(
 
 void EnhancedPhotographyObject::OnTakeSnapShot(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   if (state_ != PREVIEW) {
     info->PostResult(TakeSnapShot::Results::Create(photo,
         "It's not in preview mode."));
@@ -303,7 +310,7 @@ void EnhancedPhotographyObject::OnTakeSnapShot(
 
 void EnhancedPhotographyObject::CaptureOnPreviewThread(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   pxcStatus status = sense_manager_->AcquireFrame(true);
   if (status < PXC_STATUS_NO_ERROR) {
     info->PostResult(TakeSnapShot::Results::Create(photo,
@@ -322,7 +329,7 @@ void EnhancedPhotographyObject::CaptureOnPreviewThread(
 
 void EnhancedPhotographyObject::OnLoadFromXMP(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   if (!CreateSessionInstance()) {
     info->PostResult(LoadFromXMP::Results::Create(photo,
         "Failed to create SDK session"));
@@ -442,7 +449,7 @@ void EnhancedPhotographyObject::OnMeasureDistance(
 
 void EnhancedPhotographyObject::OnDepthRefocus(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   scoped_ptr<DepthRefocus::Params> params(
       DepthRefocus::Params::Create(*info->arguments()));
   if (!params) {
@@ -482,7 +489,7 @@ void EnhancedPhotographyObject::OnDepthRefocus(
 
 void EnhancedPhotographyObject::OnDepthResize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   scoped_ptr<DepthResize::Params> params(
       DepthResize::Params::Create(*info->arguments()));
   if (!params) {
@@ -518,7 +525,7 @@ void EnhancedPhotographyObject::OnDepthResize(
 
 void EnhancedPhotographyObject::OnEnhanceDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   scoped_ptr<EnhanceDepth::Params> params(
       EnhanceDepth::Params::Create(*info->arguments()));
   if (!params) {
@@ -558,7 +565,7 @@ void EnhancedPhotographyObject::OnEnhanceDepth(
 
 void EnhancedPhotographyObject::OnPasteOnPlane(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   scoped_ptr<PasteOnPlane::Params> params(
       PasteOnPlane::Params::Create(*info->arguments()));
   if (!params) {
@@ -629,7 +636,7 @@ void EnhancedPhotographyObject::OnPasteOnPlane(
 
 void EnhancedPhotographyObject::OnDepthBlend(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
-  Photo photo;
+  jsapi::depth_photo::Photo photo;
   scoped_ptr<DepthBlend::Params> params(
       DepthBlend::Params::Create(*info->arguments()));
   if (!params) {
