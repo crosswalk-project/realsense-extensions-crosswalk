@@ -57,6 +57,8 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthBlend(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnObjectSegment(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnRefineMask(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CreateSessionInstance();
   bool CreateEPInstance();
@@ -96,7 +98,6 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   std::vector<std::string> photo_objects_;
 
   scoped_ptr<uint8[]> binary_message_;
-  scoped_ptr<float_t[]> float_binary_message_;
   size_t binary_message_size_;
 };
 

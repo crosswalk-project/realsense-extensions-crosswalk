@@ -90,7 +90,7 @@ var EnhancedPhotography = function(object_id) {
     return new DepthPhoto(data.objectId);
   };
 
-  function wrapImageReturns(data) {
+  function wrapRGB32ImageReturns(data) {
     var int32_array = new Int32Array(data);
     // int32_array[0] is the callback id.
     var width = int32_array[1];
@@ -101,19 +101,31 @@ var EnhancedPhotography = function(object_id) {
     return { format: 'RGB32', width: width, height: height, data: buffer };
   };
 
-  function wrapMaskImageReturns(data) {
-    var fload32_array = new Float32Array(data);
-    var width = parseInt(fload32_array[1]);
-    var height = parseInt(fload32_array[2]);
-    // 3 float32 (4 bytes) values.
+  function wrapF32ImageReturns(data) {
+    // 3 int32 (4 bytes) values.
     var header_byte_offset = 3 * 4;
+    var int32_array = new Int32Array(data, 0, header_byte_offset);
+    // int32_array[0] is the callback id.
+    var width = int32_array[1];
+    var height = int32_array[2];
     var buffer = new Float32Array(data, header_byte_offset, width * height);
     return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
   };
 
+  function wrapY8ImageReturns(data) {
+    // 3 int32 (4 bytes) values.
+    var header_byte_offset = 3 * 4;
+    var int32_array = new Int32Array(data, 0, header_byte_offset);
+    // int32_array[0] is the callback id.
+    var width = int32_array[1];
+    var height = int32_array[2];
+    var buffer = new Uint8Array(data, header_byte_offset, width * height);
+    return { format: 'Y8', width: width, height: height, data: buffer };
+  };
+
   this._addMethodWithPromise('startPreview', Promise);
   this._addMethodWithPromise('stopPreview', Promise);
-  this._addMethodWithPromise('getPreviewImage', Promise, null, wrapImageReturns);
+  this._addMethodWithPromise('getPreviewImage', Promise, null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('takeSnapShot', Promise, null, wrapReturns);
   this._addMethodWithPromise('loadFromXMP', Promise, null, wrapReturns);
   this._addMethodWithPromise('saveAsXMP', Promise, wrapArgs);
@@ -123,8 +135,10 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('depthResize', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('enhanceDepth', Promise, wrapArgs, wrapReturns);
   this._addMethodWithPromise('pasteOnPlane', Promise, wrapImageArgs, wrapReturns);
-  this._addMethodWithPromise('computeMaskFromCoordinate', Promise, wrapArgs, wrapMaskImageReturns);
+  this._addMethodWithPromise('computeMaskFromCoordinate', Promise, wrapArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('depthBlend', Promise, wrapImageArgs, wrapReturns);
+  this._addMethodWithPromise('objectSegment', Promise, wrapArgs, wrapY8ImageReturns);
+  this._addMethodWithPromise('refineMask', Promise, null, wrapY8ImageReturns);
 
   this._addEvent('error');
   this._addEvent('preview');

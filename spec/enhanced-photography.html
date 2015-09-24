@@ -84,6 +84,14 @@
               The depth map data in 32-bit floating point.
             </p>
           </dd>
+          <dt>
+            Y8
+          </dt>
+          <dd>
+            <p>
+              The 8-bit gray format.
+            </p>
+          </dd>
         </dl>
         <dl class="idl" title="[Constructor(unsigned long width, unsigned long height), &nbsp;Constructor(ArrayBuffer data, unsigned long width, unsigned long height)] interface Image">
           <dt>
@@ -345,6 +353,18 @@
           </dd>
           <dt>
             Promise&lt;DepthPhoto&gt; depthBlend(DepthPhoto photo, Image image, Point point, long depth, Rotation rotation, double scale)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; objectSegment(DepthPhoto photo, Point topLeft, Point bottomRight)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; refineMask(Image hints)
           </dt>
           <dd>
             &nbsp;

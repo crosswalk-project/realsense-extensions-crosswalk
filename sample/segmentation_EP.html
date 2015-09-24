@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RealSense Enhanced Photography Segmentation Test</title>
+  <style>
+    canvas {
+      width: 400px;
+      height: 300px;
+      border: 1px solid #000000;
+    }
+  </style>
+</head>
+<body>
+  <div style='position: absolute; left: 20px; top: 20px;'>
+    <button id='start'>Start Preview</button>
+    <button id='takePhoto'>Take Photo</button>
+    <button id='stop'>Stop Preview</button>
+    <button id='load'>Load</button>
+    <button id='save'>Save</button>
+    <button id='segmentation'>Restart Segmentation</button>
+  </div>
+  <div id='canvas_container'>
+    <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 50px;'></canvas>
+    <canvas id='image' width='640' height='480' style='position: absolute; left: 435px; top: 50px;'></canvas>
+    <canvas id='overlay' width='640' height='480' style='position: absolute; left: 435px; top: 50px;'></cavnas>
+  </div>
+  <p id='status' style='position: absolute; left: 10px; top: 360px;'></p>
+</body>
+<script src="libs/stats.min.js"></script>
+<script src="segmentation.js"></script>
+<script type="text/javascript">
+  window.onload = main();
+</script>
+</html>
