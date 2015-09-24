@@ -512,11 +512,28 @@ function main() {
   };
 
   saveButton.onclick = function(e) {
-    // TODO(qjia7): Allow user to config the file path.
-    statusElement.innerHTML = 'Status Info : Save as C:/workspace/photo2.jpg ';
-    ep.saveAsXMP(savePhoto, 'C:/workspace/photo2.jpg').then(
-        function(e) { statusElement.innerHTML += e; },
-        function(e) { statusElement.innerHTML += e; });
+    if (!savePhoto) {
+      statusElement.innerHTML = 'There is no photo to save';
+      return;
+    }
+    ep.saveDepthPhoto(savePhoto).then(
+        function(blob) {
+          var reader = new FileReader();
+          reader.onload = function(evt) {
+            var image = document.getElementById('imageDisplayArea');
+            image.src = evt.target.result;
+            // Currently, crosswalk has bugs to download (see XWALK-5220). So the following code
+            // doesn't work. Once download is enabled. The processed image will be
+            // downloaded into 'Downloads' folder.
+            var a = document.createElement('a');
+            a.href = evt.target.result;
+            a.download = true;
+            a.click();
+            statusElement.innerHTML = 'Save successfully';
+          };
+          reader.readAsDataURL(blob);
+        },
+        function(e) { statusElement.innerHTML = e; });
   };
 
   loadPhoto.addEventListener('change', function(e) {

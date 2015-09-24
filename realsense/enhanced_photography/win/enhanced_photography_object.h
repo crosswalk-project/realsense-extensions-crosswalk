@@ -47,7 +47,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   // This method will bind the XMP photo with |photo_|.
   void OnLoadDepthPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnSaveAsXMP(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSaveDepthPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);

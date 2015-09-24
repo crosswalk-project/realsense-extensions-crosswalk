@@ -47,7 +47,7 @@ var DepthPhoto = function(object_id) {
   this._addMethodWithPromise('queryReferenceImage', null, wrapColorImageReturns);
   this._addMethodWithPromise('queryOriginalImage', null, wrapColorImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
-  this._addMethodWithPromise('queryRawDepthImage',null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('setColorImage', wrapColorImageArgs);
   this._addMethodWithPromise('setDepthImage');
   this._addMethodWithPromise('clone', null, wrapPhotoReturns);
@@ -137,12 +137,19 @@ var EnhancedPhotography = function(object_id) {
     return { format: 'Y8', width: width, height: height, data: buffer };
   };
 
+  function wrapRawDataReturns(data) {
+    // 1 int32 (4 bytes) value (callback id).
+    var dataBuffer = data.slice(4);
+    var blob = new Blob([dataBuffer], { type: 'image/jpeg' });
+    return blob;
+  };
+
   this._addMethodWithPromise('startPreview');
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
   this._addMethodWithPromise2('loadDepthPhoto', wrapBlobArg, wrapReturns);
-  this._addMethodWithPromise('saveAsXMP', wrapArgs);
+  this._addMethodWithPromise('saveDepthPhoto', wrapArgs, wrapRawDataReturns);
 
   this._addMethodWithPromise('measureDistance', wrapArgs);
   this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
