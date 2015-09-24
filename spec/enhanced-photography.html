@@ -222,29 +222,55 @@
             &nbsp;
           </dd>
         </dl>
+        <dl title='dictionary Motion' class='idl'>
+          <dt>
+            float horizontal
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving to the right.
+            </p>
+          </dd>
+          <dt>
+            float vertical
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving up.
+            </p>
+          </dd>
+          <dt>
+            float distance
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving forward.
+            </p>
+          </dd>
+        </dl>
         <dl title='dictionary Rotation' class='idl'>
           <dt>
-            unsigned long pitch
+            float pitch
           </dt>
           <dd>
             <p>
-              The pitch value, in degrees. A positive pitch value indicates that rotates with X axis.
+              A positive pitch value indicates that rotates with X axis.
             </p>
           </dd>
           <dt>
-            unsigned long yaw
+            float yaw
           </dt>
           <dd>
             <p>
-              The yaw value, in degrees. A positive yaw value indicates that rotates with Y axis.
+              A positive yaw value indicates that rotates with Y axis.
             </p>
           </dd>
           <dt>
-            unsigned long roll
+            float roll
           </dt>
           <dd>
             <p>
-              The roll value, in degrees. A positive roll value indicates that clockwise rotates.
+              A positive roll value indicates that clockwise rotates.
             </p>
           </dd>
         </dl>
@@ -365,6 +391,18 @@
           </dd>
           <dt>
             Promise&lt;Image&gt; refineMask(Image hints)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;void&gt; initMotionEffect(DepthPhoto photo)
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; applyMotionEffect(Motion motion, Rotation rotation, double zoom)
           </dt>
           <dd>
             &nbsp;

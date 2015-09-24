@@ -59,6 +59,8 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnDepthBlend(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnObjectSegment(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnRefineMask(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnInitMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnApplyMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CreateSessionInstance();
   bool CreateEPInstance();

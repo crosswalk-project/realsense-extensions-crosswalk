@@ -22,10 +22,16 @@ namespace enhanced_photography {
     long height;
   };
 
+  dictionary Motion {
+    double horizontal;
+    double vertical;
+    double distance;
+  };
+
   dictionary Rotation {
-    long pitch;
-    long yaw;
-    long roll;
+    double pitch;
+    double yaw;
+    double roll;
   };
 
   enum DepthFillQuality {
@@ -72,6 +78,8 @@ namespace enhanced_photography {
     static void depthBlend(depth_photo.Photo photo, depth_photo.Image image, Point point, long depth, Rotation rotation, double scale, PhotoPromise promise);
     static void objectSegment(depth_photo.Photo photo, Point topLeft, Point bottomRight, ImagePromise promise);
     static void refineMask(depth_photo.Image image, ImagePromise promise);
+    static void initMotionEffect(depth_photo.Photo photo, Promise promise);
+    static void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);
