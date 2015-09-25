@@ -13,8 +13,6 @@ xwalk::common::Extension* CreateExtension() {
 
 // This will be generated from common_api.js
 extern const char kSource_common_api[];
-// This will be generated from common_promise_api.js
-extern const char kSource_common_promise_api[];
 // This will be generated from session_api.js.
 extern const char kSource_session_api[];
 
@@ -24,7 +22,6 @@ namespace session {
 SessionExtension::SessionExtension() {
   SetExtensionName("realsense.session");
   std::string jsapi(kSource_common_api);
-  jsapi += kSource_common_promise_api;
   jsapi += kSource_session_api;
   SetJavaScriptAPI(jsapi.c_str());
 }

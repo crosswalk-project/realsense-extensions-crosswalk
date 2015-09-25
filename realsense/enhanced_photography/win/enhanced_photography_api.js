@@ -44,13 +44,13 @@ var DepthPhoto = function(object_id) {
     return new DepthPhoto(data.objectId);
   };
 
-  this._addMethodWithPromise('queryReferenceImage', Promise, null, wrapColorImageReturns);
-  this._addMethodWithPromise('queryOriginalImage', Promise, null, wrapColorImageReturns);
-  this._addMethodWithPromise('queryDepthImage', Promise, null, wrapDepthImageReturns);
-  this._addMethodWithPromise('queryRawDepthImage', Promise, null, wrapDepthImageReturns);
-  this._addMethodWithPromise('setColorImage', Promise, wrapColorImageArgs);
-  this._addMethodWithPromise('setDepthImage', Promise);
-  this._addMethodWithPromise('clone', Promise, null, wrapPhotoReturns);
+  this._addMethodWithPromise('queryReferenceImage', null, wrapColorImageReturns);
+  this._addMethodWithPromise('queryOriginalImage', null, wrapColorImageReturns);
+  this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryRawDepthImage',null, wrapDepthImageReturns);
+  this._addMethodWithPromise('setColorImage', wrapColorImageArgs);
+  this._addMethodWithPromise('setDepthImage');
+  this._addMethodWithPromise('clone', null, wrapPhotoReturns);
 
   Object.defineProperties(this, {
     'photoId': {
@@ -123,24 +123,24 @@ var EnhancedPhotography = function(object_id) {
     return { format: 'Y8', width: width, height: height, data: buffer };
   };
 
-  this._addMethodWithPromise('startPreview', Promise);
-  this._addMethodWithPromise('stopPreview', Promise);
-  this._addMethodWithPromise('getPreviewImage', Promise, null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('takeSnapShot', Promise, null, wrapReturns);
-  this._addMethodWithPromise('loadFromXMP', Promise, null, wrapReturns);
-  this._addMethodWithPromise('saveAsXMP', Promise, wrapArgs);
+  this._addMethodWithPromise('startPreview');
+  this._addMethodWithPromise('stopPreview');
+  this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
+  this._addMethodWithPromise('loadFromXMP', null, wrapReturns);
+  this._addMethodWithPromise('saveAsXMP', wrapArgs);
 
-  this._addMethodWithPromise('measureDistance', Promise, wrapArgs);
-  this._addMethodWithPromise('depthRefocus', Promise, wrapArgs, wrapReturns);
-  this._addMethodWithPromise('depthResize', Promise, wrapArgs, wrapReturns);
-  this._addMethodWithPromise('enhanceDepth', Promise, wrapArgs, wrapReturns);
-  this._addMethodWithPromise('pasteOnPlane', Promise, wrapImageArgs, wrapReturns);
-  this._addMethodWithPromise('computeMaskFromCoordinate', Promise, wrapArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('depthBlend', Promise, wrapImageArgs, wrapReturns);
-  this._addMethodWithPromise('objectSegment', Promise, wrapArgs, wrapY8ImageReturns);
-  this._addMethodWithPromise('refineMask', Promise, null, wrapY8ImageReturns);
-  this._addMethodWithPromise('initMotionEffect', Promise, wrapArgs);
-  this._addMethodWithPromise('applyMotionEffect', Promise, null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('measureDistance', wrapArgs);
+  this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
+  this._addMethodWithPromise('depthResize', wrapArgs, wrapReturns);
+  this._addMethodWithPromise('enhanceDepth', wrapArgs, wrapReturns);
+  this._addMethodWithPromise('pasteOnPlane', wrapImageArgs, wrapReturns);
+  this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
+  this._addMethodWithPromise('depthBlend', wrapImageArgs, wrapReturns);
+  this._addMethodWithPromise('objectSegment', wrapArgs, wrapY8ImageReturns);
+  this._addMethodWithPromise('refineMask', null, wrapY8ImageReturns);
+  this._addMethodWithPromise('initMotionEffect', wrapArgs);
+  this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
 
   this._addEvent('error');
   this._addEvent('preview');

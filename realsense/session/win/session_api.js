@@ -9,7 +9,7 @@ var Session = function(object_id) {
   if (object_id == undefined)
     internal.postMessage('sessionConstructor', [this._id]);
 
-  this._addMethodWithPromise('getVersion', Promise);
+  this._addMethodWithPromise('getVersion');
 };
 
 Session.prototype = new common.EventTargetPrototype();

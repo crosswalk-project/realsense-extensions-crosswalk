@@ -81,14 +81,14 @@ var ScenePerception = function(object_id) {
     this.meshes = meshes;
   }
 
-  this._addMethodWithPromise('start', Promise);
-  this._addMethodWithPromise('stop', Promise);
-  this._addMethodWithPromise('reset', Promise);
-  this._addMethodWithPromise('enableTracking', Promise);
-  this._addMethodWithPromise('disableTracking', Promise);
-  this._addMethodWithPromise('enableMeshing', Promise);
-  this._addMethodWithPromise('disableMeshing', Promise);
-  this._addMethodWithPromise('getSample', Promise, null, wrapSampleReturns);
+  this._addMethodWithPromise('start');
+  this._addMethodWithPromise('stop');
+  this._addMethodWithPromise('reset');
+  this._addMethodWithPromise('enableTracking');
+  this._addMethodWithPromise('disableTracking');
+  this._addMethodWithPromise('enableMeshing');
+  this._addMethodWithPromise('disableMeshing');
+  this._addMethodWithPromise('getSample', null, wrapSampleReturns);
 
   this._addEvent('error');
   this._addEvent('sample');
