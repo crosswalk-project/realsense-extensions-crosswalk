@@ -17,8 +17,6 @@ xwalk::common::Extension* CreateExtension() {
 
 // This will be generated from common_api.js
 extern const char kSource_common_api[];
-// This will be generated from common_promise_api.js
-extern const char kSource_common_promise_api[];
 // This will be generated from face_tracking_api.js.
 extern const char kSource_face_tracking_api[];
 
@@ -28,7 +26,6 @@ namespace face_tracking {
 FaceTrackingExtension::FaceTrackingExtension() {
   SetExtensionName("realsense.Face");
   std::string jsapi(kSource_common_api);
-  jsapi += kSource_common_promise_api;
   jsapi += kSource_face_tracking_api;
   SetJavaScriptAPI(jsapi.c_str());
 }

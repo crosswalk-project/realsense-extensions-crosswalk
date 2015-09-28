@@ -149,9 +149,9 @@ var FaceTracking = function(object_id) {
     };
   };
 
-  this._addMethodWithPromise('start', Promise);
-  this._addMethodWithPromise('stop', Promise);
-  this._addMethodWithPromise('getProcessedSample', Promise, null, wrapProcessedSampleReturns);
+  this._addMethodWithPromise('start');
+  this._addMethodWithPromise('stop');
+  this._addMethodWithPromise('getProcessedSample', null, wrapProcessedSampleReturns);
 
   this._addEvent('error');
   this._addEvent('processedsample');
