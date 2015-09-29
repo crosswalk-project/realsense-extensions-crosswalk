@@ -10,24 +10,26 @@
       }
     </style>
   <body>
-    <p id='quality'>Quality: </p>
-  <p id='accuracy'>Accuracy: </p>
-  <div style='margin-bottom:23px;'>
-    <button id='start'>Start</button>
-    <button id='stop'>Stop</button>
-    <button id='reset'>Reset</button>
-    <button id='enableTracking'>Enable Tracking</button>
-    <button id='disableTracking'>Disable Tracking</button>
-    <button id='enableMeshing'>Enable Meshing</button>
-    <button id='disableMeshing'>Disable Meshing</button>
+  <div style="margin-bottom:10px;">
+    <a id='quality'>Quality: </a>
+    <a id='accuracy'>Accuracy: </a>
+    <a id='reconstruction'>Reconsturction: </a>
   </div>
-  <div id='color_container' style='position: absolute; left: 10px; top: 120px;'>
+  <div style='margin-bottom:23px;'>
+    <button id='init'>Init</button>
+    <button id='destory'>Destory</button>
+    <button id='reset'>Reset</button>
+    <button id='startSP'>StartSP</button>
+    <button id='stopSP'>StopSP</button>
+    <button id='toggleReconstruction'>Toggle Reconstruction</button>
+  </div>
+  <div id='color_container' style='position: absolute; left: 10px; top: 90px;'>
     <canvas id='color' width='320' height='240'></canvas>
   </div>
-  <div id='depth_container' style='position: absolute; left: 10px; top: 370px'>
+  <div id='depth_container' style='position: absolute; left: 10px; top: 340px'>
     <canvas id='depth' width='320' height='240'></canvas>
   </div>
-  <div id='canvas' style='width: 640px; height: 480px; position: absolute; left: 350px; top: 120px'>
+  <div id='canvas' style='width: 640px; height: 480px; position: absolute; left: 350px; top: 90px'>
   </div>
   </body>
   <script src='libs/three.js'></script>

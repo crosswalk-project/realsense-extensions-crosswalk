@@ -1,12 +1,12 @@
 var qualityElement = document.getElementById('quality');
 var accuracyElement = document.getElementById('accuracy');
-var startButton = document.getElementById('start');
+var reconstructionElement = document.getElementById('reconstruction');
+var initButton = document.getElementById('init');
 var resetButton = document.getElementById('reset');
-var stopButton = document.getElementById('stop');
-var enableTrackingButton = document.getElementById('enableTracking');
-var disableTrackingButton = document.getElementById('disableTracking');
-var enableMeshingButton = document.getElementById('enableMeshing');
-var disableMeshingButton = document.getElementById('disableMeshing');
+var destoryButton = document.getElementById('destory');
+var startButton = document.getElementById('startSP');
+var stopButton = document.getElementById('stopSP');
+var toggleReconstructionButton = document.getElementById('toggleReconstruction');
 
 var blockMeshMap = {};
 var totalMesh = null;
@@ -67,17 +67,28 @@ function ConvertDepthToRGBUsingHistogram(
   }
 }
 
+function resetButtonState(beforeStart) {
+  initButton.disabled = !beforeStart;
+  resetButton.disabled = beforeStart;
+  destoryButton.disabled = beforeStart;
+  startButton.disabled = beforeStart;
+  stopButton.disabled = true;
+  toggleReconstructionButton.disabled = beforeStart;
+}
+
 function main() {
-  sp = new realsense.ScenePerception();
+  sp = realsense.ScenePerception;
 
   var sample_fps = new Stats();
   sample_fps.domElement.style.position = 'absolute';
   sample_fps.domElement.style.top = '0px';
   sample_fps.domElement.style.right = '0px';
   document.getElementById('color_container').appendChild(sample_fps.domElement);
+  resetButtonState(true);
 
   var getting_sample = false;
-  sp.onsample = function(e) {
+
+  var updateSampleView = function() {
     if (getting_sample)
       return;
     getting_sample = true;
@@ -95,23 +106,49 @@ function main() {
   sp.onchecking = function(e) {
     var quality = e.data.quality;
     qualityElement.innerHTML = 'Quality: ' + quality.toFixed(2);
+
+    updateSampleView();
   };
 
-  sp.ontracking = function(e) {
+  sp.onsampleprocessed = function(e) {
     accuracyElement.innerHTML = 'Accuracy: ' + e.data.accuracy;
-    updateCameraPose(e.data.cameraPose, e.data.accuracy);
+    qualityElement.innerHTML = 'Quality: ' + e.data.quality.toFixed(2);
+
+    //Update the left render view.
+    updateSampleView();
+
+    //Update right render view.
+    if (volumePreviewRender.style.display != 'none') {
+      if (getting_volumePreview_image)
+        return;
+      getting_volumePreview_image = true;
+      sp.getVolumePreview(e.data.cameraPose).then(function(volumePreview) {
+        volumePreview_image_data.data.set(volumePreview.data);
+        volumePreview_context.putImageData(volumePreview_image_data, 0, 0);
+        getting_volumePreview_image = false;
+      }, function(e) {console.log(e);});
+    } else {
+      updateCameraPose(e.data.cameraPose, e.data.accuracy);
+    }
   };
-  sp.onmeshing = function(e) {
-    var func = updateMeshes.bind(this, e.meshes);
-    // do the updateMeshes asynchronously
-    setTimeout(func, 0);
+
+  sp.onmeshupdated = function(e) {
+    thisObj = this;
+    sp.getMeshData().then(function(meshes) {
+      var func = updateMeshes.bind(thisObj, meshes);
+      // do the updateMeshes asynchronously
+      setTimeout(func, 0);
+    }, function(e) {console.log(e);});
   };
 
   var meshesCreated = false;
 
-  startButton.onclick = function(e) {
+  initButton.onclick = function(e) {
     getting_sample = false;
-    sp.start().then(function() {console.log('start succeeds');}, function(e) {console.log(e);});
+    sp.init().then(function() {
+      resetButtonState(false);
+      reconstructionElement.innerHTML = 'Reconstruction: ' + true;
+      console.log('init succeeds');}, function(e) {console.log(e);});
   };
 
   resetButton.onclick = function(e) {
@@ -119,34 +156,38 @@ function main() {
     removeAllMeshes();
   };
 
-  stopButton.onclick = function(e) {
-    sp.stop().then(function() {
+  destoryButton.onclick = function(e) {
+    sp.destory().then(function() {
       console.log('stop succeeds');
+      resetButtonState(true);
       qualityElement.innerHTML = 'Quality: ';
     }, function(e) {console.log(e);});
   };
 
-  enableTrackingButton.onclick = function(e) {
-    sp.enableTracking().then(function() {console.log('enableTracking succeeds');},
-                             function(e) {console.log(e);});
+  startButton.onclick = function(e) {
+    sp.start().then(function() {
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      console.log('SP started successfully');
+    }, function(e) {console.log(e);});
   };
 
-  disableTrackingButton.onclick = function(e) {
-    sp.disableTracking().then(function() {
-      console.log('disableTracking succeeds');
+  stopButton.onclick = function(e) {
+    sp.stop().then(function() {
+      console.log('SP stops working.');
+      startButton.disabled = false;
+      stopButton.disabled = true;
       accuracyElement.innerHTML = 'Accuracy: ';
       showCamera(false);
     }, function(e) {console.log(e);});
   };
 
-  enableMeshingButton.onclick = function(e) {
-    sp.enableMeshing().then(function() {console.log('enableMeshing succeeds');},
-                            function(e) {console.log(e);});
-  };
-
-  disableMeshingButton.onclick = function(e) {
-    sp.disableMeshing().then(function() {
-      console.log('disableMeshing succeeds'); mergeMeshes();
+  toggleReconstructionButton.onclick = function(e) {
+    sp.isReconstructionEnabled().then(function(enabled) {
+      sp.enableReconstruction(!enabled).then(function() {
+        reconstructionElement.innerHTML = 'Reconstruction: ' + !enabled;
+        console.log('Toggle reconstruction succeeds');
+      }, function(e) {console.log(e);});
     }, function(e) {console.log(e);});
   };
 

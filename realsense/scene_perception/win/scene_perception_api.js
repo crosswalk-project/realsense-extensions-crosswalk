@@ -2,25 +2,42 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var ScenePerception = function(object_id) {
+var ScenePerception = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
 
-  if (object_id == undefined)
+  if (objectId == undefined)
     internal.postMessage('scenePerceptionConstructor', [this._id]);
 
+
   function wrapSampleReturns(data) {
-    var int32_array = new Int32Array(data);
-    var width = int32_array[1];
-    var height = int32_array[2];
-    var header_offset = 3 * 4;
-    var color = new Uint8Array(data, header_offset, width * height * 4);
-    var depth = new Uint16Array(data, header_offset + width * height * 4, width * height);
-    return {color: {width: width, height: height, data: color},
-      depth: {width: width, height: height, data: depth}};
+    const BYTES_PER_INT = 4;
+    const BYTES_OF_RGBA = 4;
+    var int32Array = new Int32Array(data);
+    var cWidth = int32Array[1];
+    var cHeight = int32Array[2];
+    var dWidth = int32Array[3];
+    var dHeight = int32Array[4];
+    var headerOffset = 5 * BYTES_PER_INT;
+    var cByteLength = cWidth * cHeight * BYTES_OF_RGBA;
+    var color = new Uint8Array(data, headerOffset, cByteLength);
+    var depth = new Uint16Array(data, headerOffset + cByteLength, dWidth * dHeight);
+    return {color: {width: cWidth, height: cHeight, data: color},
+      depth: {width: dWidth, height: dHeight, data: depth}};
   };
 
-  function MeshingEvent(type, data) {
+  function wrapVolumePreviewReturn(data) {
+    const BYTES_PER_INT = 4;
+    const BYTES_OF_RGBA = 4;
+    var int32Array = new Int32Array(data);
+    var width = int32Array[1];
+    var height = int32Array[2];
+    var headerOffset = 3 * BYTES_PER_INT;
+    var preview = new Uint8Array(data, headerOffset, width * height * BYTES_OF_RGBA);
+    return {width: width, height: height, data: preview};
+  };
+
+  function wrapMeshDataReturn(data) {
     // MeshData layout
     // NumBlockMesh: int32
     // NumVertices: int32
@@ -37,12 +54,14 @@ var ScenePerception = function(object_id) {
     // FaceStartIndex: int32
     // NumFaces: int32
     console.log('MeshingEvent');
+    const BYTES_PER_INT = 4;
+    const BYTES_PER_FLOAT = 4;
     var int32Array = new Int32Array(data);
     var numberOfBlockMesh = int32Array[1];
     var numberOfVertices = int32Array[2];
     var numberOfFaces = int32Array[3];
     var blockMeshes = [];
-    var headerBytesLength = 4 * 4;
+    var headerBytesLength = 4 * BYTES_PER_INT;
     var blockMeshIntLength = 5;
     var blockMeshesArray =
         new Int32Array(data, headerBytesLength, numberOfBlockMesh * blockMeshIntLength);
@@ -56,48 +75,71 @@ var ScenePerception = function(object_id) {
       };
       blockMeshes.push(blockMesh);
     }
-    var verticesOffset = headerBytesLength + numberOfBlockMesh * blockMeshIntLength * 4;
+    var verticesOffset = headerBytesLength + numberOfBlockMesh * blockMeshIntLength * BYTES_PER_INT;
     var vertices =
         new Float32Array(data,
                          verticesOffset,
                          numberOfVertices * 4);
-    var facesOffset = verticesOffset + numberOfVertices * 4 * 4;
+    var facesOffset = verticesOffset + numberOfVertices * 4 * BYTES_PER_FLOAT;
     var faces =
         new Int32Array(data,
                        facesOffset,
                        numberOfFaces * 3);
-    var colorsOffset = facesOffset + numberOfFaces * 3 * 4;
+    var colorsOffset = facesOffset + numberOfFaces * 3 * BYTES_PER_FLOAT;
     var colors =
         new Uint8Array(data,
                        colorsOffset,
                        numberOfVertices * 3);
-    var meshes = {blockMeshes: blockMeshes,
+    return {blockMeshes: blockMeshes,
       numberOfVertices: numberOfVertices,
       vertices: vertices,
       colors: colors,
       numberOfFaces: numberOfFaces,
       faces: faces};
-    this.type = type;
-    this.meshes = meshes;
   }
 
+  function wrapVerticesOrNormalsReturn(data) {
+    const BYTES_PER_FLOAT = 4;
+    var int32Array = new Int32Array(data);
+    var width = int32Array[1];
+    var height = int32Array[2];
+    var data = new Float32Array(data, 3 * BYTES_PER_FLOAT);
+    return {
+      width: width,
+      height: height,
+      data: data
+    };
+  }
+
+  this._addMethodWithPromise('init');
+  this._addMethodWithPromise('reset');
   this._addMethodWithPromise('start');
   this._addMethodWithPromise('stop');
-  this._addMethodWithPromise('reset');
-  this._addMethodWithPromise('enableTracking');
-  this._addMethodWithPromise('disableTracking');
-  this._addMethodWithPromise('enableMeshing');
-  this._addMethodWithPromise('disableMeshing');
+  this._addMethodWithPromise('destory');
+
+  this._addMethodWithPromise('enableReconstruction');
+  this._addMethodWithPromise('setMeshingResolution');
+  this._addMethodWithPromise('setMeshingThresholds');
+  this._addMethodWithPromise('setCameraPose');
+  this._addMethodWithPromise('setMeshingUpdateConfigs');
+
   this._addMethodWithPromise('getSample', null, wrapSampleReturns);
+  this._addMethodWithPromise('getVolumePreview', null, wrapVolumePreviewReturn);
+  this._addMethodWithPromise('getVertices', null, wrapVerticesOrNormalsReturn);
+  this._addMethodWithPromise('getNormals', null, wrapVerticesOrNormalsReturn);
+  this._addMethodWithPromise('isReconstructionEnabled');
+  this._addMethodWithPromise('getVoxelResolution');
+  this._addMethodWithPromise('getMeshingThresholds');
+  this._addMethodWithPromise('getMeshingResolution');
+  this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn);
 
   this._addEvent('error');
-  this._addEvent('sample');
   this._addEvent('checking');
-  this._addEvent('tracking');
-  this._addEvent('meshing', MeshingEvent);
+  this._addEvent('sampleprocessed');
+  this._addEvent('meshupdated');
 };
 
 ScenePerception.prototype = new common.EventTargetPrototype();
 ScenePerception.prototype.constructor = ScenePerception;
 
-exports = ScenePerception;
+exports = new ScenePerception();
