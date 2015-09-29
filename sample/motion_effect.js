@@ -130,7 +130,7 @@ function main() {
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
                 imageData = imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML = 'Load sucessfully';
+                statusElement.innerHTML = 'Load successfully';
                 imageData.data.set(image.data);
                 imageContext.putImageData(imageData, 0, 0);
                 hasImage = true;
