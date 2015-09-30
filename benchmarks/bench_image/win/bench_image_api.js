@@ -8,8 +8,8 @@ var BenchImage = function(object_id) {
   if (object_id == undefined)
     internal.postMessage('benchImageConstructor', [this._id]);
 
-  this._addMethodWithPromise('getSampleLong', Promise);
-  this._addMethodWithPromise('getSampleString', Promise);
+  this._addMethodWithPromise('getSampleLong');
+  this._addMethodWithPromise('getSampleString');
 };
 
 BenchImage.prototype = new common.EventTargetPrototype();
