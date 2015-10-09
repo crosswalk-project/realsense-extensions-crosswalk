@@ -7,6 +7,10 @@ var destoryButton = document.getElementById('destory');
 var startButton = document.getElementById('startSP');
 var stopButton = document.getElementById('stopSP');
 var toggleReconstructionButton = document.getElementById('toggleReconstruction');
+var volumePreviewRadio = document.getElementById('volumePreviewRadio');
+var meshingRadio = document.getElementById('meshingRadio');
+var volumePreviewRender = document.getElementById('volumePreviewRender');
+var meshingRender = document.getElementById('meshingRender');
 
 var blockMeshMap = {};
 var totalMesh = null;
@@ -23,7 +27,12 @@ var color_image_data = color_context.createImageData(320, 240);
 var depth_canvas = document.getElementById('depth');
 var depth_context = depth_canvas.getContext('2d');
 var depth_image_data = depth_context.createImageData(320, 240);
+
+var volumePreview_canvas = document.getElementById('volumePreview');
+var volumePreview_context = volumePreview_canvas.getContext('2d');
+var volumePreview_image_data = volumePreview_context.createImageData(320, 240);
 var rgb_buffer = new Uint8ClampedArray(320 * 240 * 4);
+var getting_volumePreview_image = false;
 
 var sp;
 
@@ -191,16 +200,30 @@ function main() {
     }, function(e) {console.log(e);});
   };
 
+  volumePreviewRadio.addEventListener('click', function(e) {
+    if (volumePreviewRadio.checked) {
+      meshingRender.style.display = 'none';
+      volumePreviewRender.style.display = '';
+    }
+  }, false);
+
+  meshingRadio.addEventListener('click', function(e) {
+    if (meshingRadio.checked) {
+      meshingRender.style.display = '';
+      volumePreviewRender.style.display = 'none';
+    }
+  }, false);
+
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setClearColor(0x000000, 1);
   renderer.setSize(640, 480);
-  document.getElementById('canvas').appendChild(renderer.domElement);
+  meshingRender.appendChild(renderer.domElement);
 
   stats = new Stats();
   stats.domElement.style.position = 'absolute';
   stats.domElement.style.top = '0px';
   stats.domElement.style.right = '0px';
-  document.getElementById('canvas').appendChild(stats.domElement);
+  meshingRender.appendChild(stats.domElement);
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
   camera.position.set(0, 0, 3);
