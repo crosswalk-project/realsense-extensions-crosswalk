@@ -72,6 +72,7 @@
         'apk_name': 'EnhancedPhotographySample',
         'package_name': 'org.xwalk.<(_target_name)',
         'extension_path': '<(PRODUCT_DIR)/enhanced_photography',
+        'native_library_path': '<(PRODUCT_DIR)/enhanced_photography/jni',
         'arch': 'x86',
         'app_root': '../../../sample',
         'app_local_path': 'enhancedphotography.html',

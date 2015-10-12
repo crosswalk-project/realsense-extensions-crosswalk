@@ -19,6 +19,9 @@
         '--name=<(apk_name)',
         '--package=<(package_name)',
         '--extensions=<(extension_path)',
+        # TODO(shawn): Use --native-extensions as a workaround here.
+        # To copy native libraries into apk.
+        '--native-extensions=<(native_library_path)',
         '--arch=<(arch)',
         '--app-root=<(app_root)',
         '--app-local-path=<(app_local_path)',
