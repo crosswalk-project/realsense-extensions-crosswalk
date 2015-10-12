@@ -510,7 +510,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
     }
   }
 
-  // Fill ProcessedSample::faceResults data.
+  // Fill ProcessedSample::faces data.
   if (!fail) {
     const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
 
@@ -526,7 +526,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
       if (detection_enabled_) {
         const PXCFaceData::DetectionData* detectionData =
             trackedFace->QueryDetection();
-        // Fill Face::detection data.
+        // Fill FaceData::detection data.
         if (detectionData) {
           int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
           PXCRectI32 rectangle;
@@ -559,7 +559,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
       if (landmark_enabled_) {
         const PXCFaceData::LandmarksData* landmarkData =
             trackedFace->QueryLandmarks();
-        // Fill Face::landmark data.
+        // Fill FaceData::landmark data.
         if (landmarkData) {
           const int num_of_points = landmarkData->QueryNumPoints();
           DCHECK(num_of_points == num_of_landmark_points_);
@@ -759,7 +759,7 @@ size_t FaceTrackingObject::CalculateBinaryMessageSize() {
       + image_header_size + color_image_size
       // depth image
       + image_header_size + depth_image_size
-      // faceResults
+      // faces
       + 3 * sizeof(int) + num_of_faces * one_face_size;
   return message_size;
 }

@@ -1,0 +1,744 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <title>Face</title>
+    <meta charset='utf-8'>
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, WG-NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          
+          additionalCopyrightHolders: "This document uses the BSD license, see the <a href='https://github.com/otcshare/realsense-extensions-crosswalk/blob/master/LICENSE'>LICENSE</a> file.",
+
+          shortName:            "face",
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              {
+                  name:       "Leon Han"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+          ],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This specification describes support for accessing 3D camera for face tracking and recognition on the Web.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
+        as an API Draft.
+        If you wish to make comments regarding this document, please send them to 
+        <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
+        All comments are welcome.
+      </p>
+    </section>
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+      </p>
+    </section>
+    <section>
+      <h2>
+        Interfaces
+      </h2>
+      <section>
+        <h2>
+          <code><a>Face</a></code>
+        </h2>
+        <p>
+          The <code><a>Face</a></code> interface provides methods to
+          track and recognize faces for augmented reality applications. 
+          The APIs described in this document are exposed through
+          <code>realsense.Face</code> module.
+        </p>
+        <dl title='interface Face : EventTarget' class='idl'>
+          <dt>
+            Promise&lt;void&gt; start(optional FaceConfiguration config)
+          </dt>
+          <dd>
+            Start to capture and run realsense face pipeline.
+          </dd>
+          <dt>
+            Promise&lt;void&gt; stop()
+          </dt>
+          <dd>
+            Stop capturing.
+          </dd>
+          <dt>
+            Promise&lt;ProcessedSample&gt; getProcessedSample()
+          </dt>
+          <dd>
+            Get processed sample including preview image and result face data.
+          </dd>
+          <dt>
+            attribute EventHandler onerror
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>ErrorEvent</code></a> that is dispatched
+              to <code><a>Face</a></code> when there is an error.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onprocessedsample
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>Face</a></code> when a new processed sample is ready.
+            </p>
+          </dd>
+        </dl>
+        <section>
+          <h3>
+            <code><a>ErrorEvent</a></code> interface
+          </h3>
+          <dl class="idl" title="interface ErrorEvent : Event">
+            <dt>
+              readonly attribute DOMString message
+            </dt>
+            <dd>
+              <p>
+                The error message.
+              </p>
+            </dd>
+          </dl>
+        </section>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Dictionaries
+      </h2>
+      <section>
+        <h2>
+          <code><a>FaceConfiguration</a></code>
+        </h2>
+        <dl title='dictionary FaceConfiguration' class='idl'>
+          <dt>
+            boolean? enableDetection
+          </dt>
+          <dd>
+            Enable face detection feature.
+          </dd>
+          <dt>
+            boolean? enableLandmarks
+          </dt>
+          <dd>
+            Enable face landmarks feature.
+          </dd>
+          <dt>
+            long? maxFaces
+          </dt>
+          <dd>
+            Maximum number of faces to be tracked.
+          </dd>
+          <dt>
+            TrackingModeType? mode
+          </dt>
+          <dd>
+            Tracking mode.
+          </dd>
+          <dt>
+            TrackingStrategyType? strategy
+          </dt>
+          <dd>
+            Tracking strategy.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Image</a></code>
+        </h2>
+        <dl title='dictionary Image' class='idl'>
+          <dt>
+            PixelFormat format
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            ArrayBuffer data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Rect</a></code>
+        </h2>
+        <dl title='dictionary Rect' class='idl'>
+          <dt>
+            long x
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long y
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long w
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long h
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point3DFloat</a></code>
+        </h2>
+        <dl title='dictionary Point3DFloat' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            double z
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point2DFloat</a></code>
+        </h2>
+        <dl title='dictionary Point2DFloat' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Detection</a></code>
+        </h2>
+        <dl title='dictionary Detection' class='idl'>
+          <dt>
+            Rect boundingRect
+          </dt>
+          <dd>
+            The bounding box of the detected face.
+          </dd>
+          <dt>
+            double avgDepth
+          </dt>
+          <dd>
+            The average depth of the detected face.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>LandmarkPoint</a></code>
+        </h2>
+        <dl title='dictionary LandmarkPoint' class='idl'>
+          <dt>
+            LandmarkType type
+          </dt>
+          <dd>
+            Landmark point type.
+          </dd>
+          <dt>
+            long confidenceImage
+          </dt>
+          <dd>
+            The confidence score from 0 to 100 of the image coordinates.
+          </dd>
+          <dt>
+            long confidenceWorld
+          </dt>
+          <dd>
+            The confidence score from 0 to 100 of the world coordinates.
+          </dd>
+          <dt>
+            Point3DFloat coordinateWorld
+          </dt>
+          <dd>
+            The world coordinates of the landmark point.
+          </dd>
+          <dt>
+            Point2DFloat coordinateImage
+          </dt>
+          <dd>
+            The color image coordinates of the landmark point.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Landmark</a></code>
+        </h2>
+        <dl title='dictionary Landmark' class='idl'>
+          <dt>
+            sequence&lt;LandmarkPoint&gt; points
+          </dt>
+          <dd>
+            All landmark points of the detected face.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>FaceData</a></code>
+        </h2>
+        <dl title='dictionary FaceData' class='idl'>
+          <dt>
+            Detection? detection
+          </dt>
+          <dd>
+            Detection data of the detected face.
+          </dd>
+          <dt>
+            Landmark? landmark
+          </dt>
+          <dd>
+            Landmark data of the detected face.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>ProcessedSample</a></code>
+        </h2>
+        <dl title='dictionary ProcessedSample' class='idl'>
+          <dt>
+            Image color
+          </dt>
+          <dd>
+            Color stream image.
+          </dd>
+          <dt>
+            Image? depth
+          </dt>
+          <dd>
+            Depth stream image.
+          </dd>
+          <dt>
+            sequence&lt;FaceData&gt; faces
+          </dt>
+          <dd>
+            All the detected faces.
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Enumerators
+      </h2>
+      <section>
+        <h2>
+          <code><a>TrackingModeType</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum TrackingModeType">
+          <dt>
+            color 
+          </dt>
+          <dd>
+            <p>
+              Require color data at the module input to run face algorithms.
+            </p>
+          </dd>
+          <dt>
+            color_depth
+          </dt>
+          <dd>
+            <p>
+              Require color and depth data at the module input to run face algorithms.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TrackingStrategyType</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum TrackingStrategyType">
+          <dt>
+            appearance_time
+          </dt>
+          <dd>
+            <p>
+              Track faces based on their appearance in the scene.
+            </p>
+          </dd>
+          <dt>
+            closest_farthest
+          </dt>
+          <dd>
+            <p>
+              Track faces from the closest to the furthest.
+            </p>
+          </dd>
+          <dt>
+            farthest_closest
+          </dt>
+          <dd>
+            <p>
+              Track faces from the furthest to the closest.
+            </p>
+          </dd>
+          <dt>
+            left_right
+          </dt>
+          <dd>
+            <p>
+              Track faces from left to right.
+            </p>
+          </dd>
+          <dt>
+            right_left
+          </dt>
+          <dd>
+            <p>
+              Track faces from right to left.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PixelFormat</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum PixelFormat">
+          <dt>
+            RGB32
+          </dt>
+          <dd>
+            <p>
+              The 32-bit RGB32 color format.
+            </p>
+          </dd>
+          <dt>
+            DEPTH
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 16-bit unsigned integer.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>LandmarkType</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum LandmarkType">
+          <dt>
+            NOT_NAMED
+          </dt>
+          <dd>
+            <p>
+              Unspecified.
+            </p>
+          </dd>
+          <dt>
+            EYE_RIGHT_CENTER
+          </dt>
+          <dd>
+            <p>
+              The center of the right eye.
+            </p>
+          </dd>
+          <dt>
+            EYE_LEFT_CENTER,
+          </dt>
+          <dd>
+            <p>
+              The center of the left eye.
+            </p>
+          </dd>
+          <dt>
+            EYELID_RIGHT_TOP,
+          </dt>
+          <dd>
+            <p>
+              The right eye lid top.
+            </p>
+          </dd>
+          <dt>
+            EYELID_RIGHT_BOTTOM,
+          </dt>
+          <dd>
+            <p>
+              The right eye lid bottom.
+            </p>
+          </dd>
+          <dt>
+            EYELID_RIGHT_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The right eye lid right.
+            </p>
+          </dd>
+          <dt>
+            EYELID_RIGHT_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The right eye lid left.
+            </p>
+          </dd>
+          <dt>
+            EYELID_LEFT_TOP,
+          </dt>
+          <dd>
+            <p>
+              The left eye lid top.
+            </p>
+          </dd>
+          <dt>
+            EYELID_LEFT_BOTTOM,
+          </dt>
+          <dd>
+            <p>
+              The left eye lid bottom.
+            </p>
+          </dd>
+          <dt>
+            EYELID_LEFT_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The left eye lid right.
+            </p>
+          </dd>
+          <dt>
+            EYELID_LEFT_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The left eye lid left.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_RIGHT_CENTER,
+          </dt>
+          <dd>
+            <p>
+              The right eye brow center.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_RIGHT_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The right eye brow right.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_RIGHT_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The right eye brow left.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_LEFT_CENTER,
+          </dt>
+          <dd>
+            <p>
+              The left eye brow center.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_LEFT_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The left eye brow right.
+            </p>
+          </dd>
+          <dt>
+            EYEBROW_LEFT_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The left eye brow left.
+            </p>
+          </dd>
+          <dt>
+            NOSE_TIP,
+          </dt>
+          <dd>
+            <p>
+              The top most point of the nose in the Z dimension.
+            </p>
+          </dd>
+          <dt>
+            NOSE_TOP,
+          </dt>
+          <dd>
+            <p>
+              The nose top.
+            </p>
+          </dd>
+          <dt>
+            NOSE_BOTTOM,
+          </dt>
+          <dd>
+            <p>
+              The nose bottom. 
+            </p>
+          </dd>
+          <dt>
+            NOSE_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The nose right. 
+            </p>
+          </dd>
+          <dt>
+            NOSE_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The nose left. 
+            </p>
+          </dd>
+          <dt>
+            LIP_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The lip right. 
+            </p>
+          </dd>
+          <dt>
+            LIP_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The lip left. 
+            </p>
+          </dd>
+          <dt>
+            UPPER_LIP_CENTER,
+          </dt>
+          <dd>
+            <p>
+              The lip center. 
+            </p>
+          </dd>
+          <dt>
+            UPPER_LIP_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The lip upper right. 
+            </p>
+          </dd>
+          <dt>
+            UPPER_LIP_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The lip upper left. 
+            </p>
+          </dd>
+          <dt>
+            LOWER_LIP_CENTER,
+          </dt>
+          <dd>
+            <p>
+              The lip lower center. 
+            </p>
+          </dd>
+          <dt>
+            LOWER_LIP_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The lip lower right. 
+            </p>
+          </dd>
+          <dt>
+            LOWER_LIP_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The lip lower left. 
+            </p>
+          </dd>
+          <dt>
+            FACE_BORDER_TOP_RIGHT,
+          </dt>
+          <dd>
+            <p>
+              The face border right. 
+            </p>
+          </dd>
+          <dt>
+            FACE_BORDER_TOP_LEFT,
+          </dt>
+          <dd>
+            <p>
+              The face border left. 
+            </p>
+          </dd>
+          <dt>
+            CHIN
+          </dt>
+          <dd>
+            <p>
+              The bottom chin point. 
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section class='appendix'>
+      <h2>Acknowledgements</h2>
+      <p>
+      </p>
+    </section>
+  </body>
+</html>

@@ -13,15 +13,12 @@ var FaceTracking = function(object_id) {
     // ProcessedSample layout:
     // color format (int32), width (int32), height (int32), data (int8 buffer),
     // depth format (int32), width (int32), height (int32), data (int16 buffer),
-    // FaceResults
-
-    // FaceResults layout:
     // number of faces (int32),
     // detection data available (int32),
     // landmark data available (int32),
-    // Face Array
+    // FaceData Array
 
-    // Face layout:
+    // FaceData layout:
     // detection data: rect x, y, w, h (int32), avgDepth (float32),
     // landmark data: number of landmark points (int32),
     //                landmark point array
@@ -139,13 +136,11 @@ var FaceTracking = function(object_id) {
         data: depth_data
       };
     }
-    var face_results_value = {
-      faces: face_array
-    };
+
     return {
       color: color_image_value,
       depth: depth_image_value,
-      faceResults: face_results_value
+      faces: face_array
     };
   };
 

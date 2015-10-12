@@ -88,8 +88,8 @@ function main() {
       color_context.putImageData(color_image_data, 0, 0);
 
       // Get traced faces.
-      for (var i = 0; i < processed_sample.faceResults.faces.length; ++i) {
-        var face = processed_sample.faceResults.faces[i];
+      for (var i = 0; i < processed_sample.faces.length; ++i) {
+        var face = processed_sample.faces[i];
         // Draw rects on every tracked faces.
         if (face.detection) {
           var rect = face.detection.boundingRect;
