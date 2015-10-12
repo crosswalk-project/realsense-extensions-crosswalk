@@ -90,13 +90,10 @@ var EnhancedPhotography = function(object_id) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        var dataUrl = e.target.result;
-        var result = dataUrl.split(',');
-        var resultData = [];
-        resultData[0] = result[1];
-        resolve(resultData);
+        var buffer = e.target.result;
+        resolve(buffer);
         };
-      reader.readAsDataURL(data[0]);
+      reader.readAsArrayBuffer(data[0]);
     });
   }
 
@@ -148,7 +145,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
-  this._addMethodWithPromise2('loadDepthPhoto', wrapBlobArg, wrapReturns);
+  this._addBinaryMethodWithPromise2('loadDepthPhoto', wrapBlobArg, wrapReturns);
   this._addMethodWithPromise('saveDepthPhoto', wrapArgs, wrapRawDataReturns);
 
   this._addMethodWithPromise('measureDistance', wrapArgs);
