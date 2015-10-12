@@ -2,7 +2,7 @@ var statusElement = document.getElementById('status');
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var takePhotoButton = document.getElementById('takePhoto');
-var loadButton = document.getElementById('load');
+var loadPhoto = document.getElementById('loadPhoto');
 var saveButton = document.getElementById('save');
 var depthBlendButton = document.getElementById('depthBlend');
 
@@ -14,26 +14,26 @@ var pitchValueLabel = document.getElementById('pitch_value');
 var rollValueLabel = document.getElementById('roll_value');
 var zoffsetValueLabel = document.getElementById('zoffset_value');
 
-var preview_canvas = document.getElementById('preview');
-var image_canvas = document.getElementById('image');
-var overlay_canvas = document.getElementById('overlay');
+var previewCanvas = document.getElementById('preview');
+var imageCanvas = document.getElementById('image');
+var overlayCanvas = document.getElementById('overlay');
 
 var ep;
-var preview_context, preview_data, image_context, image_data, overlay_context;
+var previewContext, previewData, imageContext, imageData;
 var currentPhoto, savePhoto;
 
 var width = 640, height = 480;
-var canvas_width = 400, canvas_height = 300;
+var canvasWidth = 400, canvasHeight = 300;
 var x = -1, y = -1;
 var yaw = -1, pitch = -1, roll = -1, zoffset = -1;
-var has_blend_image = false;
-var blend_image, blend_image_data;
+var hasBlendImage = false;
+var blendImage, blendImageData;
 var sticker;
 var depthValue;
-var insert_depth;
+var insertDepth;
 
-var has_image = false;
-var is_depth_blend = false;
+var hasImage = false;
+var isDepthBlend = false;
 
 function outputYawUpdate(value) {
   yawValueLabel.value = value;
@@ -63,17 +63,17 @@ function doDepthBlend() {
   if (!currentPhoto)
     return;
 
-  if (!has_blend_image)
+  if (!hasBlendImage)
     return;
 
   if (!depthValue)
     return;
 
-  insert_depth = depthValue + zoffset;
+  insertDepth = depthValue + zoffset;
 
   ep.depthBlend(currentPhoto, sticker,
                 { x: x, y: y },
-                insert_depth,
+                insertDepth,
                 { pitch: pitch, yaw: yaw, roll: roll },
                 1.0).then(
       function(photo) {
@@ -81,8 +81,8 @@ function doDepthBlend() {
         photo.queryReferenceImage().then(
             function(image) {
               statusElement.innerHTML = 'Finished blending. Click again!';
-              image_data.data.set(image.data);
-              image_context.putImageData(image_data, 0, 0);
+              imageData.data.set(image.data);
+              imageContext.putImageData(imageData, 0, 0);
             },
             function(e) { statusElement.innerHTML = e; });
       },
@@ -90,44 +90,42 @@ function doDepthBlend() {
 }
 
 function depthBlend(e) {
-  if (!has_image || !has_blend_image)
+  if (!hasImage || !hasBlendImage)
     return;
 
-  x = parseInt((e.clientX - overlay_canvas.offsetLeft) * width / canvas_width);
-  y = parseInt((e.clientY - overlay_canvas.offsetTop) * height / canvas_height);
+  x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
+  y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
 
-  overlay_context.clearRect(0, 0, width, height);
-
-  var click_x = x;
-  var click_y = y;
+  var clickX = x;
+  var clickY = y;
   currentPhoto.queryRawDepthImage().then(
-    function(depth) {
-      currentPhoto.queryOriginalImage().then(
-          function(color) {
-            click_x *= (depth.width / color.width);
-            click_y *= (depth.height / color.height);
+      function(depth) {
+        currentPhoto.queryOriginalImage().then(
+            function (color) {
+              clickX *= (depth.width / color.width);
+              clickY *= (depth.height / color.height);
 
-            click_x = parseInt(click_x);
-            click_y = parseInt(click_y);
+              clickX = parseInt(clickX);
+              clickY = parseInt(clickY);
 
-            if (click_x >= 0 && click_x < depth.width &&
-                click_y >= 0 && click_y < depth.height) {
-              depthValue = depth.data[click_y * depth.width + click_x];
-            } else {
-              return;
-            }
+              if (clickX >= 0 && clickX < depth.width &&
+                  clickY >= 0 && clickY < depth.height) {
+                depthValue = depth.data[clickY * depth.width + clickX];
+              } else {
+                return;
+              }
 
-            if (depthValue) {
-              doDepthBlend();
-            } else {
-              statusElement.innerHTML =
-                  'Insert depth value is 0. Please select another point.';
-              return;
-            }
-          },
+              if (depthValue) {
+                doDepthBlend();
+              } else {
+                statusElement.innerHTML =
+                    'Insert depth value is 0. Please select another point.';
+                return;
+              }
+            },
           function(e) { statusElement.innerHTML = e; });
-    },
-    function(e) { statusElement.innerHTML = e; });
+      },
+      function(e) { statusElement.innerHTML = e; });
 }
 
 function main() {
@@ -141,23 +139,23 @@ function main() {
       reader.onload = function(e) {
         fileDisplayArea.src = reader.result;
 
-        blend_image = new Image();
-        blend_image.src = reader.result;
+        blendImage = new Image();
+        blendImage.src = reader.result;
 
-        var temp_canvas = document.createElement('canvas');
-        var temp_context = temp_canvas.getContext('2d');
-        temp_context.drawImage(blend_image, 0, 0);
-        blend_image_data = temp_context.getImageData(0, 0, blend_image.width, blend_image.height);
+        var tempCanvas = document.createElement('canvas');
+        var tempContext = tempCanvas.getContext('2d');
+        tempContext.drawImage(blendImage, 0, 0);
+        blendImageData = tempContext.getImageData(0, 0, blendImage.width, blendImage.height);
 
         sticker = {
           format: 'RGB32',
-          width: blend_image.width,
-          height: blend_image.height,
-          data: blend_image_data.data
+          width: blendImage.width,
+          height: blendImage.height,
+          data: blendImageData.data
         };
 
-        has_blend_image = true;
-        if (has_image && is_depth_blend)
+        hasBlendImage = true;
+        if (hasImage && isDepthBlend)
           statusElement.innerHTML = 'Select a point on photo to Blend';
       };
 
@@ -169,28 +167,27 @@ function main() {
 
   ep = realsense.EnhancedPhotography;
 
-  preview_context = preview_canvas.getContext('2d');
-  image_context = image_canvas.getContext('2d');
-  overlay_context = overlay.getContext('2d');
-  preview_data = preview_context.createImageData(width, height);
+  previewContext = previewCanvas.getContext('2d');
+  imageContext = imageCanvas.getContext('2d');
+  previewData = previewContext.createImageData(width, height);
 
-  var getting_image = false;
+  var gettingImage = false;
 
-  overlay_canvas.addEventListener('mousedown', function(e) {
-    if (is_depth_blend) {
+  overlayCanvas.addEventListener('mousedown', function(e) {
+    if (isDepthBlend) {
       depthBlend(e);
     }
   }, false);
 
   ep.onpreview = function(e) {
-    if (getting_image)
+    if (gettingImage)
       return;
-    getting_image = true;
+    gettingImage = true;
     ep.getPreviewImage().then(
         function(image) {
-          preview_data.data.set(image.data);
-          preview_context.putImageData(preview_data, 0, 0);
-          getting_image = false;
+          previewData.data.set(image.data);
+          previewContext.putImageData(previewData, 0, 0);
+          gettingImage = false;
         }, function() { });
   };
 
@@ -200,7 +197,7 @@ function main() {
 
   startButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Start: ';
-    getting_image = false;
+    gettingImage = false;
     ep.startPreview().then(function(e) { statusElement.innerHTML += e; },
                            function(e) { statusElement.innerHTML += e; });
   };
@@ -213,13 +210,12 @@ function main() {
           savePhoto = photo;
           currentPhoto.queryReferenceImage().then(
               function(image) {
-                image_data =
-                    image_context.createImageData(image.width, image.height);
+                imageData =
+                    imageContext.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
-                overlay_context.clearRect(0, 0, width, height);
-                image_data.data.set(image.data);
-                image_context.putImageData(image_data, 0, 0);
-                has_image = true;
+                imageData.data.set(image.data);
+                imageContext.putImageData(imageData, 0, 0);
+                hasImage = true;
               },
               function(e) { statusElement.innerHTML += e; });
         },
@@ -233,28 +229,25 @@ function main() {
         function(e) { statusElement.innerHTML += e; });
   };
 
-  loadButton.onclick = function(e) {
-    statusElement.innerHTML =
-        'Status Info : Load from C:/workspace/photo1.jpg : ';
-    ep.loadFromXMP('C:/workspace/photo1.jpg').then(
+  loadPhoto.addEventListener('change', function(e) {
+    var file = loadPhoto.files[0];
+    ep.loadDepthPhoto(file).then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
           currentPhoto.queryReferenceImage().then(
               function(image) {
-                image_context.clearRect(0, 0, width, height);
-                image_data =
-                    image_context.createImageData(image.width, image.height);
-                statusElement.innerHTML += 'Sucess';
-                overlay_context.clearRect(0, 0, width, height);
-                image_data.data.set(image.data);
-                image_context.putImageData(image_data, 0, 0);
-                has_image = true;
+                imageContext.clearRect(0, 0, width, height);
+                imageData = imageContext.createImageData(image.width, image.height);
+                statusElement.innerHTML = 'Load successfully';
+                imageData.data.set(image.data);
+                imageContext.putImageData(imageData, 0, 0);
+                hasImage = true;
               },
-              function(e) { statusElement.innerHTML += e; });
+              function(e) { statusElement.innerHTML = e; });
         },
-        function(e) { statusElement.innerHTML += e; });
-  };
+        function(e) { statusElement.innerHTML = e; });
+  });
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';
@@ -263,24 +256,23 @@ function main() {
   };
 
   depthBlendButton.onclick = function(e) {
-    if (!has_image) {
+    if (!hasImage) {
       statusElement.innerHTML = 'There is no image to process';
       return;
     }
 
-    is_depth_blend = true;
+    isDepthBlend = true;
 
-    if (!has_blend_image) {
+    if (!hasBlendImage) {
       statusElement.innerHTML = 'Load an image to blend';
       return;
     }
     currentPhoto.queryReferenceImage().then(
         function(image) {
-          image_context.clearRect(0, 0, width, height);
-          image_data = image_context.createImageData(image.width, image.height);
-          overlay_context.clearRect(0, 0, width, height);
-          image_data.data.set(image.data);
-          image_context.putImageData(image_data, 0, 0);
+          imageContext.clearRect(0, 0, width, height);
+          imageData = imageContext.createImageData(image.width, image.height);
+          imageData.data.set(image.data);
+          imageContext.putImageData(imageData, 0, 0);
         },
         function(e) { statusElement.innerHTML += e; });
     statusElement.innerHTML = 'Select a point on photo to Blend';

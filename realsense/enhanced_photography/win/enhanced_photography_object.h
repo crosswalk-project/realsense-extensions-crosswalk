@@ -46,7 +46,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnTakeSnapShot(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // This method will bind the XMP photo with |photo_|.
-  void OnLoadFromXMP(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnLoadDepthPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSaveAsXMP(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);

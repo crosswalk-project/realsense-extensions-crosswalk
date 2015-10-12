@@ -7,7 +7,12 @@
 #include <algorithm>
 #include <string>
 
+#include "base/base64.h"
 #include "base/bind.h"
+#include "base/files/file.h"
+#include "base/files/file_path.h"
+#include "base/files/file_util.h"
+#include "base/files/scoped_temp_dir.h"
 #include "base/guid.h"
 #include "base/logging.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
@@ -48,8 +53,8 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("takeSnapShot",
                     base::Bind(&EnhancedPhotographyObject::OnTakeSnapShot,
                                base::Unretained(this)));
-  handler_.Register("loadFromXMP",
-                    base::Bind(&EnhancedPhotographyObject::OnLoadFromXMP,
+  handler_.Register("loadDepthPhoto",
+                    base::Bind(&EnhancedPhotographyObject::OnLoadDepthPhoto,
                                 base::Unretained(this)));
   handler_.Register("saveAsXMP",
                      base::Bind(&EnhancedPhotographyObject::OnSaveAsXMP,
@@ -340,41 +345,70 @@ void EnhancedPhotographyObject::CaptureOnPreviewThread(
   info->PostResult(TakeSnapShot::Results::Create(photo, std::string()));
 }
 
-void EnhancedPhotographyObject::OnLoadFromXMP(
+void EnhancedPhotographyObject::OnLoadDepthPhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
   if (!CreateSessionInstance()) {
-    info->PostResult(LoadFromXMP::Results::Create(photo,
+    info->PostResult(LoadDepthPhoto::Results::Create(photo,
         "Failed to create SDK session"));
     return;
   }
 
+  scoped_ptr<LoadDepthPhoto::Params> params(
+      LoadDepthPhoto::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        LoadDepthPhoto::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  base::ScopedTempDir tmp_dir;
+  tmp_dir.CreateUniqueTempDir();
+  base::FilePath tmp_file = tmp_dir.path().Append(
+      FILE_PATH_LITERAL("tmp_img.jpg"));
+
   PXCPhoto* pxcphoto = session_->CreatePhoto();
 
-  scoped_ptr<LoadFromXMP::Params> params(
-      LoadFromXMP::Params::Create(*info->arguments()));
-  const char* file = (params->filepath).c_str();
-  // TODO(Qjia7): Check if file exists.
-  int size = static_cast<int>(strlen(file)) + 1;
-  wchar_t* wfile = new wchar_t[size];
-  mbstowcs(wfile, file, size);
+  std::string img_data = params->base64data;
+  bool ok = base::Base64Decode(img_data, &img_data);
+
+  if (ok) {
+    base::File file(tmp_file,
+                    base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
+    if (!file.created()) {
+      pxcphoto->Release();
+      pxcphoto = NULL;
+      info->PostResult(LoadDepthPhoto::Results::Create(photo,
+          "Failed to LoadDepthPhoto. Invalid photo."));
+      return;
+    }
+    file.Write(0, img_data.c_str(), img_data.length());
+    file.Close();
+  }  else {
+    pxcphoto->Release();
+    pxcphoto = NULL;
+    info->PostResult(LoadDepthPhoto::Results::Create(photo,
+        "Failed to LoadDepthPhoto. Invalid photo."));
+    return;
+  }
+
+  wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (pxcphoto->LoadXDM(wfile) < PXC_STATUS_NO_ERROR) {
     pxcphoto->Release();
     pxcphoto = NULL;
-    info->PostResult(LoadFromXMP::Results::Create(photo,
-        "Failed to LoadXMP. Please check if file path is valid."));
+    info->PostResult(LoadDepthPhoto::Results::Create(photo,
+        "Failed to LoadXDM."));
     return;
   }
 
   if (!CreateEPInstance()) {
-    info->PostResult(LoadFromXMP::Results::Create(photo,
+    info->PostResult(LoadDepthPhoto::Results::Create(photo,
         "Failed to create a PXCEnhancedPhoto instance"));
     return;
   }
 
   CreateDepthPhotoObject(pxcphoto, &photo);
-  info->PostResult(LoadFromXMP::Results::Create(photo, std::string()));
-  delete wfile;
+  info->PostResult(LoadDepthPhoto::Results::Create(photo, std::string()));
 }
 
 void EnhancedPhotographyObject::OnSaveAsXMP(

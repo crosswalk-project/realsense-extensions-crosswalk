@@ -2,7 +2,7 @@ var statusElement = document.getElementById('status');
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var takePhotoButton = document.getElementById('takePhoto');
-var loadButton = document.getElementById('load');
+var loadPhoto = document.getElementById('loadPhoto');
 
 var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
@@ -122,15 +122,15 @@ function main() {
         function(e) { statusElement.innerHTML = e; });
   };
 
-  loadButton.onclick = function(e) {
-    ep.loadFromXMP('C:/workspace/photo1.jpg').then(
+  loadPhoto.addEventListener('change', function(e) {
+    var file = loadPhoto.files[0];
+    ep.loadDepthPhoto(file).then(
         function(photo) {
           photo.queryReferenceImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
-                imageData =
-                    imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML = 'Load sucessfully';
+                imageData = imageContext.createImageData(image.width, image.height);
+                statusElement.innerHTML = 'Load successfully';
                 imageData.data.set(image.data);
                 imageContext.putImageData(imageData, 0, 0);
                 hasImage = true;
@@ -144,7 +144,7 @@ function main() {
               function(e) { statusElement.innerHTML = e; });
         },
         function(e) { statusElement.innerHTML = e; });
-  };
+  });
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';

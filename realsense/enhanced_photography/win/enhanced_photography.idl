@@ -63,11 +63,7 @@ namespace enhanced_photography {
     static void stopPreview(Promise promise);
     static void getPreviewImage(ImagePromise promise);
     static void takeSnapShot(PhotoPromise promise);
-    // This method will load the XMP photo.
-    // Currently, the XPM photo comes from a local file.
-    // TODO(qjia7): Use an ArrayBuffer to instead of the string file path.
-    // https://github.com/otcshare/realsense-extensions-crosswalk/issues/81
-    static void loadFromXMP(DOMString filepath, PhotoPromise promise);
+    static void loadDepthPhoto(DOMString base64data, PhotoPromise promise);
     static void saveAsXMP(depth_photo.Photo photo, DOMString filepath, Promise promise);
     static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
     static void depthRefocus(depth_photo.Photo photo, Point focus, double aperture, PhotoPromise promise);

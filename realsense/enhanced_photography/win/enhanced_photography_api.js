@@ -86,6 +86,20 @@ var EnhancedPhotography = function(object_id) {
     return args;
   };
 
+  function wrapBlobArg(data) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var dataUrl = e.target.result;
+        var result = dataUrl.split(',');
+        var resultData = [];
+        resultData[0] = result[1];
+        resolve(resultData);
+        };
+      reader.readAsDataURL(data[0]);
+    });
+  }
+
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
   };
@@ -127,7 +141,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
-  this._addMethodWithPromise('loadFromXMP', null, wrapReturns);
+  this._addMethodWithPromise2('loadDepthPhoto', wrapBlobArg, wrapReturns);
   this._addMethodWithPromise('saveAsXMP', wrapArgs);
 
   this._addMethodWithPromise('measureDistance', wrapArgs);

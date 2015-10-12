@@ -40,13 +40,14 @@
       <img id="fileDisplayArea" height="90" width="90" style='position: absolute; top: 30px;'>
     </div>
   </div>
-  <div style='position: absolute; left: 20px; top: 150px;'>
-    <button id='start'>Start Preview</button>
-    <button id='takePhoto'>Take Photo</button>
-    <button id='stop'>Stop Preview</button>
-    <button id='load'>Load</button>
-    <button id='save'>Save</button>
-    <button id='depthBlend'>DepthBlend</button>
+  <div>
+    <button id='start' style='position: absolute; left: 20px; top: 150px; width: 100px; height: 25px'>Start Preview</button>
+    <button id='takePhoto' style='position: absolute; left: 125px; top: 150px; width: 100px; height: 25px'>Take Photo</button>
+    <button id='stop' style='position: absolute; left: 230px; top: 150px; width: 100px; height: 25px'>Stop Preview</button>
+    <button id='load' style='position: absolute; left: 335px; top: 150px; width: 100px; height: 25px'>Load</button>
+    <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 335px; top: 150px; width: 100px; opacity:0; height: 25px' />
+    <button id='save' style='position: absolute; left: 440px; top: 150px; width: 100px; height: 25px'>Save</button>
+    <button id='depthBlend' style='position: absolute; left: 545px; top: 150px; width: 100px; height: 25px'> DepthBlend</button>
   </div>
   <div id='canvas_container'>
     <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 180px;'></canvas>
