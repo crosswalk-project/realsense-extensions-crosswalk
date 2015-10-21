@@ -1,6 +1,6 @@
 {
   "name":  "realsense.EnhancedPhotography",
-  "class": "org.xwalk.extensions.realsense.enhancedphotography.EnhancedPhotography",
+  "class": "org.xwalk.extensions.realsense.enhancedphotography.EnhancedPhotographyExtension",
   "jsapi": "enhanced_photography.js",
   "permissions" : []
 }
