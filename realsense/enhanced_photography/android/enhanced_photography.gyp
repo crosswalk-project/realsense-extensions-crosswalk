@@ -37,6 +37,10 @@
           '<(rssdk_path)/libs/PXCASenseManager.jar',
         ],
         'merged_jar_path': '<(extension_dir)/<(_target_name).jar',
+        'js_files_to_merge': [
+            '../../../../xwalk/common/common_api.js',
+            '../js/enhanced_photography_api.js',
+        ],
         'js_file': '<(_target_name).js',
         'json_file': '<(_target_name).json',
         'native_libraries': [

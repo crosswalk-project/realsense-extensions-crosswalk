@@ -5,6 +5,22 @@
 {
   'actions': [
     {
+      'action_name': 'concatenate_js_files_<(_target_name)',
+      'message': 'Concatenate js files of <(_target_name)',
+      'inputs': [
+        '>@(js_files_to_merge)',
+      ],
+      'outputs': [
+        '<(extension_dir)/<(js_file)',
+      ],
+      'action': [
+        'python',
+        '<(DEPTH)/tools/concatenate-files.py',
+        '>@(js_files_to_merge)',
+        '<(extension_dir)/<(js_file)',
+      ]
+    },
+    {
       'action_name': 'copy_js_json_<(_target_name)',
       'message': 'Copying js and json of <(_target_name)',
       'inputs': [
