@@ -77,6 +77,9 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("computeMaskFromCoordinate",
       base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromCoordinate,
                  base::Unretained(this)));
+  handler_.Register("computeMaskFromThreshold",
+      base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromThreshold,
+                 base::Unretained(this)));
   handler_.Register("depthBlend",
                     base::Bind(&EnhancedPhotographyObject::OnDepthBlend,
                                base::Unretained(this)));
@@ -875,6 +878,45 @@ void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
   if (!CopyMaskImage(pxcimage)) {
     info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
         "Failed to get image data."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
+
+  pxcimage->Release();
+}
+
+void EnhancedPhotographyObject::OnComputeMaskFromThreshold(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::MaskImage image;
+  scoped_ptr<ComputeMaskFromThreshold::Params> params(
+      ComputeMaskFromThreshold::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(ComputeMaskFromThreshold::Results::Create(
+        image, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(ep_);
+
+  PXCImage* pxcimage = ep_->ComputeMaskFromThreshold(
+      depthPhotoObject->GetPhoto(), params->threshold);
+  if (!CopyMaskImage(pxcimage)) {
+    info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
+      "Failed to get image data."));
     return;
   }
 
