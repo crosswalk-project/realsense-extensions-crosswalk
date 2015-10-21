@@ -56,8 +56,8 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("loadDepthPhoto",
                     base::Bind(&EnhancedPhotographyObject::OnLoadDepthPhoto,
                                 base::Unretained(this)));
-  handler_.Register("saveAsXMP",
-                     base::Bind(&EnhancedPhotographyObject::OnSaveAsXMP,
+  handler_.Register("saveDepthPhoto",
+                     base::Bind(&EnhancedPhotographyObject::OnSaveDepthPhoto,
                                 base::Unretained(this)));
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
@@ -411,13 +411,14 @@ void EnhancedPhotographyObject::OnLoadDepthPhoto(
   info->PostResult(LoadDepthPhoto::Results::Create(photo, std::string()));
 }
 
-void EnhancedPhotographyObject::OnSaveAsXMP(
+void EnhancedPhotographyObject::OnSaveDepthPhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  scoped_ptr<SaveAsXMP::Params> params(
-    SaveAsXMP::Params::Create(*info->arguments()));
+  std::vector<char> buffer;
+  scoped_ptr<SaveDepthPhoto::Params> params(
+      SaveDepthPhoto::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        SaveAsXMP::Results::Create(std::string(), "Malformed parameters"));
+        SaveDepthPhoto::Results::Create(buffer, "Malformed parameters"));
     return;
   }
 
@@ -425,24 +426,35 @@ void EnhancedPhotographyObject::OnSaveAsXMP(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(SaveAsXMP::Results::Create(std::string(),
+    info->PostResult(SaveDepthPhoto::Results::Create(buffer,
         "Invalid Photo object."));
     return;
   }
-
-  // TODO(Qjia7): Check if file path exists.
-  const char* file = (params->filepath).c_str();
-  int size = static_cast<int>(strlen(file)) + 1;
-  wchar_t* wfile = new wchar_t[size];
-  mbstowcs(wfile, file, size);
+  base::ScopedTempDir tmp_dir;
+  tmp_dir.CreateUniqueTempDir();
+  base::FilePath tmp_file = tmp_dir.path().Append(
+      FILE_PATH_LITERAL("tmp_img.jpg"));
+  wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (depthPhotoObject->GetPhoto()->SaveXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(SaveAsXMP::Results::Create(std::string(),
-        "Failed to saveXMP. Please check if file path is valid."));
-  } else {
-    info->PostResult(SaveAsXMP::Results::Create(std::string("Success"),
-                                                std::string()));
+    info->PostResult(SaveDepthPhoto::Results::Create(buffer,
+        "Failed to saveDepthPhoto"));
+    return;
   }
-  delete wfile;
+
+  base::File file(tmp_file, base::File::FLAG_OPEN | base::File::FLAG_READ);
+  int64 file_length = file.GetLength();
+  binary_message_size_ = file_length + sizeof(int);
+  binary_message_.reset(new uint8[binary_message_size_]);
+  // the first sizeof(int) bytes will be used for callback id.
+  char* data = reinterpret_cast<char*>(binary_message_.get() + 1 * sizeof(int));
+  file.Read(0, data, file_length);
+  file.Close();
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyObject::OnStopPreview(
