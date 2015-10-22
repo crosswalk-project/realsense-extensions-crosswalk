@@ -154,6 +154,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('enhanceDepth', wrapArgs, wrapReturns);
   this._addMethodWithPromise('pasteOnPlane', wrapImageArgs, wrapReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
+  this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('depthBlend', wrapImageArgs, wrapReturns);
   this._addMethodWithPromise('objectSegment', wrapArgs, wrapY8ImageReturns);
   this._addMethodWithPromise('refineMask', null, wrapY8ImageReturns);

@@ -56,6 +56,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnPasteOnPlane(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnComputeMaskFromThreshold(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthBlend(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnObjectSegment(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnRefineMask(scoped_ptr<XWalkExtensionFunctionInfo> info);
