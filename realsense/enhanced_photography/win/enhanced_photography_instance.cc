@@ -49,9 +49,24 @@ void EnhancedPhotographyInstance::HandleMessage(const char* msg) {
                  base::Passed(&value)));
 }
 
+void EnhancedPhotographyInstance::HandleBinaryMessage(const char* msg, const size_t size) {
+  scoped_ptr<base::Value> value = scoped_ptr<base::Value>(base::BinaryValue::CreateWithCopiedBuffer(msg, size));
+
+  ep_ext_thread_.message_loop()->PostTask(
+    FROM_HERE,
+    base::Bind(&EnhancedPhotographyInstance::OnHandleBinaryMessage,
+               base::Unretained(this),
+               base::Passed(&value)));
+}
+
 void EnhancedPhotographyInstance::OnHandleMessage(scoped_ptr<base::Value> msg) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
   handler_.HandleMessage(msg.Pass());
+}
+
+void EnhancedPhotographyInstance::OnHandleBinaryMessage(scoped_ptr<base::Value> msg) {
+  DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+  handler_.HandleBinaryMessage(msg.Pass());
 }
 
 void EnhancedPhotographyInstance::OnEnhancedPhotographyConstructor(

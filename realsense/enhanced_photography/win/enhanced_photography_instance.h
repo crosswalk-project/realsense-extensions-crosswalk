@@ -26,6 +26,7 @@ class EnhancedPhotographyInstance : public Instance {
 
   // common::Instance implementation.
   void HandleMessage(const char* msg) override;
+  void HandleBinaryMessage(const char* msg, const size_t size) override;
 
   void AddBindingObject(const std::string& object_id,
       scoped_ptr<xwalk::common::BindingObject> obj);
@@ -35,6 +36,7 @@ class EnhancedPhotographyInstance : public Instance {
 
  private:
   void OnHandleMessage(scoped_ptr<base::Value> msg);
+  void OnHandleBinaryMessage(scoped_ptr<base::Value> msg);
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
 

@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <string>
 
-#include "base/base64.h"
 #include "base/bind.h"
 #include "base/files/file.h"
 #include "base/files/file_path.h"
@@ -368,29 +367,20 @@ void EnhancedPhotographyObject::OnLoadDepthPhoto(
       FILE_PATH_LITERAL("tmp_img.jpg"));
 
   PXCPhoto* pxcphoto = session_->CreatePhoto();
+  std::vector<char> buffer = params->buffer;
+  char* data = &buffer[0];
 
-  std::string img_data = params->base64data;
-  bool ok = base::Base64Decode(img_data, &img_data);
-
-  if (ok) {
-    base::File file(tmp_file,
-                    base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
-    if (!file.created()) {
-      pxcphoto->Release();
-      pxcphoto = NULL;
-      info->PostResult(LoadDepthPhoto::Results::Create(photo,
-          "Failed to LoadDepthPhoto. Invalid photo."));
-      return;
-    }
-    file.Write(0, img_data.c_str(), img_data.length());
-    file.Close();
-  }  else {
+  base::File file(tmp_file,
+                  base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
+  if (!file.created()) {
     pxcphoto->Release();
     pxcphoto = NULL;
     info->PostResult(LoadDepthPhoto::Results::Create(photo,
         "Failed to LoadDepthPhoto. Invalid photo."));
     return;
   }
+  file.Write(0, data, buffer.size());
+  file.Close();
 
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (pxcphoto->LoadXDM(wfile) < PXC_STATUS_NO_ERROR) {
