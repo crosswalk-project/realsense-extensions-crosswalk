@@ -39,6 +39,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnHandleBinaryMessage(scoped_ptr<base::Value> msg);
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDepthPhotoConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   xwalk::common::XWalkExtensionFunctionHandler handler_;
   xwalk::common::BindingObjectStore store_;

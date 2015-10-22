@@ -68,7 +68,7 @@ function doMothionEffect() {
 }
 
 function main() {
-  ep = realsense.EnhancedPhotography;
+  ep = realsense.EnhancedPhotography.EnhancedPhoto;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -124,9 +124,10 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    ep.loadDepthPhoto(file).then(
-        function(photo) {
-          photo.queryReferenceImage().then(
+    var dp = new realsense.EnhancedPhotography.DepthPhoto();
+    dp.loadXDM(file).then(
+        function (sucess) {
+          dp.queryReferenceImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
                 imageData = imageContext.createImageData(image.width, image.height);
@@ -134,7 +135,7 @@ function main() {
                 imageData.data.set(image.data);
                 imageContext.putImageData(imageData, 0, 0);
                 hasImage = true;
-                ep.initMotionEffect(photo).then(
+                ep.initMotionEffect(dp).then(
                     function() {
                       isInitialized = true;
                       doMothionEffect();

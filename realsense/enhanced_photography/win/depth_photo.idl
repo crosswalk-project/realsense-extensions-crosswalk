@@ -29,11 +29,14 @@ namespace depth_photo {
     DOMString objectId;
   };
 
+  callback ArrayBufferPromise = void(ArrayBuffer buffer, DOMString error);
   callback ImagePromise = void(Image image, DOMString error);
   callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(Photo photo, DOMString error);
 
   interface Functions {
+    static void loadXDM(ArrayBuffer buffer, Promise promise);
+    static void saveXDM(ArrayBufferPromise promise);
     static void queryReferenceImage(ImagePromise promise);
     static void queryOriginalImage(ImagePromise promise);
     static void queryDepthImage(ImagePromise promise);
@@ -41,5 +44,7 @@ namespace depth_photo {
     static void setColorImage(Image image, Promise promise);
     static void setDepthImage(Image image, Promise promise);
     static void clone(PhotoPromise promise);
+
+    [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);
   };
 };

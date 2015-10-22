@@ -165,7 +165,7 @@ function main() {
     }
   });
 
-  ep = realsense.EnhancedPhotography;
+  ep = realsense.EnhancedPhotography.EnhancedPhoto;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -227,7 +227,7 @@ function main() {
       statusElement.innerHTML = 'There is no photo to save';
       return;
     }
-    ep.saveDepthPhoto(savePhoto).then(
+    savePhoto.saveXDM().then(
         function(blob) {
           var reader = new FileReader();
           reader.onload = function(evt) {
@@ -249,10 +249,11 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    ep.loadDepthPhoto(file).then(
-        function(photo) {
-          currentPhoto = photo;
-          savePhoto = photo;
+    var dp = new realsense.EnhancedPhotography.DepthPhoto();
+    dp.loadXDM(file).then(
+        function(sucess) {
+          currentPhoto = dp;
+          savePhoto = dp;
           currentPhoto.queryReferenceImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);

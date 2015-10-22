@@ -44,6 +44,26 @@ var DepthPhoto = function(object_id) {
     return new DepthPhoto(data.objectId);
   };
 
+  function wrapBlobArg(data) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var buffer = e.target.result;
+        resolve(buffer);
+      };
+      reader.readAsArrayBuffer(data[0]);
+    });
+  }
+
+  function wrapRawDataReturns(data) {
+    // 1 int32 (4 bytes) value (callback id).
+    var dataBuffer = data.slice(4);
+    var blob = new Blob([dataBuffer], { type: 'image/jpeg' });
+    return blob;
+  };
+
+  this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArg);
+  this._addMethodWithPromise('saveXDM', null, wrapRawDataReturns);
   this._addMethodWithPromise('queryReferenceImage', null, wrapColorImageReturns);
   this._addMethodWithPromise('queryOriginalImage', null, wrapColorImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
@@ -54,7 +74,7 @@ var DepthPhoto = function(object_id) {
 
   Object.defineProperties(this, {
     'photoId': {
-      value: object_id,
+      value: object_id ? object_id : this._id,
       enumerable: true,
     },
   });
@@ -62,6 +82,7 @@ var DepthPhoto = function(object_id) {
 
 DepthPhoto.prototype = new common.EventTargetPrototype();
 DepthPhoto.prototype.constructor = DepthPhoto;
+exports.DepthPhoto = DepthPhoto;
 
 var EnhancedPhotography = function(object_id) {
   common.BindingObject.call(this, common.getUniqueId());
@@ -85,17 +106,6 @@ var EnhancedPhotography = function(object_id) {
     }
     return args;
   };
-
-  function wrapBlobArg(data) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var buffer = e.target.result;
-        resolve(buffer);
-        };
-      reader.readAsArrayBuffer(data[0]);
-    });
-  }
 
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
@@ -134,19 +144,10 @@ var EnhancedPhotography = function(object_id) {
     return { format: 'Y8', width: width, height: height, data: buffer };
   };
 
-  function wrapRawDataReturns(data) {
-    // 1 int32 (4 bytes) value (callback id).
-    var dataBuffer = data.slice(4);
-    var blob = new Blob([dataBuffer], { type: 'image/jpeg' });
-    return blob;
-  };
-
   this._addMethodWithPromise('startPreview');
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
-  this._addBinaryMethodWithPromise2('loadDepthPhoto', wrapBlobArg, wrapReturns);
-  this._addMethodWithPromise('saveDepthPhoto', wrapArgs, wrapRawDataReturns);
 
   this._addMethodWithPromise('measureDistance', wrapArgs);
   this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
@@ -168,4 +169,4 @@ var EnhancedPhotography = function(object_id) {
 EnhancedPhotography.prototype = new common.EventTargetPrototype();
 EnhancedPhotography.prototype.constructor = EnhancedPhotography;
 
-exports = new EnhancedPhotography();
+exports.EnhancedPhoto = new EnhancedPhotography();

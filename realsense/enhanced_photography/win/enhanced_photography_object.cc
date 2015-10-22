@@ -8,10 +8,6 @@
 #include <string>
 
 #include "base/bind.h"
-#include "base/files/file.h"
-#include "base/files/file_path.h"
-#include "base/files/file_util.h"
-#include "base/files/scoped_temp_dir.h"
 #include "base/guid.h"
 #include "base/logging.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
@@ -52,12 +48,6 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("takeSnapShot",
                     base::Bind(&EnhancedPhotographyObject::OnTakeSnapShot,
                                base::Unretained(this)));
-  handler_.Register("loadDepthPhoto",
-                    base::Bind(&EnhancedPhotographyObject::OnLoadDepthPhoto,
-                                base::Unretained(this)));
-  handler_.Register("saveDepthPhoto",
-                     base::Bind(&EnhancedPhotographyObject::OnSaveDepthPhoto,
-                                base::Unretained(this)));
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
                                base::Unretained(this)));
@@ -94,6 +84,8 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("applyMotionEffect",
                     base::Bind(&EnhancedPhotographyObject::OnApplyMotionEffect,
                                base::Unretained(this)));
+  session_ = PXCSession::CreateInstance();
+  session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
 }
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
@@ -104,41 +96,13 @@ EnhancedPhotographyObject::~EnhancedPhotographyObject() {
   }
 }
 
-bool EnhancedPhotographyObject::CreateSessionInstance() {
-  if (session_) {
-    return true;
-  }
-
-  session_ = PXCSession::CreateInstance();
-  if (!session_) {
-    return false;
-  }
-  return true;
-}
-
-bool EnhancedPhotographyObject::CreateEPInstance() {
-  if (!session_) return false;
-
-  if (ep_) {
-    ep_->Release();
-    ep_ = nullptr;
-  }
-
-  pxcStatus sts = PXC_STATUS_NO_ERROR;
-  sts = session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
-  if (sts != PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-  return true;
-}
-
 void EnhancedPhotographyObject::CreateDepthPhotoObject(
     PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
+  DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
+  depthPhotoObject->GetPhoto()->CopyPhoto(pxcphoto);
+  scoped_ptr<BindingObject> obj(depthPhotoObject);
   std::string object_id = base::GenerateGUID();
-  scoped_ptr<BindingObject> obj(new DepthPhotoObject(pxcphoto, this));
   instance_->AddBindingObject(object_id, obj.Pass());
-  photo_objects_.push_back(object_id);
-
   photo->object_id = object_id;
 }
 
@@ -154,13 +118,6 @@ void EnhancedPhotographyObject::StopEvent(const std::string& type) {
   }
 }
 
-void EnhancedPhotographyObject::CopyDepthPhoto(
-    PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-  PXCPhoto* newphoto = session_->CreatePhoto();
-  newphoto->CopyPhoto(pxcphoto);
-  CreateDepthPhotoObject(newphoto, photo);
-}
-
 void EnhancedPhotographyObject::OnStartPreview(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (state_ == PREVIEW) {
@@ -174,12 +131,6 @@ void EnhancedPhotographyObject::OnStartPreview(
   if (!params) {
     info->PostResult(
         StartPreview::Results::Create(std::string(), "Malformed parameters"));
-    return;
-  }
-
-  if (!CreateSessionInstance()) {
-    info->PostResult(StartPreview::Results::Create(std::string(),
-        "Failed to create an SDK session"));
     return;
   }
 
@@ -315,12 +266,6 @@ void EnhancedPhotographyObject::OnTakeSnapShot(
     return;
   }
 
-  if (!CreateEPInstance()) {
-    info->PostResult(TakeSnapShot::Results::Create(photo,
-        "Failed to create a PXCEnhancedPhoto instance"));
-    return;
-  }
-
   ep_preview_thread_.message_loop()->PostTask(
       FROM_HERE,
       base::Bind(&EnhancedPhotographyObject::CaptureOnPreviewThread,
@@ -345,109 +290,7 @@ void EnhancedPhotographyObject::CaptureOnPreviewThread(
   CreateDepthPhotoObject(pxcphoto, &photo);
   sense_manager_->ReleaseFrame();
   info->PostResult(TakeSnapShot::Results::Create(photo, std::string()));
-}
-
-void EnhancedPhotographyObject::OnLoadDepthPhoto(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Photo photo;
-  if (!CreateSessionInstance()) {
-    info->PostResult(LoadDepthPhoto::Results::Create(photo,
-        "Failed to create SDK session"));
-    return;
-  }
-
-  scoped_ptr<LoadDepthPhoto::Params> params(
-      LoadDepthPhoto::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        LoadDepthPhoto::Results::Create(photo, "Malformed parameters"));
-    return;
-  }
-
-  base::ScopedTempDir tmp_dir;
-  tmp_dir.CreateUniqueTempDir();
-  base::FilePath tmp_file = tmp_dir.path().Append(
-      FILE_PATH_LITERAL("tmp_img.jpg"));
-
-  PXCPhoto* pxcphoto = session_->CreatePhoto();
-  std::vector<char> buffer = params->buffer;
-  char* data = &buffer[0];
-
-  base::File file(tmp_file,
-                  base::File::FLAG_CREATE_ALWAYS | base::File::FLAG_WRITE);
-  if (!file.created()) {
-    pxcphoto->Release();
-    pxcphoto = NULL;
-    info->PostResult(LoadDepthPhoto::Results::Create(photo,
-        "Failed to LoadDepthPhoto. Invalid photo."));
-    return;
-  }
-  file.Write(0, data, buffer.size());
-  file.Close();
-
-  wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
-  if (pxcphoto->LoadXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    pxcphoto->Release();
-    pxcphoto = NULL;
-    info->PostResult(LoadDepthPhoto::Results::Create(photo,
-        "Failed to LoadXDM."));
-    return;
-  }
-
-  if (!CreateEPInstance()) {
-    info->PostResult(LoadDepthPhoto::Results::Create(photo,
-        "Failed to create a PXCEnhancedPhoto instance"));
-    return;
-  }
-
-  CreateDepthPhotoObject(pxcphoto, &photo);
-  info->PostResult(LoadDepthPhoto::Results::Create(photo, std::string()));
-}
-
-void EnhancedPhotographyObject::OnSaveDepthPhoto(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  std::vector<char> buffer;
-  scoped_ptr<SaveDepthPhoto::Params> params(
-      SaveDepthPhoto::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        SaveDepthPhoto::Results::Create(buffer, "Malformed parameters"));
-    return;
-  }
-
-  std::string object_id = params->photo.object_id;
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      instance_->GetBindingObjectById(object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(SaveDepthPhoto::Results::Create(buffer,
-        "Invalid Photo object."));
-    return;
-  }
-  base::ScopedTempDir tmp_dir;
-  tmp_dir.CreateUniqueTempDir();
-  base::FilePath tmp_file = tmp_dir.path().Append(
-      FILE_PATH_LITERAL("tmp_img.jpg"));
-  wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
-  if (depthPhotoObject->GetPhoto()->SaveXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(SaveDepthPhoto::Results::Create(buffer,
-        "Failed to saveDepthPhoto"));
-    return;
-  }
-
-  base::File file(tmp_file, base::File::FLAG_OPEN | base::File::FLAG_READ);
-  int64 file_length = file.GetLength();
-  binary_message_size_ = file_length + sizeof(int);
-  binary_message_.reset(new uint8[binary_message_size_]);
-  // the first sizeof(int) bytes will be used for callback id.
-  char* data = reinterpret_cast<char*>(binary_message_.get() + 1 * sizeof(int));
-  file.Read(0, data, file_length);
-  file.Close();
-
-  scoped_ptr<base::ListValue> result(new base::ListValue());
-  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-      reinterpret_cast<const char*>(binary_message_.get()),
-      binary_message_size_));
-  info->PostResult(result.Pass());
+  pxcphoto->Release();
 }
 
 void EnhancedPhotographyObject::OnStopPreview(
@@ -537,6 +380,7 @@ void EnhancedPhotographyObject::OnDepthRefocus(
 
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(DepthRefocus::Results::Create(photo, std::string()));
+  pxcphoto->Release();
 }
 
 void EnhancedPhotographyObject::OnDepthResize(
@@ -573,6 +417,7 @@ void EnhancedPhotographyObject::OnDepthResize(
 
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(DepthResize::Results::Create(photo, std::string()));
+  pxcphoto->Release();
 }
 
 void EnhancedPhotographyObject::OnEnhanceDepth(
@@ -613,6 +458,7 @@ void EnhancedPhotographyObject::OnEnhanceDepth(
 
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
+  pxcphoto->Release();
 }
 
 void EnhancedPhotographyObject::OnPasteOnPlane(
@@ -683,6 +529,7 @@ void EnhancedPhotographyObject::OnPasteOnPlane(
   info->PostResult(PasteOnPlane::Results::Create(photo, std::string()));
 
   pxcimg->Release();
+  pxcphoto->Release();
   delete img_data.planes[0];
 }
 
@@ -759,6 +606,7 @@ void EnhancedPhotographyObject::OnDepthBlend(
   info->PostResult(DepthBlend::Results::Create(photo, std::string()));
 
   pxcimg->Release();
+  pxcphoto->Release();
   delete img_data.planes[0];
 }
 
@@ -1155,14 +1003,6 @@ void EnhancedPhotographyObject::ReleaseMainResources() {
     ep_ = nullptr;
   }
   if (session_) {
-    std::vector<std::string>::const_iterator it;
-    for (it = photo_objects_.begin(); it != photo_objects_.end(); ++it) {
-      DepthPhotoObject* depthPhotoObject =
-        static_cast<DepthPhotoObject*>(instance_->GetBindingObjectById(*it));
-      if (depthPhotoObject) {
-        depthPhotoObject->DestroyPhoto();
-      }
-    }
     session_->Release();
     session_ = nullptr;
   }
