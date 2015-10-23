@@ -5,6 +5,7 @@
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 #include <string>
+#include <vector>
 
 #include "base/bind.h"
 #include "base/logging.h"
@@ -29,8 +30,8 @@ DepthPhotoObject::DepthPhotoObject(
   handler_.Register("queryRawDepthImage",
                     base::Bind(&DepthPhotoObject::OnQueryRawDepthImage,
                                base::Unretained(this)));
-  handler_.Register("setColorImage",
-                    base::Bind(&DepthPhotoObject::OnSetColorImage,
+  handler_.Register("setReferenceImage",
+                    base::Bind(&DepthPhotoObject::OnSetReferenceImage,
                                base::Unretained(this)));
   handler_.Register("setDepthImage",
                     base::Bind(&DepthPhotoObject::OnSetDepthImage,
@@ -143,27 +144,33 @@ void DepthPhotoObject::OnQueryRawDepthImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnSetColorImage(
+void DepthPhotoObject::OnSetReferenceImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(SetColorImage::Results::Create(std::string(),
+    info->PostResult(SetReferenceImage::Results::Create(std::string(),
         "Invalid photo object"));
     return;
   }
 
-  scoped_ptr<SetColorImage::Params> params(
-      SetColorImage::Params::Create(*info->arguments()));
+  scoped_ptr<SetReferenceImage::Params> params(
+      SetReferenceImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(
-        SetColorImage::Results::Create(std::string(), "Malformed parameters"));
+    info->PostResult(SetReferenceImage::
+        Results::Create(std::string(), "Malformed parameters"));
     return;
   }
 
+  std::vector<char> buffer = params->image;
+  char* data = &buffer[0];
+  int* int_array = reinterpret_cast<int*>(data);
+  int width = int_array[0];
+  int height = int_array[1];
+  char* image_data = data + 2 * sizeof(int);
+
   PXCImage* out = photo_->QueryReferenceImage();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
-  if (params->image.width != outInfo.width ||
-      params->image.height != outInfo.height) {
-    info->PostResult(SetColorImage::Results::Create(std::string(),
+  if (width != outInfo.width || height != outInfo.height) {
+    info->PostResult(SetReferenceImage::Results::Create(std::string(),
         "Wrong image width and height"));
     return;
   }
@@ -173,7 +180,7 @@ void DepthPhotoObject::OnSetColorImage(
                                           PXCImage::PIXEL_FORMAT_RGB32,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(SetColorImage::Results::Create(std::string(),
+    info->PostResult(SetReferenceImage::Results::Create(std::string(),
         "Failed to get color data"));
     return;
   }
@@ -181,16 +188,16 @@ void DepthPhotoObject::OnSetColorImage(
   for (int y = 0; y < outInfo.height; y++) {
     for (int x = 0; x < outInfo.width; x++) {
       int i = x * 4 + outData.pitches[0] * y;
-      outData.planes[0][i] = params->image.data[i + 2];
-      outData.planes[0][i + 1] = params->image.data[i + 1];
-      outData.planes[0][i + 2] = params->image.data[i];
-      outData.planes[0][i + 3] = params->image.data[i + 3];
+      outData.planes[0][i] = image_data[i + 2];
+      outData.planes[0][i + 1] = image_data[i + 1];
+      outData.planes[0][i + 2] = image_data[i];
+      outData.planes[0][i + 3] = image_data[i + 3];
     }
   }
   out->ReleaseAccess(&outData);
 
-  info->PostResult(SetColorImage::Results::Create(std::string("Success"),
-                                                  std::string()));
+  info->PostResult(SetReferenceImage::Results::Create(
+      std::string("Success"), std::string()));
 }
 
 void DepthPhotoObject::OnSetDepthImage(

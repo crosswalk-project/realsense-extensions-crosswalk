@@ -83,7 +83,7 @@ function main() {
                   currentPhoto.clone().then(
                       function(photo) {
                         savePhoto = photo;
-                        savePhoto.setColorImage(colorImage).then(
+                        savePhoto.setReferenceImage(colorImage).then(
                             function() {
                               statusElement.innerHTML = 'Finish processing segmentation!' +
                                   'Click and drag the left(foregroud) and right(background)' +
@@ -182,7 +182,7 @@ function main() {
                   currentPhoto.clone().then(
                       function(photo) {
                         savePhoto = photo;
-                        savePhoto.setColorImage(colorImage).then(
+                        savePhoto.setReferenceImage(colorImage).then(
                             function() {
                               statusElement.innerHTML = 'Click and drag the left(foregroud) and' +
                               'right(background) mouse buttons to refine the mask';
