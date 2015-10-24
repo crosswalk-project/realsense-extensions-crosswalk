@@ -10,6 +10,9 @@
     {
       'target_name': 'enhanced_photography',
       'type': 'none',
+      'dependencies': [
+        '<(DEPTH)/xwalk/common/android/common.gyp:common',
+      ],
       'variables': {
         'extension_dir': '<(PRODUCT_DIR)/<(_target_name)',
         'java_in_dir': '.',
@@ -26,6 +29,7 @@
           '<(rssdk_path)/libs/PXCASenseManager.jar',
         ],
         'jars_to_merge': [
+          '<(jar_dir)/common.jar',
           '<(jar_final_path)',
           '<(rssdk_path)/libs/PXCACommon.jar',
           '<(rssdk_path)/libs/PXCACore_x86.jar',
@@ -37,6 +41,10 @@
           '<(rssdk_path)/libs/PXCASenseManager.jar',
         ],
         'merged_jar_path': '<(extension_dir)/<(_target_name).jar',
+        'js_files_to_merge': [
+            '../../../../xwalk/common/common_api.js',
+            '../js/enhanced_photography_api.js',
+        ],
         'js_file': '<(_target_name).js',
         'json_file': '<(_target_name).json',
         'native_libraries': [
@@ -48,7 +56,7 @@
       },
       'includes': [
         '../../common/copy_native_libraries.gypi',
-        '../../common/copy_js_json.gypi',
+        '../../common/prepare_js_json.gypi',
         '../../common/merge_jars.gypi',
         '../../../../build/java.gypi',
       ],
