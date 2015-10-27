@@ -35,8 +35,6 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void StartEvent(const std::string& type) override;
   void StopEvent(const std::string& type) override;
 
-  void CopyDepthPhoto(PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo);
-
  private:
   void OnStartPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnStopPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
@@ -44,10 +42,6 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   // This method will capture a photo from preview and bind it with |photo_|
   void OnTakeSnapShot(scoped_ptr<XWalkExtensionFunctionInfo> info);
-
-  // This method will bind the XMP photo with |photo_|.
-  void OnLoadDepthPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnSaveDepthPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);
@@ -63,8 +57,6 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnInitMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnApplyMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  bool CreateSessionInstance();
-  bool CreateEPInstance();
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
                               jsapi::depth_photo::Photo* photo);
   bool CopyColorImage(PXCImage* pxcimage);
@@ -98,7 +90,6 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   PXCImage* preview_image_;
 
   EnhancedPhotographyInstance* instance_;
-  std::vector<std::string> photo_objects_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;
