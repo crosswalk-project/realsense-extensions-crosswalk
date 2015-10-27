@@ -152,7 +152,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('startPreview');
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('takeSnapShot', null, wrapReturns);
+  this._addMethodWithPromise('takePhoto', null, wrapReturns);
 
   this._addMethodWithPromise('measureDistance', wrapArgs);
   this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);

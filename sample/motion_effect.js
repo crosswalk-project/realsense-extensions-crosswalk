@@ -99,7 +99,7 @@ function main() {
   };
 
   takePhotoButton.onclick = function(e) {
-    ep.takeSnapShot().then(
+    ep.takePhoto().then(
         function(photo) {
           photo.queryReferenceImage().then(
               function(image) {

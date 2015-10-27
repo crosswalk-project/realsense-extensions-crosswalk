@@ -41,7 +41,7 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
   void OnGetPreviewImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // This method will capture a photo from preview and bind it with |photo_|
-  void OnTakeSnapShot(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);

@@ -63,7 +63,7 @@ namespace enhanced_photography {
     static void startPreview(optional PreviewConfiguration config, Promise promise);
     static void stopPreview(Promise promise);
     static void getPreviewImage(ImagePromise promise);
-    static void takeSnapShot(PhotoPromise promise);
+    static void takePhoto(PhotoPromise promise);
     static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
     static void depthRefocus(depth_photo.Photo photo, Point focus, double aperture, PhotoPromise promise);
     static void depthResize(depth_photo.Photo photo, Size size, PhotoPromise promise);

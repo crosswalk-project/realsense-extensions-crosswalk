@@ -45,8 +45,8 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("getPreviewImage",
                     base::Bind(&EnhancedPhotographyObject::OnGetPreviewImage,
                                base::Unretained(this)));
-  handler_.Register("takeSnapShot",
-                    base::Bind(&EnhancedPhotographyObject::OnTakeSnapShot,
+  handler_.Register("takePhoto",
+                    base::Bind(&EnhancedPhotographyObject::OnTakePhoto,
                                base::Unretained(this)));
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
@@ -257,11 +257,11 @@ void EnhancedPhotographyObject::OnGetPreviewImage(
   return;
 }
 
-void EnhancedPhotographyObject::OnTakeSnapShot(
+void EnhancedPhotographyObject::OnTakePhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
   if (state_ != PREVIEW) {
-    info->PostResult(TakeSnapShot::Results::Create(photo,
+    info->PostResult(TakePhoto::Results::Create(photo,
         "It's not in preview mode."));
     return;
   }
@@ -278,7 +278,7 @@ void EnhancedPhotographyObject::CaptureOnPreviewThread(
   jsapi::depth_photo::Photo photo;
   pxcStatus status = sense_manager_->AcquireFrame(true);
   if (status < PXC_STATUS_NO_ERROR) {
-    info->PostResult(TakeSnapShot::Results::Create(photo,
+    info->PostResult(TakePhoto::Results::Create(photo,
         "Failed to AcquireFrame"));
     return;
   }
@@ -289,7 +289,7 @@ void EnhancedPhotographyObject::CaptureOnPreviewThread(
   pxcphoto->CopyPhoto(preview_photo_);
   CreateDepthPhotoObject(pxcphoto, &photo);
   sense_manager_->ReleaseFrame();
-  info->PostResult(TakeSnapShot::Results::Create(photo, std::string()));
+  info->PostResult(TakePhoto::Results::Create(photo, std::string()));
   pxcphoto->Release();
 }
 

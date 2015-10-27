@@ -221,7 +221,7 @@ function main() {
   };
 
   takePhotoButton.onclick = function(e) {
-    ep.takeSnapShot().then(
+    ep.takePhoto().then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
