@@ -8,14 +8,19 @@ var DepthPhoto = function(object_id) {
   if (object_id == undefined)
     internal.postMessage('depthPhotoConstructor', [this._id]);
 
-  function wrapColorImageArgs(args) {
-    if (args[0].data instanceof Uint8Array ||
-        args[0].data instanceof Uint8ClampedArray) {
-      var uint8_array = args[0].data;
-      var buffer = Array.prototype.slice.call(uint8_array);
-      args[0].data = buffer;
+  function wrapRGB32ImageArgs(args) {
+    if (args[0].format != 'RGB32')
+      return null;
+    var length = 2 * 4 + args[0].width * args[0].height * 4;
+    var arrayBuffer = new ArrayBuffer(length);
+    var view = new Int32Array(arrayBuffer, 0, 2);
+    view[0] = args[0].width;
+    view[1] = args[0].height;
+    var view = new Uint8Array(arrayBuffer, 2 * 4);
+    for (var i = 0; i < args[0].data.length; i++) {
+      view[i] = args[0].data[i];
     }
-    return args;
+    return arrayBuffer;
   };
 
   function wrapColorImageReturns(data) {
@@ -68,7 +73,7 @@ var DepthPhoto = function(object_id) {
   this._addMethodWithPromise('queryOriginalImage', null, wrapColorImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
-  this._addMethodWithPromise('setColorImage', wrapColorImageArgs);
+  this._addBinaryMethodWithPromise('setReferenceImage', wrapRGB32ImageArgs);
   this._addMethodWithPromise('setDepthImage');
   this._addMethodWithPromise('clone', null, wrapPhotoReturns);
 

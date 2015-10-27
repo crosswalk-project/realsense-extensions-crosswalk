@@ -275,7 +275,7 @@ function popColor(e) {
             currentPhoto.clone().then(
                 function(photo) {
                   savePhoto = photo;
-                  savePhoto.setColorImage(colorImage).then(
+                  savePhoto.setReferenceImage(colorImage).then(
                       function() {
                         statusElement.innerHTML =
                             'Finish processing color pop, select again!';
