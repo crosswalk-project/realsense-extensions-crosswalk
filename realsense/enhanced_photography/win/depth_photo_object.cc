@@ -253,7 +253,7 @@ void DepthPhotoObject::OnSetReferenceImage(
 
   PXCImage* out = photo_->QueryReferenceImage();
   if (!out) {
-    info->PostResult(SetColorImage::Results::Create(std::string(),
+    info->PostResult(SetReferenceImage::Results::Create(std::string(),
         "The photo image is uninitialized."));
     return;
   }

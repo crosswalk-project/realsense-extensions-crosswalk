@@ -203,8 +203,8 @@ function main() {
   };
 
   takePhotoButton.onclick = function(e) {
-    statusElement.innerHTML = 'Status Info : TakeSnapshot: ';
-    ep.takeSnapShot().then(
+    statusElement.innerHTML = 'Status Info : TakePhoto: ';
+    ep.takePhoto().then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
