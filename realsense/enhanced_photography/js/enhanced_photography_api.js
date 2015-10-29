@@ -23,6 +23,21 @@ var DepthPhoto = function(object_id) {
     return arrayBuffer;
   };
 
+  function wrapDepthImageArgs(args) {
+    if (args[0].format != 'DEPTH')
+      return null;
+    var length = 2 * 4 + args[0].width * args[0].height * 2;
+    var arrayBuffer = new ArrayBuffer(length);
+    var view = new Int32Array(arrayBuffer, 0, 2);
+    view[0] = args[0].width;
+    view[1] = args[0].height;
+    var view = new Uint16Array(arrayBuffer, 2 * 4);
+    for (var i = 0; i < args[0].data.length; i++) {
+      view[i] = args[0].data[i];
+    }
+    return arrayBuffer;
+  };
+
   function wrapColorImageReturns(data) {
     var int32_array = new Int32Array(data);
     // int32_array[0] is the callback id.
@@ -74,7 +89,9 @@ var DepthPhoto = function(object_id) {
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
   this._addBinaryMethodWithPromise('setReferenceImage', wrapRGB32ImageArgs);
+  this._addBinaryMethodWithPromise('setOriginalImage', wrapRGB32ImageArgs);
   this._addMethodWithPromise('setDepthImage');
+  this._addBinaryMethodWithPromise('setRawDepthImage', wrapDepthImageArgs);
   this._addMethodWithPromise('clone', null, wrapPhotoReturns);
 
   Object.defineProperties(this, {

@@ -42,8 +42,14 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("setReferenceImage",
                     base::Bind(&DepthPhotoObject::OnSetReferenceImage,
                                base::Unretained(this)));
+  handler_.Register("setOriginalImage",
+                    base::Bind(&DepthPhotoObject::OnSetOriginalImage,
+                               base::Unretained(this)));
   handler_.Register("setDepthImage",
                     base::Bind(&DepthPhotoObject::OnSetDepthImage,
+                               base::Unretained(this)));
+  handler_.Register("setRawDepthImage",
+                    base::Bind(&DepthPhotoObject::OnSetRawDepthImage,
                                base::Unretained(this)));
   handler_.Register("clone",
                     base::Bind(&DepthPhotoObject::OnClone,
@@ -289,6 +295,67 @@ void DepthPhotoObject::OnSetReferenceImage(
       std::string("Success"), std::string()));
 }
 
+void DepthPhotoObject::OnSetOriginalImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+        "Invalid photo object"));
+    return;
+  }
+
+  scoped_ptr<SetOriginalImage::Params> params(
+      SetOriginalImage::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(SetOriginalImage::
+        Results::Create(std::string(), "Malformed parameters"));
+    return;
+  }
+
+  std::vector<char> buffer = params->image;
+  char* data = &buffer[0];
+  int* int_array = reinterpret_cast<int*>(data);
+  int width = int_array[0];
+  int height = int_array[1];
+  char* image_data = data + 2 * sizeof(int);
+
+  PXCImage* out = photo_->QueryOriginalImage();
+  if (!out) {
+    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+        "The photo image is uninitialized."));
+    return;
+  }
+  PXCImage::ImageInfo outInfo = out->QueryInfo();
+  if (width != outInfo.width || height != outInfo.height) {
+    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+        "Wrong image width and height"));
+    return;
+  }
+
+  PXCImage::ImageData outData;
+  pxcStatus photoSts = out->AcquireAccess(PXCImage::ACCESS_READ_WRITE,
+                                          PXCImage::PIXEL_FORMAT_RGB32,
+                                          &outData);
+  if (photoSts != PXC_STATUS_NO_ERROR) {
+    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+        "Failed to get color data"));
+    return;
+  }
+
+  for (int y = 0; y < outInfo.height; y++) {
+    for (int x = 0; x < outInfo.width; x++) {
+      int i = x * 4 + outData.pitches[0] * y;
+      outData.planes[0][i] = image_data[i + 2];
+      outData.planes[0][i + 1] = image_data[i + 1];
+      outData.planes[0][i + 2] = image_data[i];
+      outData.planes[0][i + 3] = image_data[i + 3];
+    }
+  }
+  out->ReleaseAccess(&outData);
+
+  info->PostResult(SetOriginalImage::Results::Create(
+      std::string("Success"), std::string()));
+}
+
 void DepthPhotoObject::OnSetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
@@ -337,6 +404,62 @@ void DepthPhotoObject::OnSetDepthImage(
 
   info->PostResult(SetDepthImage::Results::Create(std::string("Success"),
                                                   std::string()));
+}
+
+void DepthPhotoObject::OnSetRawDepthImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(SetRawDepthImage::Results::Create(std::string(),
+        "Invalid photo object"));
+    return;
+  }
+
+  scoped_ptr<SetRawDepthImage::Params> params(
+      SetRawDepthImage::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(SetRawDepthImage::Results::Create(
+        std::string(), "Malformed parameters"));
+    return;
+  }
+
+  std::vector<char> buffer = params->image;
+  char* data = &buffer[0];
+  int* int_array = reinterpret_cast<int*>(data);
+  int width = int_array[0];
+  int height = int_array[1];
+  char* image_data = data + 2 * sizeof(int);
+
+  PXCImage* out = photo_->QueryRawDepthImage();
+  PXCImage::ImageInfo outInfo = out->QueryInfo();
+  if (width != outInfo.width || height != outInfo.height) {
+    info->PostResult(SetRawDepthImage::Results::Create(std::string(),
+        "Wrong image width and height"));
+    return;
+  }
+
+  PXCImage::ImageData outData;
+  pxcStatus photoSts = out->AcquireAccess(PXCImage::ACCESS_READ_WRITE,
+                                          PXCImage::PIXEL_FORMAT_DEPTH,
+                                          &outData);
+  if (photoSts != PXC_STATUS_NO_ERROR) {
+    info->PostResult(SetRawDepthImage::Results::Create(std::string(),
+        "Failed to get depth data"));
+    return;
+  }
+
+  int i = 0;
+  for (int y = 0; y < outInfo.height; ++y) {
+    for (int x = 0; x < outInfo.width; ++x) {
+      uint16_t* depth16 = reinterpret_cast<uint16_t*>(
+          outData.planes[0] + outData.pitches[0] * y);
+      depth16[x] = image_data[i];
+      i++;
+    }
+  }
+  out->ReleaseAccess(&outData);
+
+  info->PostResult(SetRawDepthImage::Results::Create(
+      std::string("Success"), std::string()));
 }
 
 void DepthPhotoObject::OnClone(

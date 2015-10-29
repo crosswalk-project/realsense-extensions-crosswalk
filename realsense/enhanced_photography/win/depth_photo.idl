@@ -42,7 +42,9 @@ namespace depth_photo {
     static void queryDepthImage(ImagePromise promise);
     static void queryRawDepthImage(ImagePromise promise);
     static void setReferenceImage(ArrayBuffer image, Promise promise);
+    static void setOriginalImage(ArrayBuffer image, Promise promise);
     static void setDepthImage(Image image, Promise promise);
+    static void setRawDepthImage(ArrayBuffer  image, Promise promise);
     static void clone(PhotoPromise promise);
 
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);
