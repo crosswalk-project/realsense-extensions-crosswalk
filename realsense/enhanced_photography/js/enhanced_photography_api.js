@@ -129,6 +129,62 @@ var EnhancedPhotography = function(object_id) {
     return args;
   };
 
+  function wrapDepthBlendArgsToArrayBuffer(args) {
+    var photoId = args[0].photoId;
+    var image = args[1];
+    var point = args[2];
+    var depth = args[3];
+    var rotation = args[4];
+    var scale = args[5];
+    var alignedPhotoIdLen = photoId.length + 4 - photoId.length % 4;
+
+    if (image.format != 'RGB32')
+      return null;
+
+    const bytesPerInt = 4;
+    const bytesPerFloat = 4;
+    // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData],
+    // point[pointX PointY], depth, rotation[pitch yaw roll], scale
+    var length = bytesPerInt + alignedPhotoIdLen + bytesPerInt * 2 + image.data.length +
+        bytesPerInt * 2 + bytesPerInt + bytesPerInt * 3 + bytesPerFloat;
+    var arrayBuffer = new ArrayBuffer(length);
+    var offset = 0;
+    var view = new Int32Array(arrayBuffer, offset, 1);
+    view[0] = photoId.length;
+    offset += bytesPerInt;
+
+    view = new Uint8Array(arrayBuffer, offset, photoId.length);
+    for (var i = 0; i < photoId.length; i++) {
+      view[i] = photoId.charCodeAt(i);
+    }
+    offset += alignedPhotoIdLen;
+
+    view = new Int32Array(arrayBuffer, offset, 2);
+    view[0] = image.width;
+    view[1] = image.height;
+    offset += bytesPerInt * 2;
+
+    view = new Uint8Array(arrayBuffer, offset, image.data.length);
+    for (var i = 0; i < image.data.length; i++) {
+      view[i] = image.data[i];
+    }
+    offset += image.data.length;
+
+    view = new Int32Array(arrayBuffer, offset, 6);
+    view[0] = point.x;
+    view[1] = point.y;
+    view[2] = depth;
+    view[3] = rotation.pitch;
+    view[4] = rotation.yaw;
+    view[5] = rotation.roll;
+    offset += bytesPerInt * 6;
+
+    view = new Float32Array(arrayBuffer, offset, 1);
+    view[0] = scale;
+
+    return arrayBuffer;
+  };
+
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
   };
@@ -178,7 +234,7 @@ var EnhancedPhotography = function(object_id) {
   this._addMethodWithPromise('pasteOnPlane', wrapImageArgs, wrapReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('depthBlend', wrapImageArgs, wrapReturns);
+  this._addBinaryMethodWithPromise('depthBlend', wrapDepthBlendArgsToArrayBuffer, wrapReturns);
   this._addMethodWithPromise('objectSegment', wrapArgs, wrapY8ImageReturns);
   this._addMethodWithPromise('refineMask', null, wrapY8ImageReturns);
   this._addMethodWithPromise('initMotionEffect', wrapArgs);
