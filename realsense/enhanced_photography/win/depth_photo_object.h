@@ -35,7 +35,9 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   void OnQueryDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetReferenceImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetOriginalImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnClone(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   bool CopyColorImage(PXCImage* pxcimage);
