@@ -544,7 +544,15 @@ void EnhancedPhotographyObject::OnDepthBlend(
     return;
   }
 
-  std::string object_id = params->photo.object_id;
+  std::vector<char> buffer = params->buffer;
+  char* data = &buffer[0];
+  int offset = 0;
+  int* int_array = reinterpret_cast<int*>(data);
+  int object_id_len = int_array[0];
+  int aligned_object_id_len = object_id_len + 4 - object_id_len % 4;
+  offset += sizeof(int);
+
+  std::string object_id(data + offset, object_id_len);
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
@@ -554,13 +562,19 @@ void EnhancedPhotographyObject::OnDepthBlend(
   }
 
   DCHECK(ep_);
+  offset += aligned_object_id_len;
+  int_array = reinterpret_cast<int*>(data + offset);
+  int width = int_array[0];
+  int height = int_array[1];
+  offset += 2 * sizeof(int);
+
   PXCImage::ImageInfo img_info;
   PXCImage::ImageData img_data;
   memset(&img_info, 0, sizeof(img_info));
   memset(&img_data, 0, sizeof(img_data));
 
-  img_info.width = params->image.width;
-  img_info.height = params->image.height;
+  img_info.width = width;
+  img_info.height = height;
   img_info.format = PXCImage::PIXEL_FORMAT_RGB32;
 
   int bufSize = img_info.width * img_info.height * 4;
@@ -568,33 +582,47 @@ void EnhancedPhotographyObject::OnDepthBlend(
   img_data.pitches[0] = img_info.width * 4;
   img_data.format = img_info.format;
 
+  uint8_t* image_data = reinterpret_cast<uint8_t*>(data + offset);
+  offset += bufSize;
+
   for (int y = 0; y < img_info.height; y++) {
     for (int x = 0; x < img_info.width; x++) {
       int i = x * 4 + img_data.pitches[0] * y;
-      img_data.planes[0][i] = params->image.data[i + 2];
-      img_data.planes[0][i + 1] = params->image.data[i + 1];
-      img_data.planes[0][i + 2] = params->image.data[i];
-      img_data.planes[0][i + 3] = params->image.data[i + 3];
+      img_data.planes[0][i] = image_data[i + 2];
+      img_data.planes[0][i + 1] = image_data[i + 1];
+      img_data.planes[0][i + 2] = image_data[i];
+      img_data.planes[0][i + 3] = image_data[i + 3];
     }
   }
 
   PXCImage* pxcimg = session_->CreateImage(&img_info, &img_data);
 
+  int_array = reinterpret_cast<int*>(data + offset);
+  int point_x = int_array[0];
+  int point_y = int_array[1];
+  int depth = int_array[2];
+  int pitch = int_array[3];
+  int yaw = int_array[4];
+  int roll = int_array[5];
   PXCPointI32 point;
-  point.x = params->point.x;
-  point.y = params->point.y;
+  point.x = point_x;
+  point.y = point_y;
 
   pxcI32 rotation[3];
-  rotation[0] = params->rotation.pitch;
-  rotation[1] = params->rotation.yaw;
-  rotation[2] = params->rotation.roll;
+  rotation[0] = pitch;
+  rotation[1] = yaw;
+  rotation[2] = roll;
+  offset += 6 * sizeof(int);
+
+  float_t* float_array = reinterpret_cast<float_t*>(data + offset);
+  float_t scale = float_array[0];
 
   PXCPhoto* pxcphoto = ep_->DepthBlend(depthPhotoObject->GetPhoto(),
                                        pxcimg,
                                        point,
-                                       params->depth,
+                                       depth,
                                        rotation,
-                                       params->scale);
+                                       scale);
 
   if (!pxcphoto) {
     info->PostResult(DepthBlend::Results::Create(photo,
