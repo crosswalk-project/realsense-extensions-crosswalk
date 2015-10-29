@@ -90,7 +90,7 @@ var DepthPhoto = function(object_id) {
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
   this._addBinaryMethodWithPromise('setReferenceImage', wrapRGB32ImageArgs);
   this._addBinaryMethodWithPromise('setOriginalImage', wrapRGB32ImageArgs);
-  this._addMethodWithPromise('setDepthImage');
+  this._addBinaryMethodWithPromise('setDepthImage', wrapDepthImageArgs);
   this._addBinaryMethodWithPromise('setRawDepthImage', wrapDepthImageArgs);
   this._addMethodWithPromise('clone', null, wrapPhotoReturns);
 

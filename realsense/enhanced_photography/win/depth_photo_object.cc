@@ -372,10 +372,16 @@ void DepthPhotoObject::OnSetDepthImage(
     return;
   }
 
+  std::vector<char> buffer = params->image;
+  char* data = &buffer[0];
+  int* int_array = reinterpret_cast<int*>(data);
+  int width = int_array[0];
+  int height = int_array[1];
+  char* image_data = data + 2 * sizeof(int);
+
   PXCImage* out = photo_->QueryDepthImage();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
-  if (params->image.width != outInfo.width ||
-      params->image.height != outInfo.height) {
+  if (width != outInfo.width || height != outInfo.height) {
     info->PostResult(SetDepthImage::Results::Create(std::string(),
         "Wrong image width and height"));
     return;
@@ -396,7 +402,7 @@ void DepthPhotoObject::OnSetDepthImage(
     for (int x = 0; x < outInfo.width; ++x) {
       uint16_t* depth16 = reinterpret_cast<uint16_t*>(
         outData.planes[0] + outData.pitches[0] * y);
-      depth16[x] = params->image.data[i];
+      depth16[x] = image_data[i];
       i++;
     }
   }
