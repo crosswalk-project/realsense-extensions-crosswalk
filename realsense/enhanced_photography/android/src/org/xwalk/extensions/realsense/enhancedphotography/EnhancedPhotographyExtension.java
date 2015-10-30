@@ -25,9 +25,15 @@ public class EnhancedPhotographyExtension extends XWalkExtensionClient {
         mBindingObjectStore = new BindingObjectStore(mHandler);
 
         mHandler.register("enhancedPhotographyConstructor", this);
+        mHandler.register("depthPhotoConstructor", this);
     }
 
     private void handleMessage(int instanceID, String message) {
+        FunctionInfo info = new FunctionInfo(this, instanceID, message);
+        mHandler.handleFunction(info);
+    }
+
+    private void handleBinaryMessage(int instanceID, byte[] message) {
         FunctionInfo info = new FunctionInfo(this, instanceID, message);
         mHandler.handleFunction(info);
     }
@@ -37,9 +43,19 @@ public class EnhancedPhotographyExtension extends XWalkExtensionClient {
         mBindingObjectStore.addBindingObject(info.getObjectId(), ep);
     }
 
+    public void onDepthPhotoConstructor(FunctionInfo info) {
+        DepthPhotoObject dp = new DepthPhotoObject();
+        mBindingObjectStore.addBindingObject(info.getObjectId(), dp);
+    }
+
     @Override
     public void onMessage(int instanceID, String message) {
         if (!message.isEmpty()) handleMessage(instanceID, message);
+    }
+
+    @Override
+    public void onBinaryMessage(int instanceID, byte[] message) {
+        if (message != null) handleBinaryMessage(instanceID, message);
     }
 
     @Override
