@@ -39,7 +39,8 @@ public class EnhancedPhotographyExtension extends XWalkExtensionClient {
     }
 
     public void onEnhancedPhotographyConstructor(FunctionInfo info) {
-        EnhancedPhotographyObject ep = new EnhancedPhotographyObject(mExtensionContextClient);
+        EnhancedPhotographyObject ep =
+                new EnhancedPhotographyObject(mExtensionContextClient, mBindingObjectStore);
         mBindingObjectStore.addBindingObject(info.getObjectId(), ep);
     }
 
