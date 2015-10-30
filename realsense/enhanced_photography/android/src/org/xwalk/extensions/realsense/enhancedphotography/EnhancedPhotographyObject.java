@@ -5,6 +5,7 @@
 package org.xwalk.extensions.realsense.enhancedphotography;
 
 import android.app.Activity;
+import android.graphics.PointF;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -22,6 +23,10 @@ import com.intel.camera.toolkit.depth.Image;
 import com.intel.camera.toolkit.depth.ImageSet;
 import com.intel.camera.toolkit.depth.ImageInfo;
 import com.intel.camera.toolkit.depth.OnSenseManagerHandler;
+import com.intel.camera.toolkit.depth.photography.core.DepthContext;
+import com.intel.camera.toolkit.depth.photography.core.DepthPhoto;
+import com.intel.camera.toolkit.depth.photography.experiences.Measurement;
+import com.intel.camera.toolkit.depth.photography.experiences.Measurement.Distance;
 import com.intel.camera.toolkit.depth.RSPixelFormat;
 import com.intel.camera.toolkit.depth.sensemanager.SenseManager;
 import com.intel.camera.toolkit.depth.StreamProfile;
@@ -40,12 +45,16 @@ public class EnhancedPhotographyObject extends EventTarget {
     private int mInstaceID;
     private ByteBuffer mPreviewImageBuffer;
     private ImageInfo mPreviewImageInfo;
+    private BindingObjectStore mBindingObjectStore;
 
-    public EnhancedPhotographyObject(XWalkExtensionContextClient xwalkContext) {
+    public EnhancedPhotographyObject(XWalkExtensionContextClient xwalkContext,
+                                     BindingObjectStore bindingObjectStore) {
         mActivity = xwalkContext.getActivity();
+        mBindingObjectStore = bindingObjectStore;
         mHandler.register("startPreview", this);
         mHandler.register("stopPreview", this);
         mHandler.register("getPreviewImage", this);
+        mHandler.register("measureDistance", this);
     }
 
     protected SenseManager getSenseManager() {
@@ -113,6 +122,41 @@ public class EnhancedPhotographyObject extends EventTarget {
                 message.put(mPreviewImageBuffer.get(i * 4 + 3));
             }
             info.postResult(message.array());
+        }
+    }
+
+    public void onMeasureDistance(FunctionInfo info) {
+        try {
+            JSONArray args = info.getArgs();
+            JSONArray result = new JSONArray();
+            JSONObject distanceObject = new JSONObject();
+            JSONObject photo = args.getJSONObject(0);
+            String photoId = photo.getString("objectId");
+            DepthPhotoObject depthPhotoObject =
+                    (DepthPhotoObject)mBindingObjectStore.getBindingObject(photoId);
+            if (depthPhotoObject == null) {
+                result.put(0, distanceObject);
+                result.put(1, "Invalid DepthPhoto Object");
+                info.postResult(result);
+                return;
+            }
+
+            JSONObject startPoint = args.getJSONObject(1);
+            JSONObject endPoint = args.getJSONObject(2);
+            int startX = startPoint.getInt("x");
+            int startY = startPoint.getInt("y");
+            int endX = endPoint.getInt("x");
+            int endY = endPoint.getInt("y");
+            DepthPhoto depthPhoto = depthPhotoObject.getDepthPhoto();
+            Measurement measurement = new Measurement(new DepthContext(), depthPhoto);
+            Distance dist = measurement.computeDistance(
+                    new PointF(startX, startY), new PointF(endX,endY));
+            double distance = dist.distance;
+            distanceObject.put("distance", distance);
+            result.put(0, distanceObject);
+            info.postResult(result);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
         }
     }
 
