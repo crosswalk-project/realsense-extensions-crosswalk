@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.UUID;
 
 import com.intel.camera.toolkit.depth.Camera;
 import com.intel.camera.toolkit.depth.Camera.Facing;
@@ -27,6 +28,7 @@ import com.intel.camera.toolkit.depth.photography.core.DepthContext;
 import com.intel.camera.toolkit.depth.photography.core.DepthPhoto;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement.Distance;
+import com.intel.camera.toolkit.depth.photography.experiences.Refocus;
 import com.intel.camera.toolkit.depth.RSPixelFormat;
 import com.intel.camera.toolkit.depth.sensemanager.SenseManager;
 import com.intel.camera.toolkit.depth.StreamProfile;
@@ -55,6 +57,7 @@ public class EnhancedPhotographyObject extends EventTarget {
         mHandler.register("stopPreview", this);
         mHandler.register("getPreviewImage", this);
         mHandler.register("measureDistance", this);
+        mHandler.register("depthRefocus", this);
     }
 
     protected SenseManager getSenseManager() {
@@ -154,6 +157,50 @@ public class EnhancedPhotographyObject extends EventTarget {
             double distance = dist.distance;
             distanceObject.put("distance", distance);
             result.put(0, distanceObject);
+            info.postResult(result);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
+    public void onDepthRefocus(FunctionInfo info) {
+        try {
+            JSONArray args = info.getArgs();
+            JSONArray result = new JSONArray();
+            JSONObject refocusJSONObject = new JSONObject();
+            JSONObject photo = args.getJSONObject(0);
+            String photoId = photo.getString("objectId");
+            DepthPhotoObject depthPhotoObject =
+                    (DepthPhotoObject)mBindingObjectStore.getBindingObject(photoId);
+            if (depthPhotoObject == null) {
+                result.put(0, refocusJSONObject);
+                result.put(1, "Invalid DepthPhoto Object");
+                info.postResult(result);
+                return;
+            }
+
+            JSONObject point = args.getJSONObject(1);
+            int pointX = point.getInt("x");
+            int pointY = point.getInt("y");
+            double aperture = args.getDouble(2);
+            DepthPhoto depthPhoto = depthPhotoObject.getDepthPhoto();
+            Refocus refocus = new Refocus(new DepthContext(), depthPhoto);
+            com.intel.camera.toolkit.depth.photography.core.Image refocusedImage =
+                    refocus.apply(new PointF(pointX, pointY), (float)(aperture));
+
+            DepthPhotoObject refocusPhotoObject = new DepthPhotoObject();
+            String objectId = UUID.randomUUID().toString();
+            mBindingObjectStore.addBindingObject(objectId, refocusPhotoObject);
+            DepthPhoto refocusPhoto = refocusPhotoObject.getDepthPhoto();
+            // See https://github.com/otcshare/realsense-extensions-crosswalk/issues/207
+            refocusPhoto.setPrimaryImage(refocusedImage);
+            // When setting the following properties, errors will happen.
+            // See https://github.com/otcshare/realsense-extensions-crosswalk/issues/208
+            // refocusPhoto.setUneditedPrimaryImage(depthPhoto.getUneditedPrimaryImage());
+            // refocusPhoto.setDepthMap(depthPhoto.getDepthMap());
+
+            refocusJSONObject.put("objectId", objectId);
+            result.put(0, refocusJSONObject);
             info.postResult(result);
         } catch (JSONException e) {
             Log.e(TAG, e.toString());

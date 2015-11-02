@@ -29,6 +29,7 @@ public class DepthPhotoObject extends BindingObject {
     private static final int bytesPerInt = Integer.SIZE / Byte.SIZE;
 
     public DepthPhotoObject() {
+        mDepthPhoto = new DepthPhoto(new DepthContext());
         mHandler.register("loadXDM", this);
         mHandler.register("queryReferenceImage", this);
         mHandler.register("queryOriginalImage", this);
@@ -47,7 +48,13 @@ public class DepthPhotoObject extends BindingObject {
         }
     }
 
-    private void queryColorImage(FunctionInfo info, PixelData colorData) {
+    private void queryColorImage(FunctionInfo info, Image image) {
+        if (image == null) {
+            reportMessage(info, "", "There is no image info");
+            return;
+        }
+
+        PixelData colorData = image.getPixelData();
         Log.d(TAG, "PixelData: " + colorData.getWidth() + ", " + colorData.getHeight() +
                 ", " + colorData.getPixelFormat() + ", " + colorData.getBytesPerPixel());
         int height = (int)colorData.getHeight();
@@ -134,8 +141,8 @@ public class DepthPhotoObject extends BindingObject {
             return;
         }
 
-        PixelData colorData = mDepthPhoto.getPrimaryImage().getPixelData();
-        queryColorImage(info, colorData);
+        Image image = mDepthPhoto.getPrimaryImage();
+        queryColorImage(info, image);
     }
 
     public void onQueryOriginalImage(FunctionInfo info) {
@@ -145,8 +152,8 @@ public class DepthPhotoObject extends BindingObject {
             return;
         }
 
-        PixelData colorData = mDepthPhoto.getUneditedPrimaryImage().getPixelData();
-        queryColorImage(info, colorData);
+        Image image = mDepthPhoto.getUneditedPrimaryImage();
+        queryColorImage(info, image);
     }
 
     public void onQueryDepthImage(FunctionInfo info) {
