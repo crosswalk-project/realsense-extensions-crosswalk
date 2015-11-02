@@ -14,10 +14,57 @@ namespace scene_perception {
     failed
   };
 
+  enum VoxelResolution {
+    low,
+    med,
+    high
+  };
+
+  enum MeshingResolution {
+    low,
+    med,
+    high
+  };
+
+  dictionary MeshingThresholds {
+    double max;
+    double avg;
+  };
+
+  dictionary CaptureSize {
+    long width;
+    long height;
+  };
+
+  dictionary InitialConfiguration {
+    boolean? useOpenCVCoordinateSystem;
+    VoxelResolution? voxelResolution;
+    double[]? initialCameraPose;
+    MeshingThresholds? meshingThresholds;
+    CaptureSize? colorCaptureSize;
+    CaptureSize? depthCaptureSize;
+    long? captureFramerate;
+  };
+
+  dictionary MeshingUpdateInfo {
+    boolean countOfBlockMeshesRequired;
+    boolean blockMeshesRequired;
+    boolean countOfVeticesRequired;
+    boolean verticesRequired;
+    boolean countOfFacesRequired;
+    boolean facesRequired;
+    boolean colorsRequired;
+  };
+
+  dictionary MeshingUpdateConfigs {
+    boolean? bFillHoles;
+    MeshingUpdateInfo? updateInfo;
+  };
+
   dictionary Image {
     long width;
     long height;
-    ArrayBuffer data;
+    long[] data;
   };
 
   dictionary Sample {
@@ -25,9 +72,16 @@ namespace scene_perception {
     Image depth;
   };
 
-  dictionary TrackingEvent {
-    double[] cameraPose;
+  dictionary SampleProcessedEvent {
+    double quality;
     Accuracy accuracy;
+    double[] cameraPose;
+  };
+
+  dictionary VerticesOrNormals {
+    long width;
+    long height;
+    double[] data;
   };
 
   dictionary BlockMesh {
@@ -38,13 +92,13 @@ namespace scene_perception {
     long numFaces;
   };
 
-  dictionary MeshingEvent {
+  dictionary MeshData {
     BlockMesh[] blockMeshes;
     long numberOfVertices;
-    ArrayBuffer vertices;
-    ArrayBuffer colors;
+    double[] vertices;
+    long[] colors;
     long numberOfFaces;
-    ArrayBuffer faces;
+    long[] faces;
   };
 
   dictionary ErrorEvent {
@@ -53,24 +107,49 @@ namespace scene_perception {
 
   callback Promise = void (DOMString success, DOMString error);
   callback SamplePromise = void (Sample sample, DOMString error);
+  callback ImagePromise = void (Image image, DOMString error);
+  callback VerticesPromise = void (VerticesOrNormals vertices, DOMString error);
+  callback NormalsPromise = void (VerticesOrNormals normals, DOMString error);
+  callback BoolPromise = void (boolean boolValue, DOMString error);
+  callback MeshingThresholdsPromise = void (MeshingThresholds mThresholds, DOMString error);
+  callback MeshDataPromise = void (MeshData meshes, DOMString error);
+  callback VoxelResolutionPromise = void (VoxelResolution resolution, DOMString error);
+  callback MeshingResolutionPromise = void (MeshingResolution resolution, DOMString error);
 
   interface Events {
-    static void onerror();
-    static void onsample();
     static void onchecking();
-    static void ontracking();
-    static void onmeshing();
+    static void onsampleprocessed();
+    static void onmeshupdated();
+    static void onerror();
   };
 
   interface Functions {
+    /** Tasks in start:
+      * 1. configure the session and SP process
+      * 2. init the pipeline
+      */
+    static void init(optional InitialConfiguration config, Promise promise);
     static void start(Promise promise);
     static void stop(Promise promise);
     static void reset(Promise promise);
-    static void enableTracking(Promise promise);
-    static void disableTracking(Promise promise);
-    static void enableMeshing(Promise promise);
-    static void disableMeshing(Promise promise);
+    static void destory(Promise promise);
+
+    // setters
+    static void enableReconstruction(boolean enable, Promise promise);
+    static void setMeshingResolution(MeshingResolution mResolution, Promise promise);
+    static void setMeshingThresholds(MeshingThresholds mThresholds, Promise promise);
+    static void setCameraPose(double[] pose, Promise promise);
+    static void setMeshingUpdateConfigs(MeshingUpdateConfigs config, Promise promise);
+    // getters
     static void getSample(SamplePromise promise);
+    static void getVertices(VerticesPromise vertices);
+    static void getNormals(NormalsPromise normals);
+    static void getVolumePreview(double[] pose, ImagePromise promise);
+    static void isReconstructionEnabled(BoolPromise promise);
+    static void getVoxelResolution(VoxelResolutionPromise promise);
+    static void getMeshingThresholds(MeshingThresholdsPromise promise);
+    static void getMeshingResolution(MeshingResolutionPromise promise);
+    static void getMeshData(MeshDataPromise promise);
 
     [nodoc] static ScenePerception scenePerceptionConstructor(DOMString objectId);
   };
