@@ -2,21 +2,36 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var DepthPhoto = function(object_id) {
-  common.BindingObject.call(this, object_id ? object_id : common.getUniqueId());
+const bytesPerInt32 = 4;
+const bytesPerRGB32Pixel = 4;
+const bytesPerDEPTHPixel = 2;
 
-  if (object_id == undefined)
+function wrapRGB32ImageReturns(data) {
+  var int32Array = new Int32Array(data, 0, 3);
+  // int32Array[0] is the callback id.
+  var width = int32Array[1];
+  var height = int32Array[2];
+  // 3 int32 (4 bytes) values.
+  var headerByteOffset = 3 * bytesPerInt32;
+  var buffer = new Uint8Array(data, headerByteOffset, width * height * bytesPerRGB32Pixel);
+  return { format: 'RGB32', width: width, height: height, data: buffer };
+}
+
+var DepthPhoto = function(objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+
+  if (objectId == undefined)
     internal.postMessage('depthPhotoConstructor', [this._id]);
 
   function wrapRGB32ImageArgs(args) {
     if (args[0].format != 'RGB32')
       return null;
-    var length = 2 * 4 + args[0].width * args[0].height * 4;
+    var length = 2 * bytesPerInt32 + args[0].width * args[0].height * bytesPerRGB32Pixel;
     var arrayBuffer = new ArrayBuffer(length);
     var view = new Int32Array(arrayBuffer, 0, 2);
     view[0] = args[0].width;
     view[1] = args[0].height;
-    var view = new Uint8Array(arrayBuffer, 2 * 4);
+    var view = new Uint8Array(arrayBuffer, 2 * bytesPerInt32);
     for (var i = 0; i < args[0].data.length; i++) {
       view[i] = args[0].data[i];
     }
@@ -26,37 +41,26 @@ var DepthPhoto = function(object_id) {
   function wrapDepthImageArgs(args) {
     if (args[0].format != 'DEPTH')
       return null;
-    var length = 2 * 4 + args[0].width * args[0].height * 2;
+    var length = 2 * bytesPerInt32 + args[0].width * args[0].height * bytesPerDEPTHPixel;
     var arrayBuffer = new ArrayBuffer(length);
     var view = new Int32Array(arrayBuffer, 0, 2);
     view[0] = args[0].width;
     view[1] = args[0].height;
-    var view = new Uint16Array(arrayBuffer, 2 * 4);
+    var view = new Uint16Array(arrayBuffer, 2 * bytesPerInt32);
     for (var i = 0; i < args[0].data.length; i++) {
       view[i] = args[0].data[i];
     }
     return arrayBuffer;
   };
 
-  function wrapColorImageReturns(data) {
-    var int32_array = new Int32Array(data);
-    // int32_array[0] is the callback id.
-    var width = int32_array[1];
-    var height = int32_array[2];
-    // 3 int32 (4 bytes) values.
-    var header_byte_offset = 3 * 4;
-    var buffer = new Uint8Array(data, header_byte_offset, width * height * 4);
-    return { format: 'RGB32', width: width, height: height, data: buffer };
-  };
-
   function wrapDepthImageReturns(data) {
-    var int32_array = new Int32Array(data);
-    // int32_array[0] is the callback id.
-    var width = int32_array[1];
-    var height = int32_array[2];
+    var int32Array = new Int32Array(data, 0, 3);
+    // int32Array[0] is the callback id.
+    var width = int32Array[1];
+    var height = int32Array[2];
     // 3 int32 (4 bytes) values.
-    var header_byte_offset = 3 * 4;
-    var buffer = new Uint16Array(data, header_byte_offset, width * height);
+    var headerByteOffset = 3 * bytesPerInt32;
+    var buffer = new Uint16Array(data, headerByteOffset, width * height);
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
@@ -84,8 +88,8 @@ var DepthPhoto = function(object_id) {
 
   this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArg);
   this._addMethodWithPromise('saveXDM', null, wrapRawDataReturns);
-  this._addMethodWithPromise('queryReferenceImage', null, wrapColorImageReturns);
-  this._addMethodWithPromise('queryOriginalImage', null, wrapColorImageReturns);
+  this._addMethodWithPromise('queryReferenceImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('queryOriginalImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
   this._addBinaryMethodWithPromise('setReferenceImage', wrapRGB32ImageArgs);
@@ -96,7 +100,7 @@ var DepthPhoto = function(object_id) {
 
   Object.defineProperties(this, {
     'photoId': {
-      value: object_id ? object_id : this._id,
+      value: objectId ? objectId : this._id,
       enumerable: true,
     },
   });
@@ -106,11 +110,11 @@ DepthPhoto.prototype = new common.EventTargetPrototype();
 DepthPhoto.prototype.constructor = DepthPhoto;
 exports.DepthPhoto = DepthPhoto;
 
-var EnhancedPhotography = function(object_id) {
+var EnhancedPhotography = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
 
-  if (object_id == undefined)
+  if (objectId == undefined)
     internal.postMessage('enhancedPhotographyConstructor', [this._id]);
 
   function wrapArgs(data) {
@@ -141,17 +145,16 @@ var EnhancedPhotography = function(object_id) {
     if (image.format != 'RGB32')
       return null;
 
-    const bytesPerInt = 4;
     const bytesPerFloat = 4;
     // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData],
     // point[pointX PointY], depth, rotation[pitch yaw roll], scale
-    var length = bytesPerInt + alignedPhotoIdLen + bytesPerInt * 2 + image.data.length +
-        bytesPerInt * 2 + bytesPerInt + bytesPerInt * 3 + bytesPerFloat;
+    var length = bytesPerInt32 + alignedPhotoIdLen + bytesPerInt32 * 2 + image.data.length +
+        bytesPerInt32 * 2 + bytesPerInt32 + bytesPerInt32 * 3 + bytesPerFloat;
     var arrayBuffer = new ArrayBuffer(length);
     var offset = 0;
     var view = new Int32Array(arrayBuffer, offset, 1);
     view[0] = photoId.length;
-    offset += bytesPerInt;
+    offset += bytesPerInt32;
 
     view = new Uint8Array(arrayBuffer, offset, photoId.length);
     for (var i = 0; i < photoId.length; i++) {
@@ -162,7 +165,7 @@ var EnhancedPhotography = function(object_id) {
     view = new Int32Array(arrayBuffer, offset, 2);
     view[0] = image.width;
     view[1] = image.height;
-    offset += bytesPerInt * 2;
+    offset += bytesPerInt32 * 2;
 
     view = new Uint8Array(arrayBuffer, offset, image.data.length);
     for (var i = 0; i < image.data.length; i++) {
@@ -177,7 +180,7 @@ var EnhancedPhotography = function(object_id) {
     view[3] = rotation.pitch;
     view[4] = rotation.yaw;
     view[5] = rotation.roll;
-    offset += bytesPerInt * 6;
+    offset += bytesPerInt32 * 6;
 
     view = new Float32Array(arrayBuffer, offset, 1);
     view[0] = scale;
@@ -189,36 +192,25 @@ var EnhancedPhotography = function(object_id) {
     return new DepthPhoto(data.objectId);
   };
 
-  function wrapRGB32ImageReturns(data) {
-    var int32_array = new Int32Array(data);
-    // int32_array[0] is the callback id.
-    var width = int32_array[1];
-    var height = int32_array[2];
-    // 3 int32 (4 bytes) values.
-    var header_byte_offset = 3 * 4;
-    var buffer = new Uint8Array(data, header_byte_offset, width * height * 4);
-    return { format: 'RGB32', width: width, height: height, data: buffer };
-  };
-
   function wrapF32ImageReturns(data) {
     // 3 int32 (4 bytes) values.
-    var header_byte_offset = 3 * 4;
-    var int32_array = new Int32Array(data, 0, header_byte_offset);
-    // int32_array[0] is the callback id.
-    var width = int32_array[1];
-    var height = int32_array[2];
-    var buffer = new Float32Array(data, header_byte_offset, width * height);
+    var headerByteOffset = 3 * bytesPerInt32;
+    var int32Array = new Int32Array(data, 0, 3);
+    // int32Array[0] is the callback id.
+    var width = int32Array[1];
+    var height = int32Array[2];
+    var buffer = new Float32Array(data, headerByteOffset, width * height);
     return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
   };
 
   function wrapY8ImageReturns(data) {
     // 3 int32 (4 bytes) values.
-    var header_byte_offset = 3 * 4;
-    var int32_array = new Int32Array(data, 0, header_byte_offset);
-    // int32_array[0] is the callback id.
-    var width = int32_array[1];
-    var height = int32_array[2];
-    var buffer = new Uint8Array(data, header_byte_offset, width * height);
+    var headerByteOffset = 3 * bytesPerInt32;
+    var int32Array = new Int32Array(data, 0, 3);
+    // int32Array[0] is the callback id.
+    var width = int32Array[1];
+    var height = int32Array[2];
+    var buffer = new Uint8Array(data, headerByteOffset, width * height);
     return { format: 'Y8', width: width, height: height, data: buffer };
   };
 
