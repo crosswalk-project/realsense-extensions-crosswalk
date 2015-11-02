@@ -73,7 +73,7 @@ namespace enhanced_photography {
     static void computeMaskFromThreshold(depth_photo.Photo photo, double threshold, MaskImagePromise promise);
     static void depthBlend(ArrayBuffer buffer, PhotoPromise promise);
     static void objectSegment(depth_photo.Photo photo, Point topLeft, Point bottomRight, ImagePromise promise);
-    static void refineMask(depth_photo.Image image, ImagePromise promise);
+    static void refineMask(ArrayBuffer image, ImagePromise promise);
     static void initMotionEffect(depth_photo.Photo photo, Promise promise);
     static void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
 

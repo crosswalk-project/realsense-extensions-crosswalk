@@ -5,6 +5,7 @@
 const bytesPerInt32 = 4;
 const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
+const bytesPerY8Pixel = 1;
 
 function wrapRGB32ImageReturns(data) {
   var int32Array = new Int32Array(data, 0, 3);
@@ -188,6 +189,22 @@ var EnhancedPhotography = function(objectId) {
     return arrayBuffer;
   };
 
+  function wrapY8ImageToArrayBuffer(args) {
+    var y8Image = args[0];
+    if (y8Image.format != 'Y8')
+      return null;
+    var length = 2 * bytesPerInt32 + y8Image.width * y8Image.height * bytesPerY8Pixel;
+    var arrayBuffer = new ArrayBuffer(length);
+    var view = new Int32Array(arrayBuffer, 0, 2);
+    view[0] = y8Image.width;
+    view[1] = y8Image.height;
+    var view = new Uint8Array(arrayBuffer, 2 * bytesPerInt32);
+    for (var i = 0; i < y8Image.data.length; i++) {
+      view[i] = y8Image.data[i];
+    }
+    return arrayBuffer;
+  };
+
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
   };
@@ -228,7 +245,7 @@ var EnhancedPhotography = function(objectId) {
   this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
   this._addBinaryMethodWithPromise('depthBlend', wrapDepthBlendArgsToArrayBuffer, wrapReturns);
   this._addMethodWithPromise('objectSegment', wrapArgs, wrapY8ImageReturns);
-  this._addMethodWithPromise('refineMask', null, wrapY8ImageReturns);
+  this._addBinaryMethodWithPromise('refineMask', wrapY8ImageToArrayBuffer, wrapY8ImageReturns);
   this._addMethodWithPromise('initMotionEffect', wrapArgs);
   this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
 

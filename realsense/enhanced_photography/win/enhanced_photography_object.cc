@@ -842,22 +842,37 @@ void EnhancedPhotographyObject::OnObjectSegment(
 void EnhancedPhotographyObject::OnRefineMask(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  scoped_ptr<RefineMask::Params> params(
-      RefineMask::Params::Create(*info->arguments()));
-  if (!params) {
+  const base::Value* image_value = NULL;
+  const base::BinaryValue* binary_value = NULL;
+  if (info->arguments()->Get(0, &image_value) &&
+      !image_value->IsType(base::Value::TYPE_NULL)) {
+    if (!image_value->IsType(base::Value::TYPE_BINARY)) {
+      info->PostResult(RefineMask::Results::Create(
+          image, "Malformed parameters"));
+      return;
+    } else {
+      binary_value = static_cast<const base::BinaryValue*>(image_value);
+    }
+  } else {
     info->PostResult(RefineMask::Results::Create(
         image, "Malformed parameters"));
     return;
   }
 
   DCHECK(ep_);
+  const char* data = binary_value->GetBuffer();
+  const int* int_array = reinterpret_cast<const int*>(data);
+  int width = int_array[0];
+  int height = int_array[1];
+  const char* image_data_buffer = data + 2 * sizeof(int);
+
   PXCImage::ImageInfo img_info;
   PXCImage::ImageData img_data;
   memset(&img_info, 0, sizeof(img_info));
   memset(&img_data, 0, sizeof(img_data));
 
-  img_info.width = params->image.width;
-  img_info.height = params->image.height;
+  img_info.width = width;
+  img_info.height = height;
   img_info.format = PXCImage::PIXEL_FORMAT_Y8;
 
   int bufSize = img_info.width * img_info.height;
@@ -868,7 +883,7 @@ void EnhancedPhotographyObject::OnRefineMask(
   for (int y = 0; y < img_info.height; y++) {
     for (int x = 0; x < img_info.width; x++) {
       int i = x + img_data.pitches[0] * y;
-      img_data.planes[0][i] = params->image.data[i];
+      img_data.planes[0][i] = image_data_buffer[i];
     }
   }
 
