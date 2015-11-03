@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.Runnable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.UUID;
@@ -84,19 +85,31 @@ public class EnhancedPhotographyObject extends EventTarget {
         return set;
     }
 
-    public void onStartPreview(FunctionInfo info) {
-        try {
-            getSenseManager().enableStreams(mSenseEventHandler, getUserProfiles(), null);
-
-            JSONArray result = new JSONArray();
-            result.put(0, "success");
-            info.postResult(result);
-        } catch (JSONException e) {
-            Log.e(TAG, e.toString());
-        } catch(Exception e) {
-           Log.e(TAG, "Exception:" + e.getMessage());
-           e.printStackTrace();
+    private class EnableStream implements Runnable {
+        private FunctionInfo mInfo;
+        EnableStream(FunctionInfo info) {
+            mInfo = info;
         }
+
+        @Override
+        public void run() {
+            try {
+                getSenseManager().enableStreams(mSenseEventHandler, getUserProfiles(), null);
+                JSONArray result = new JSONArray();
+                result.put(0, "success");
+                mInfo.postResult(result);
+            } catch (JSONException e) {
+                Log.e(TAG, e.toString());
+            } catch(Exception e) {
+               Log.e(TAG, "Exception:" + e.getMessage());
+               e.printStackTrace();
+            }
+        }
+    }
+
+    public void onStartPreview(FunctionInfo info) {
+        EnableStream enableStream = new EnableStream(info);
+        mActivity.runOnUiThread(enableStream);
     }
 
     public void onStopPreview(FunctionInfo info) {
