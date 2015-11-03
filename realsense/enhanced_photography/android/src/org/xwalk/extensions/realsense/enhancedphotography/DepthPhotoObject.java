@@ -102,6 +102,10 @@ public class DepthPhotoObject extends BindingObject {
         return mDepthPhoto;
     }
 
+    public void setDepthPhoto(DepthPhoto depthPhoto) {
+        mDepthPhoto = depthPhoto;
+    }
+
     public void onLoadXDM(FunctionInfo info) {
         try {
             ByteBuffer buffer = info.getBinaryArgs();
