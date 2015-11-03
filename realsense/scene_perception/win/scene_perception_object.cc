@@ -572,16 +572,16 @@ void ScenePerceptionObject::OnRunPipeline() {
       latest_vertices_.reset(new uint8[3 * sizeof(float) *
           sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height]);
     }
-    float* buffer = reinterpret_cast<float*>(latest_vertices_.get());
-    scene_perception_->GetVertices(static_cast<PXCPoint3DF32*>(buffer));
+    scene_perception_->GetVertices(
+        reinterpret_cast<PXCPoint3DF32*>(latest_vertices_.get()));
 
     // Keep normals from current camera pose.
     if (!latest_normals_) {
       latest_normals_.reset(new uint8[3 * sizeof(float) *
           sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height]);
     }
-    buffer = reinterpret_cast<float*>(latest_normals_.get());
-    scene_perception_->GetNormals(static_cast<PXCPoint3DF32*> buffer);
+    scene_perception_->GetNormals(
+        reinterpret_cast<PXCPoint3DF32*>(latest_normals_.get()));
   }
 
   sense_manager_->ReleaseFrame();
