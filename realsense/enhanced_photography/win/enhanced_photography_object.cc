@@ -464,15 +464,32 @@ void EnhancedPhotographyObject::OnEnhanceDepth(
 void EnhancedPhotographyObject::OnPasteOnPlane(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
-  scoped_ptr<PasteOnPlane::Params> params(
-      PasteOnPlane::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        PasteOnPlane::Results::Create(photo, "Malformed parameters"));
+  const base::Value* buffer_value = NULL;
+  const base::BinaryValue* binary_value = NULL;
+  if (info->arguments()->Get(0, &buffer_value) &&
+      !buffer_value->IsType(base::Value::TYPE_NULL)) {
+    if (!buffer_value->IsType(base::Value::TYPE_BINARY)) {
+      info->PostResult(PasteOnPlane::Results::Create(
+          photo, "Malformed parameters"));
+      return;
+    } else {
+      binary_value = static_cast<const base::BinaryValue*>(buffer_value);
+    }
+  } else {
+    info->PostResult(PasteOnPlane::Results::Create(
+        photo, "Malformed parameters"));
     return;
   }
 
-  std::string object_id = params->photo.object_id;
+  DCHECK(ep_);
+  const char* data = binary_value->GetBuffer();
+  int offset = 0;
+  const int* int_array = reinterpret_cast<const int*>(data);
+  int object_id_len = int_array[0];
+  int aligned_object_id_len = object_id_len + 4 - object_id_len % 4;
+  offset += sizeof(int);
+
+  std::string object_id(data + offset, object_id_len);
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
@@ -481,14 +498,19 @@ void EnhancedPhotographyObject::OnPasteOnPlane(
     return;
   }
 
-  DCHECK(ep_);
+  offset += aligned_object_id_len;
+  int_array = reinterpret_cast<const int*>(data + offset);
+  int width = int_array[0];
+  int height = int_array[1];
+  offset += 2 * sizeof(int);
+
   PXCImage::ImageInfo img_info;
   PXCImage::ImageData img_data;
   memset(&img_info, 0, sizeof(img_info));
   memset(&img_data, 0, sizeof(img_data));
 
-  img_info.width = params->image.width;
-  img_info.height = params->image.height;
+  img_info.width = width;
+  img_info.height = height;
   img_info.format = PXCImage::PIXEL_FORMAT_RGB32;
 
   int bufSize = img_info.width * img_info.height * 4;
@@ -496,24 +518,33 @@ void EnhancedPhotographyObject::OnPasteOnPlane(
   img_data.pitches[0] = img_info.width * 4;
   img_data.format = img_info.format;
 
+  const uint8_t* image_data = reinterpret_cast<const uint8_t*>(data + offset);
+  offset += bufSize;
+
   for (int y = 0; y < img_info.height; y++) {
     for (int x = 0; x < img_info.width; x++) {
       int i = x * 4 + img_data.pitches[0] * y;
-      img_data.planes[0][i] = params->image.data[i + 2];
-      img_data.planes[0][i + 1] = params->image.data[i + 1];
-      img_data.planes[0][i + 2] = params->image.data[i];
-      img_data.planes[0][i + 3] = params->image.data[i + 3];
+      img_data.planes[0][i] = image_data[i + 2];
+      img_data.planes[0][i + 1] = image_data[i + 1];
+      img_data.planes[0][i + 2] = image_data[i];
+      img_data.planes[0][i + 3] = image_data[i + 3];
     }
   }
 
   PXCImage* pxcimg = session_->CreateImage(&img_info, &img_data);
 
-  PXCPointI32 start, end;
-  start.x = params->top_left.x;
-  start.y = params->top_left.y;
+  int_array = reinterpret_cast<const int*>(data + offset);
+  int top_left_point_x = int_array[0];
+  int top_left_point_y = int_array[1];
+  int bottom_left_x = int_array[2];
+  int bottom_left_y = int_array[3];
 
-  end.x = params->bottom_left.x;
-  end.y = params->bottom_left.y;
+  PXCPointI32 start, end;
+  start.x = top_left_point_x;
+  start.y = top_left_point_y;
+
+  end.x = bottom_left_x;
+  end.y = bottom_left_y;
 
   PXCPhoto* pxcphoto = ep_->PasteOnPlane(depthPhotoObject->GetPhoto(),
                                          pxcimg,
