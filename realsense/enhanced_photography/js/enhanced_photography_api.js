@@ -123,17 +123,6 @@ var EnhancedPhotography = function(objectId) {
     return data;
   };
 
-  function wrapImageArgs(args) {
-    args[0] = { objectId: args[0].photoId };
-    if ((args[1].data instanceof Uint8Array) ||
-        (args[1].data instanceof Uint8ClampedArray)) {
-      var uint8_array = args[1].data;
-      var buffer = Array.prototype.slice.call(uint8_array);
-      args[1].data = buffer;
-    }
-    return args;
-  };
-
   function wrapDepthBlendArgsToArrayBuffer(args) {
     var photoId = args[0].photoId;
     var image = args[1];
@@ -189,6 +178,52 @@ var EnhancedPhotography = function(objectId) {
     return arrayBuffer;
   };
 
+  function wrapPasteOnPlaneArgsToArrayBuffer(args) {
+    var photoId = args[0].photoId;
+    var image = args[1];
+    var topLeftPoint = args[2];
+    var bottomLeftPoint = args[3];
+    var alignedPhotoIdLen = photoId.length + 4 - photoId.length % 4;
+
+    if (image.format != 'RGB32')
+      return null;
+
+    // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData],
+    // topLeftPoint[x(int), y(int)], bottomLeftPoint[x(int), y(int)]
+    var length = bytesPerInt32 + alignedPhotoIdLen + bytesPerInt32 * 2 + image.data.length +
+        bytesPerInt32 * 2 + bytesPerInt32 * 2;
+    var arrayBuffer = new ArrayBuffer(length);
+    var offset = 0;
+    var view = new Int32Array(arrayBuffer, offset, 1);
+    view[0] = photoId.length;
+    offset += bytesPerInt32;
+
+    view = new Uint8Array(arrayBuffer, offset, photoId.length);
+    for (var i = 0; i < photoId.length; i++) {
+      view[i] = photoId.charCodeAt(i);
+    }
+    offset += alignedPhotoIdLen;
+
+    view = new Int32Array(arrayBuffer, offset, 2);
+    view[0] = image.width;
+    view[1] = image.height;
+    offset += bytesPerInt32 * 2;
+
+    view = new Uint8Array(arrayBuffer, offset, image.data.length);
+    for (var i = 0; i < image.data.length; i++) {
+      view[i] = image.data[i];
+    }
+    offset += image.data.length;
+
+    view = new Int32Array(arrayBuffer, offset, 4);
+    view[0] = topLeftPoint.x;
+    view[1] = topLeftPoint.y;
+    view[2] = bottomLeftPoint.x;
+    view[3] = bottomLeftPoint.y;
+
+    return arrayBuffer;
+  };
+
   function wrapY8ImageToArrayBuffer(args) {
     var y8Image = args[0];
     if (y8Image.format != 'Y8')
@@ -240,7 +275,7 @@ var EnhancedPhotography = function(objectId) {
   this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
   this._addMethodWithPromise('depthResize', wrapArgs, wrapReturns);
   this._addMethodWithPromise('enhanceDepth', wrapArgs, wrapReturns);
-  this._addMethodWithPromise('pasteOnPlane', wrapImageArgs, wrapReturns);
+  this._addBinaryMethodWithPromise('pasteOnPlane', wrapPasteOnPlaneArgsToArrayBuffer, wrapReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
   this._addBinaryMethodWithPromise('depthBlend', wrapDepthBlendArgsToArrayBuffer, wrapReturns);

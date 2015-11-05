@@ -68,7 +68,7 @@ namespace enhanced_photography {
     static void depthRefocus(depth_photo.Photo photo, Point focus, double aperture, PhotoPromise promise);
     static void depthResize(depth_photo.Photo photo, Size size, PhotoPromise promise);
     static void enhanceDepth(depth_photo.Photo photo, DepthFillQuality quality, PhotoPromise promise);
-    static void pasteOnPlane(depth_photo.Photo photo, depth_photo.Image image, Point topLeft, Point bottomLeft, PhotoPromise promise);
+    static void pasteOnPlane(ArrayBuffer buffer, PhotoPromise promise);
     static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, MaskImagePromise promise);
     static void computeMaskFromThreshold(depth_photo.Photo photo, double threshold, MaskImagePromise promise);
     static void depthBlend(ArrayBuffer buffer, PhotoPromise promise);
