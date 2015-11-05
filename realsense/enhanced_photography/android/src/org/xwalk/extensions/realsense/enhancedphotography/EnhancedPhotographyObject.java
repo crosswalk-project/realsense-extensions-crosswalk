@@ -29,6 +29,9 @@ import com.intel.camera.toolkit.depth.photography.core.DepthPhoto;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement.Distance;
 import com.intel.camera.toolkit.depth.photography.experiences.Refocus;
+import com.intel.camera.toolkit.depth.photography.utils.EnhanceDepth;
+import com.intel.camera.toolkit.depth.photography.utils.EnhanceDepth.DepthEnhancementType;
+import com.intel.camera.toolkit.depth.photography.utils.ResizeDepth;
 import com.intel.camera.toolkit.depth.RSPixelFormat;
 import com.intel.camera.toolkit.depth.sensemanager.SenseManager;
 import com.intel.camera.toolkit.depth.StreamProfile;
@@ -58,6 +61,8 @@ public class EnhancedPhotographyObject extends EventTarget {
         mHandler.register("getPreviewImage", this);
         mHandler.register("measureDistance", this);
         mHandler.register("depthRefocus", this);
+        mHandler.register("depthResize", this);
+        mHandler.register("enhanceDepth", this);
     }
 
     protected SenseManager getSenseManager() {
@@ -201,6 +206,86 @@ public class EnhancedPhotographyObject extends EventTarget {
 
             refocusJSONObject.put("objectId", objectId);
             result.put(0, refocusJSONObject);
+            info.postResult(result);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
+    public void onDepthResize(FunctionInfo info) {
+        try {
+            JSONArray args = info.getArgs();
+            JSONArray result = new JSONArray();
+            JSONObject resizedJSONObject = new JSONObject();
+            JSONObject photo = args.getJSONObject(0);
+            String photoId = photo.getString("objectId");
+            DepthPhotoObject depthPhotoObject =
+                    (DepthPhotoObject)mBindingObjectStore.getBindingObject(photoId);
+            if (depthPhotoObject == null) {
+                result.put(0, resizedJSONObject);
+                result.put(1, "Invalid DepthPhoto Object");
+                info.postResult(result);
+                return;
+            }
+
+            JSONObject size = args.getJSONObject(1);
+            int width = size.getInt("width");
+            int height = size.getInt("height");
+            DepthPhoto depthPhoto = depthPhotoObject.getDepthPhoto();
+            DepthPhoto resizedPhoto = ResizeDepth.resizeDepth(depthPhoto, width, height);
+
+            DepthPhotoObject resizedPhotoObject = new DepthPhotoObject();
+            resizedPhotoObject.setDepthPhoto(resizedPhoto);
+            String objectId = UUID.randomUUID().toString();
+            mBindingObjectStore.addBindingObject(objectId, resizedPhotoObject);
+
+            resizedJSONObject.put("objectId", objectId);
+            result.put(0, resizedJSONObject);
+            info.postResult(result);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
+    public void onEnhanceDepth(FunctionInfo info) {
+        try {
+            JSONArray args = info.getArgs();
+            JSONArray result = new JSONArray();
+            JSONObject enhancedJSONObject = new JSONObject();
+            JSONObject photo = args.getJSONObject(0);
+            String photoId = photo.getString("objectId");
+            DepthPhotoObject depthPhotoObject =
+                    (DepthPhotoObject)mBindingObjectStore.getBindingObject(photoId);
+            if (depthPhotoObject == null) {
+                result.put(0, enhancedJSONObject);
+                result.put(1, "Invalid DepthPhoto Object");
+                info.postResult(result);
+                return;
+            }
+
+            EnhanceDepth.DepthEnhancementType enhanceType;
+            String qulity = args.getString(1);
+            if (qulity.equals("high")) {
+                enhanceType = EnhanceDepth.DepthEnhancementType.HIGH_QUALITY;
+            } else if (qulity.equals("low")) {
+                enhanceType = EnhanceDepth.DepthEnhancementType.REAL_TIME;
+            } else {
+                result.put(0, enhancedJSONObject);
+                result.put(1, "Invalid Depth Qulity");
+                info.postResult(result);
+                return;
+            }
+            DepthPhoto depthPhoto = depthPhotoObject.getDepthPhoto();
+            DepthPhoto enhancedPhoto =
+                    (new EnhanceDepth()).enhanceDepth(depthPhoto, enhanceType);
+
+            DepthPhotoObject enhancedPhotoObject = new DepthPhotoObject();
+            enhancedPhotoObject.setDepthPhoto(enhancedPhoto);
+            String objectId = UUID.randomUUID().toString();
+            mBindingObjectStore.addBindingObject(objectId, enhancedPhotoObject);
+
+            enhancedJSONObject.put("objectId", objectId);
+            result.put(0, enhancedJSONObject);
             info.postResult(result);
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
