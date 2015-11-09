@@ -119,7 +119,7 @@ public class DepthPhotoObject extends BindingObject {
             fo.flush();
             fo.close();
 
-            if (!DepthReader.isDepthv2File(fileName)) {
+            if (!DepthReader.isXDMFile(new DepthContext(), fileName)) {
                 String errMsg = "The selected file is not a compatible image for this app.";
                 reportMessage(info, "", errMsg);
                 return;
