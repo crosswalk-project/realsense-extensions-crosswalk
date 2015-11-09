@@ -98,7 +98,7 @@ void DepthPhotoObject::OnLoadXDM(
         "Failed to LoadXDM. Invalid photo."));
     return;
   }
-  file.Write(0, data, buffer.size());
+  file.Write(0, data, static_cast<int>(buffer.size()));
   file.Close();
 
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
