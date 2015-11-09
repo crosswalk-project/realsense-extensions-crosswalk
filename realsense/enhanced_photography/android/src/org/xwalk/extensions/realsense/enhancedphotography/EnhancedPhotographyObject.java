@@ -48,6 +48,8 @@ import com.intel.camera.toolkit.depth.photography.core.VendorInfo;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement;
 import com.intel.camera.toolkit.depth.photography.experiences.Measurement.Distance;
 import com.intel.camera.toolkit.depth.photography.experiences.Refocus;
+import com.intel.camera.toolkit.depth.photography.experiences.StickerPaster;
+import com.intel.camera.toolkit.depth.photography.experiences.StickerPaster.StickerData;
 import com.intel.camera.toolkit.depth.photography.utils.CommonFOV;
 import com.intel.camera.toolkit.depth.photography.utils.EnhanceDepth;
 import com.intel.camera.toolkit.depth.photography.utils.EnhanceDepth.DepthEnhancementType;
@@ -77,6 +79,7 @@ public class EnhancedPhotographyObject extends EventTarget {
     private BindingObjectStore mBindingObjectStore;
     private Calibration mCalibration;
     private boolean mIsPreview = false;
+    private static final int bytesPerInt = Integer.SIZE / Byte.SIZE;
 
     public EnhancedPhotographyObject(XWalkExtensionContextClient xwalkContext,
                                      BindingObjectStore bindingObjectStore) {
@@ -90,6 +93,7 @@ public class EnhancedPhotographyObject extends EventTarget {
         mHandler.register("depthRefocus", this);
         mHandler.register("depthResize", this);
         mHandler.register("enhanceDepth", this);
+        mHandler.register("pasteOnPlane", this);
     }
 
     protected SenseManager getSenseManager() {
@@ -158,7 +162,7 @@ public class EnhancedPhotographyObject extends EventTarget {
     public void onGetPreviewImage(FunctionInfo info) {
         synchronized(this) {
             ByteBuffer message = ByteBuffer.allocate(
-                    (int) (3 * (Integer.SIZE / Byte.SIZE) + mPreviewColorInfo.DataSize));
+                    (int) (3 * bytesPerInt + mPreviewColorInfo.DataSize));
             message.order(ByteOrder.LITTLE_ENDIAN);
             message.rewind();
             message.putInt(Integer.parseInt(info.getCallbackId()));
@@ -524,6 +528,83 @@ public class EnhancedPhotographyObject extends EventTarget {
 
             enhancedJSONObject.put("objectId", objectId);
             result.put(0, enhancedJSONObject);
+            info.postResult(result);
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
+    }
+
+    public void onPasteOnPlane(FunctionInfo info) {
+        try {
+            JSONArray result = new JSONArray();
+            JSONObject stickerJSONObject = new JSONObject();
+
+            ByteBuffer buffer = info.getBinaryArgs();
+            buffer.order(ByteOrder.LITTLE_ENDIAN);
+            int byteOffset = buffer.position();
+            int photoIdLen = buffer.getInt(byteOffset);
+            int alignedPhotoIdLen = photoIdLen + 4 -photoIdLen % 4;
+            byteOffset += bytesPerInt;
+            String photoId = new String(buffer.array(), byteOffset, photoIdLen);
+            byteOffset += alignedPhotoIdLen;
+            DepthPhotoObject depthPhotoObject =
+                    (DepthPhotoObject)mBindingObjectStore.getBindingObject(photoId);
+            if (depthPhotoObject == null) {
+                result.put(0, stickerJSONObject);
+                result.put(1, "Invalid DepthPhoto Object");
+                info.postResult(result);
+                return;
+            }
+
+            int width = buffer.getInt(byteOffset);
+            byteOffset += bytesPerInt;
+            int height = buffer.getInt(byteOffset);
+            byteOffset += bytesPerInt;
+
+            buffer.position(byteOffset);
+            byte[] stickerBytes = new byte[width * height * 4];
+            buffer.get(stickerBytes);
+            DepthContext context = new DepthContext();
+            PixelData stickerPixelData = new PixelData(context,
+                                                       width,
+                                                       height,
+                                                       PixelData.DataType.U8,
+                                                       PixelData.PixelFormat.RGBA);
+            stickerPixelData.copyByteDataIn(stickerBytes);
+            stickerPixelData.setFileStorageMime("image/jpeg");
+
+            com.intel.camera.toolkit.depth.photography.core.Image stickerImage =
+                    new com.intel.camera.toolkit.depth.photography.core.Image(context);
+            stickerImage.setPixelData(stickerPixelData);
+
+            int topLeftX = buffer.getInt();
+            int topLeftY = buffer.getInt();
+            int bottomLeftX = buffer.getInt();
+            int bottomLeftY = buffer.getInt();
+
+            DepthPhoto depthPhoto = depthPhotoObject.getDepthPhoto();
+            StickerPaster stickerPaster = new StickerPaster(context, depthPhoto);
+            StickerData stickerData = new StickerData();
+            stickerData.sticker = stickerImage;
+            stickerData.topLeftX = topLeftX;
+            stickerData.topLeftY = topLeftY;
+            stickerData.bottomLeftX = bottomLeftX;
+            stickerData.bottomLeftY = bottomLeftY;
+            stickerData.matchIllumination = true;
+            stickerData.transparency = 0;
+            stickerData.embossHighFreqPass = 0;
+            stickerData.byPixelCorrection = false;
+            stickerData.colorCorrection = false;
+            stickerPaster.insertSticker(stickerData);
+            DepthPhoto stickeredPhoto = stickerPaster.apply();
+
+            DepthPhotoObject stikerPhotoObject = new DepthPhotoObject();
+            stikerPhotoObject.setDepthPhoto(stickeredPhoto);
+            String objectId = UUID.randomUUID().toString();
+            mBindingObjectStore.addBindingObject(objectId, stikerPhotoObject);
+
+            stickerJSONObject.put("objectId", objectId);
+            result.put(0, stickerJSONObject);
             info.postResult(result);
         } catch (JSONException e) {
             Log.e(TAG, e.toString());
