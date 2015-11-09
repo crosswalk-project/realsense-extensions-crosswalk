@@ -240,20 +240,22 @@ public class EnhancedPhotographyObject extends EventTarget {
 
             Point2DF focalLengthColor = mCalibration.colorIntrinsicsNonRect.focalLength;
             Point2DF focalLengthDepth = mCalibration.depthIntrinsicsNonRect.focalLength;
+            Point2DF newFocalLengthColor = new Point2DF();
+            Point2DF newFocalLengthDepth = new Point2DF();
 
             //normalize focal length
-            focalLengthColor.x = focalLengthColor.x/Math.max(mPreviewColorInfo.Width, mPreviewColorInfo.Height);
-            focalLengthColor.y = focalLengthColor.y/Math.max(mPreviewColorInfo.Width, mPreviewColorInfo.Height);
+            newFocalLengthColor.x = focalLengthColor.x/Math.max(mPreviewColorInfo.Width, mPreviewColorInfo.Height);
+            newFocalLengthColor.y = focalLengthColor.y/Math.max(mPreviewColorInfo.Width, mPreviewColorInfo.Height);
 
-            focalLengthDepth.x = focalLengthDepth.x/Math.max(mPreviewDepthInfo.Width, mPreviewDepthInfo.Height);
-            focalLengthDepth.y = focalLengthDepth.y/Math.max(mPreviewDepthInfo.Width, mPreviewDepthInfo.Height);
+            newFocalLengthDepth.x = focalLengthDepth.x/Math.max(mPreviewDepthInfo.Width, mPreviewDepthInfo.Height);
+            newFocalLengthDepth.y = focalLengthDepth.y/Math.max(mPreviewDepthInfo.Width, mPreviewDepthInfo.Height);
 
-            Log.d(TAG, "focal length: " + focalLengthColor + " " + focalLengthDepth);
+            Log.d(TAG, "focal length: " + newFocalLengthColor + " " + newFocalLengthDepth);
 
             perspectiveModel.setFocalLength(
-                    new FocalLength(focalLengthColor.x, focalLengthColor.y));
+                    new FocalLength(newFocalLengthColor.x, newFocalLengthColor.y));
             perspectiveModelRawDepth.setFocalLength(
-                    new FocalLength(focalLengthDepth.x, focalLengthDepth.y));
+                    new FocalLength(newFocalLengthDepth.x, newFocalLengthDepth.y));
 
             float[] distortionArray = mCalibration.colorIntrinsicsNonRect.lensDistortion;
             perspectiveModel.setLensDistortion(
@@ -266,21 +268,22 @@ public class EnhancedPhotographyObject extends EventTarget {
 
             Point2DF principalPointColor = mCalibration.colorIntrinsicsNonRect.principalPoint;
             Point2DF principalPointDepth = mCalibration.depthIntrinsicsNonRect.principalPoint;
-
+            Point2DF newPrincipalPointColor = new Point2DF();
+            Point2DF newPrincipalPointDepth = new Point2DF();
             //normalize principal point
-            principalPointColor.x = principalPointColor.x/mPreviewColorInfo.Width;
-            principalPointColor.y = principalPointColor.y/mPreviewColorInfo.Height;
+            newPrincipalPointColor.x = principalPointColor.x/mPreviewColorInfo.Width;
+            newPrincipalPointColor.y = principalPointColor.y/mPreviewColorInfo.Height;
 
-            principalPointDepth.x = principalPointDepth.x/mPreviewDepthInfo.Width;
-            principalPointDepth.y = principalPointDepth.y/mPreviewDepthInfo.Height;
+            newPrincipalPointDepth.x = principalPointDepth.x/mPreviewDepthInfo.Width;
+            newPrincipalPointDepth.y = principalPointDepth.y/mPreviewDepthInfo.Height;
 
-            Log.d(TAG, "principal point: " + principalPointColor + " " + principalPointDepth);
+            Log.d(TAG, "principal point: " + newPrincipalPointColor + " " + newPrincipalPointDepth);
 
             perspectiveModel.setPrincipalPoint(
-                    new PrincipalPoint(principalPointColor.x, principalPointColor.y));
+                    new PrincipalPoint(newPrincipalPointColor.x, newPrincipalPointColor.y));
 
             perspectiveModelRawDepth.setPrincipalPoint(
-                    new PrincipalPoint(principalPointDepth.x, principalPointDepth.y));
+                    new PrincipalPoint(newPrincipalPointDepth.x, newPrincipalPointDepth.y));
 
             perspectiveModel.setSkew(0);
             perspectiveModelRawDepth.setSkew(0);
@@ -335,17 +338,10 @@ public class EnhancedPhotographyObject extends EventTarget {
                 fovDepthPhoto.close();
                 Log.d(TAG, "depth enhance done");
 
-                int colorImageWidth = (int) enhancedDepthPhoto.getPrimaryImage().getPixelData().getWidth();
-                int colorImageHeight = (int) enhancedDepthPhoto.getPrimaryImage().getPixelData().getHeight();
-                DepthPhoto resizedDepthPhoto = ResizeDepth.resizeDepth(
-                        enhancedDepthPhoto, colorImageWidth, colorImageHeight);
-                enhancedDepthPhoto.close();
-                Log.d(TAG, "reszied depth to: " + colorImageWidth + ", " + colorImageHeight);
-
                 DepthPhotoObject depthPhotoObject = new DepthPhotoObject();
                 String objectId = UUID.randomUUID().toString();
                 mBindingObjectStore.addBindingObject(objectId, depthPhotoObject);
-                depthPhotoObject.setDepthPhoto(resizedDepthPhoto);
+                depthPhotoObject.setDepthPhoto(enhancedDepthPhoto);
 
                 JSONArray result = new JSONArray();
                 JSONObject depthPhotoJSONObject = new JSONObject();
