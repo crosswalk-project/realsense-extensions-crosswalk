@@ -23,15 +23,15 @@
       'AdditionalDependencies': [
         'advapi32.lib',
       ],
-      'AdditionalLibraryDirectories': [
-        '<(rssdk_dir)\lib\Win32',
-      ],
     },
   },
   'configurations': {
     'Debug': {
       'msvs_settings': {
         'VCLinkerTool': {
+          'AdditionalLibraryDirectories': [
+            '<(rssdk_dir)\lib\Win32',
+          ],
           'AdditionalDependencies': [
             'libpxc_d.lib'
           ],
@@ -41,11 +41,38 @@
     'Release': {
       'msvs_settings': {
         'VCLinkerTool': {
+          'AdditionalLibraryDirectories': [
+            '<(rssdk_dir)\lib\Win32',
+          ],
           'AdditionalDependencies': [
             'libpxc.lib'
           ],
         },
       },
-    }
+    },
+    'Debug_x64': {
+      'msvs_settings': {
+        'VCLinkerTool': {
+          'AdditionalLibraryDirectories': [
+            '<(rssdk_dir)\\lib\\x64',
+          ],
+          'AdditionalDependencies': [
+            'libpxc_d.lib'
+          ],
+        },
+      },
+    },
+    'Release_x64': {
+      'msvs_settings': {
+        'VCLinkerTool': {
+          'AdditionalLibraryDirectories': [
+            '<(rssdk_dir)\\lib\\x64',
+          ],
+          'AdditionalDependencies': [
+            'libpxc.lib'
+          ],
+        },
+      },
+    },
   },
 }
