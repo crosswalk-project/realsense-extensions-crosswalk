@@ -75,6 +75,16 @@ public class DepthPhotoObject extends BindingObject {
                 colorBytes[a * 4 + 3] = (byte)0xff;           // a
             }
         } else if (colorData.getPixelFormat() == PixelData.PixelFormat.RGBA) {
+            byte[] srcBytes = colorData.copyByteDataOut();
+            colorBytes = new byte[pixelBytesLength];
+
+            for (int a = 0; a < srcBytes.length / 4; a++) {
+                colorBytes[a * 4] = srcBytes[a * 4 + 2];
+                colorBytes[a * 4 + 1] = srcBytes[a * 4 + 1];
+                colorBytes[a * 4 + 2] = srcBytes[a * 4 + 0];
+                colorBytes[a * 4 + 3] = srcBytes[a * 4 + 3];
+            }
+        } else if (colorData.getPixelFormat() == PixelData.PixelFormat.BGRA) {
             colorBytes = colorData.copyByteDataOut();
         } else {
             // FIXME(Jiajia): Need to support other PixelFormat
