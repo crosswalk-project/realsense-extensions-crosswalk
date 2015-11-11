@@ -1,0 +1,28 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+version: 0.4.1.{build}
+clone_folder: c:\projects\realsense-extensions-crosswalk\src\extensions
+init:
+- cmd: git config --global core.autocrlf input
+environment:
+  DEPOT_TOOLS_WIN_TOOLCHAIN: 0
+install:
+- cmd: >-
+    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
+
+    set PATH=%PATH%;c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
+
+    cd c:\projects\realsense-extensions-crosswalk
+
+    gclient config --spec=solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions':'git@github.com:otcshare/realsense-extensions-crosswalk.git','extensions/third_party/libpxc':'git@github.com:otcshare/libpxc.git'},'safesync_url':'',},]
+
+    gclient sync
+build_script:
+- cmd: >-
+    cd c:\projects\realsense-extensions-crosswalk\src
+
+    python gyp_all
+
+    ninja -C out\Release_x64 all
+test: off
