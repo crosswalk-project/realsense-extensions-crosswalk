@@ -1,3 +1,9 @@
+## Build Status
+
+| Windows | Android |
+|---------|---------|
+| [![Build status](https://ci.appveyor.com/api/projects/status/d1xdjhjbun3ixvs7?svg=true)](https://ci.appveyor.com/project/recbuilder/realsense-extensions-crosswalk) | under construction |
+
 ## Introduction
 The RealSense Crosswalk Extensions implement the Intel RealSense SDK API in
 JavaScript on top of the Crosswalk app runtime (https://crosswalk-project.org/)
