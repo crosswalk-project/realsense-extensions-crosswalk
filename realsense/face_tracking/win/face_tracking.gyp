@@ -7,8 +7,12 @@
     {
       'target_name': 'face',
       'type': 'loadable_module',
+      'dependencies':[
+        '<(DEPTH)/base/base.gyp:base',
+        '<(DEPTH)/extensions/third_party/libpxc/libpxc.gyp:libpxc',
+        '<(DEPTH)/xwalk/common/common.gyp:common',
+      ],
       'includes': [
-        '../../common/rssdk.gypi',
         '../../../../xwalk/common/xwalk_js2c.gypi',
         '../../../../xwalk/common/xwalk_idlgen.gypi',
       ],

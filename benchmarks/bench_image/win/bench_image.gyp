@@ -8,7 +8,6 @@
       'target_name': 'bench_image',
       'type': 'loadable_module',
       'includes': [
-        '../../../realsense/common/rssdk.gypi',
         '../../../../xwalk/common/xwalk_js2c.gypi',
         '../../../../xwalk/common/xwalk_idlgen.gypi',
       ],
@@ -16,7 +15,9 @@
         '../../..',
       ],
       'dependencies': [
-        '../../../../third_party/modp_b64/modp_b64.gyp:modp_b64',
+        '<(DEPTH)/base/base.gyp:base',
+        '<(DEPTH)/third_party/modp_b64/modp_b64.gyp:modp_b64',
+        '<(DEPTH)/xwalk/common/common.gyp:common',
       ],
       'variables': {
         'jsapi_namespace': 'realsense::jsapi',
