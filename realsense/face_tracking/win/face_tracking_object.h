@@ -7,12 +7,11 @@
 
 #include <string>
 
-#include "pxcfacedata.h" //NOLINT
-#include "pxcimage.h" //NOLINT
-#include "pxcsensemanager.h"  // NOLINT
-
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/threading/thread.h"
+#include "third_party/libpxc/include/pxcfacedata.h"
+#include "third_party/libpxc/include/pxcimage.h"
+#include "third_party/libpxc/include/pxcsensemanager.h"
 #include "xwalk/common/event_target.h"
 
 namespace realsense {
