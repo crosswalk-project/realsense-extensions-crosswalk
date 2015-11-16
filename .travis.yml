@@ -1,0 +1,48 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+sudo: false
+
+os:
+  - linux
+
+language: android
+
+android:
+  components:
+    - tools-24.1.2
+    - platform-tools-22
+    - build-tools-22.0.0
+    - android-22
+
+env:
+  - XWALK_CHANNEL=canary XWALK_VERSION=17.45.432.0
+
+install:
+  # Install depot_tools
+  - git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git `pwd`/src/third_party/depot_tools
+  - export PATH="$PATH":`pwd`/src/third_party/depot_tools;
+  # Download Crosswalk
+  - curl -LO https://download.01.org/crosswalk/releases/crosswalk/android/${XWALK_CHANNEL}/${XWALK_VERSION}/crosswalk-${XWALK_VERSION}.zip && unzip crosswalk-${XWALK_VERSION}.zip && rm crosswalk-${XWALK_VERSION}.zip
+  - chmod a+x `pwd`/crosswalk-${XWALK_VERSION}/make_apk.py
+  - export PATH="$PATH":`pwd`/crosswalk-${XWALK_VERSION}
+  # Sync the project
+  - echo "solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git@origin/master','deps_file':'DEPS','managed':False,'custom_deps':{'extensions':'git@github.com:otcshare/realsense-extensions-crosswalk.git@origin/master','extensions/build/rssdk/android/intel_realsense_sdk':'git@github.com:otcshare/intel_realsense_sdk.git'},'safesync_url':'',},]" > .gclient
+  - echo "hooks=[{'name':'prepare_android_rssdk','pattern':'.','action':['bash','src/third_party/android_tools/prepare_android_tools.sh'],},]" >> .gclient
+  - echo "target_os=['android']" >> .gclient
+  - echo "{'GYP_DEFINES':'OS=android target_arch=ia32',}" > chromium.gyp_env
+  - gclient sync
+
+script:
+  - cd src
+  - python gyp_all
+  - ninja -C out/Release all
+
+notifications:
+  email:
+    recipients:
+      - ningxin.hu@intel.com
+      - halton.huo@intel.com
+    on_success: always
+    on_failure: always
