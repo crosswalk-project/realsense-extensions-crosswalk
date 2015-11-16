@@ -29,7 +29,7 @@ install:
   - export PATH="$PATH":`pwd`/crosswalk-${XWALK_VERSION}
   # Sync the project
   - echo "solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git@origin/master','deps_file':'DEPS','managed':False,'custom_deps':{'extensions':'git@github.com:otcshare/realsense-extensions-crosswalk.git@origin/master','extensions/build/rssdk/android/intel_realsense_sdk':'git@github.com:otcshare/intel_realsense_sdk.git'},'safesync_url':'',},]" > .gclient
-  - echo "hooks=[{'name':'prepare_android_rssdk','pattern':'.','action':['bash','src/third_party/android_tools/prepare_android_tools.sh'],},]" >> .gclient
+  - echo "hooks=[{'name':'prepare_android_tools','pattern':'.','action':['bash','src/third_party/android_tools/prepare_android_tools.sh'],},]" >> .gclient
   - echo "target_os=['android']" >> .gclient
   - echo "{'GYP_DEFINES':'OS=android target_arch=ia32',}" > chromium.gyp_env
   - gclient sync
