@@ -45,15 +45,9 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnDepthResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnEnhanceDepth(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnPasteOnPlane(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromThreshold(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnDepthBlend(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnObjectSegment(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnRefineMask(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnInitMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnApplyMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
 

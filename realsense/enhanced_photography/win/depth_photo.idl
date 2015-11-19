@@ -37,12 +37,12 @@ namespace depth_photo {
   interface Functions {
     static void loadXDM(ArrayBuffer buffer, Promise promise);
     static void saveXDM(ArrayBufferPromise promise);
-    static void queryReferenceImage(ImagePromise promise);
-    static void queryOriginalImage(ImagePromise promise);
+    static void queryContainerImage(ImagePromise promise);
+    static void queryColorImage(ImagePromise promise);
     static void queryDepthImage(ImagePromise promise);
     static void queryRawDepthImage(ImagePromise promise);
-    static void setReferenceImage(ArrayBuffer image, Promise promise);
-    static void setOriginalImage(ArrayBuffer image, Promise promise);
+    static void setContainerImage(ArrayBuffer image, Promise promise);
+    static void setColorImage(ArrayBuffer image, Promise promise);
     static void setDepthImage(ArrayBuffer image, Promise promise);
     static void setRawDepthImage(ArrayBuffer  image, Promise promise);
     static void clone(PhotoPromise promise);

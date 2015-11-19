@@ -70,7 +70,7 @@ function main() {
             for (var i = 0; i < len; i++) {
               imgMarkups[i] = 0;
             }
-            currentPhoto.queryReferenceImage().then(
+            currentPhoto.queryContainerImage().then(
                 function(colorImage) {
                   doBlendColorPop(colorImage, maskImage);
 
@@ -169,7 +169,7 @@ function main() {
       };
       ep.refineMask(markupImage).then(
           function(maskImage) {
-            currentPhoto.queryReferenceImage().then(
+            currentPhoto.queryContainerImage().then(
                 function(colorImage) {
                   doBlendColorPop(colorImage, maskImage);
 
@@ -225,7 +225,7 @@ function main() {
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
-          currentPhoto.queryReferenceImage().then(
+          currentPhoto.queryContainerImage().then(
               function(image) {
                 imageData =
                     imageContext.createImageData(image.width, image.height);
@@ -272,7 +272,7 @@ function main() {
         function (sucess) {
           currentPhoto = dp;
           savePhoto = dp;
-          currentPhoto.queryReferenceImage().then(
+          currentPhoto.queryContainerImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
                 imageData = imageContext.createImageData(image.width, image.height);
@@ -296,7 +296,7 @@ function main() {
   segmentationButton.onclick = function(e) {
     overlayContext.clearRect(0, 0, width, height);
     mouseDown = 0;
-    currentPhoto.queryReferenceImage().then(
+    currentPhoto.queryContainerImage().then(
         function(image) {
           imageContext.clearRect(0, 0, width, height);
           imageData =

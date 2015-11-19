@@ -27,11 +27,11 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("saveXDM",
                     base::Bind(&DepthPhotoObject::OnSaveXDM,
                                base::Unretained(this)));
-  handler_.Register("queryReferenceImage",
-                    base::Bind(&DepthPhotoObject::OnQueryReferenceImage,
+  handler_.Register("queryContainerImage",
+                    base::Bind(&DepthPhotoObject::OnQueryContainerImage,
                                base::Unretained(this)));
-  handler_.Register("queryOriginalImage",
-                    base::Bind(&DepthPhotoObject::OnQueryOriginalImage,
+  handler_.Register("queryColorImage",
+                    base::Bind(&DepthPhotoObject::OnQueryColorImage,
                                base::Unretained(this)));
   handler_.Register("queryDepthImage",
                     base::Bind(&DepthPhotoObject::OnQueryDepthImage,
@@ -39,11 +39,11 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("queryRawDepthImage",
                     base::Bind(&DepthPhotoObject::OnQueryRawDepthImage,
                                base::Unretained(this)));
-  handler_.Register("setReferenceImage",
-                    base::Bind(&DepthPhotoObject::OnSetReferenceImage,
+  handler_.Register("setContainerImage",
+                    base::Bind(&DepthPhotoObject::OnSetContainerImage,
                                base::Unretained(this)));
-  handler_.Register("setOriginalImage",
-                    base::Bind(&DepthPhotoObject::OnSetOriginalImage,
+  handler_.Register("setColorImage",
+                    base::Bind(&DepthPhotoObject::OnSetColorImage,
                                base::Unretained(this)));
   handler_.Register("setDepthImage",
                     base::Bind(&DepthPhotoObject::OnSetDepthImage,
@@ -142,19 +142,19 @@ void DepthPhotoObject::OnSaveXDM(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnQueryReferenceImage(
+void DepthPhotoObject::OnQueryContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(QueryReferenceImage::Results::Create(img,
+    info->PostResult(QueryContainerImage::Results::Create(img,
         "Invalid photo object"));
     return;
   }
 
-  PXCImage* imColor = photo_->QueryReferenceImage();
+  PXCImage* imColor = photo_->QueryContainerImage();
   if (!CopyColorImage(imColor)) {
-    info->PostResult(QueryReferenceImage::Results::Create(img,
-        "Failed to QueryReferenceImage."));
+    info->PostResult(QueryContainerImage::Results::Create(img,
+        "Failed to QueryContainerImage."));
     return;
   }
 
@@ -165,19 +165,19 @@ void DepthPhotoObject::OnQueryReferenceImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnQueryOriginalImage(
+void DepthPhotoObject::OnQueryColorImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(QueryOriginalImage::Results::Create(img,
+    info->PostResult(QueryColorImage::Results::Create(img,
         "Invalid photo object"));
     return;
   }
 
-  PXCImage* imColor = photo_->QueryOriginalImage();
+  PXCImage* imColor = photo_->QueryColorImage();
   if (!CopyColorImage(imColor)) {
-    info->PostResult(QueryOriginalImage::Results::Create(img,
-        "Failed to QueryOriginalImage."));
+    info->PostResult(QueryColorImage::Results::Create(img,
+        "Failed to QueryColorImage."));
     return;
   }
 
@@ -234,18 +234,18 @@ void DepthPhotoObject::OnQueryRawDepthImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnSetReferenceImage(
+void DepthPhotoObject::OnSetContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(SetReferenceImage::Results::Create(std::string(),
+    info->PostResult(SetContainerImage::Results::Create(std::string(),
         "Invalid photo object"));
     return;
   }
 
-  scoped_ptr<SetReferenceImage::Params> params(
-      SetReferenceImage::Params::Create(*info->arguments()));
+  scoped_ptr<SetContainerImage::Params> params(
+      SetContainerImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(SetReferenceImage::
+    info->PostResult(SetContainerImage::
         Results::Create(std::string(), "Malformed parameters"));
     return;
   }
@@ -257,15 +257,15 @@ void DepthPhotoObject::OnSetReferenceImage(
   int height = int_array[1];
   char* image_data = data + 2 * sizeof(int);
 
-  PXCImage* out = photo_->QueryReferenceImage();
+  PXCImage* out = photo_->QueryContainerImage();
   if (!out) {
-    info->PostResult(SetReferenceImage::Results::Create(std::string(),
+    info->PostResult(SetContainerImage::Results::Create(std::string(),
         "The photo image is uninitialized."));
     return;
   }
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(SetReferenceImage::Results::Create(std::string(),
+    info->PostResult(SetContainerImage::Results::Create(std::string(),
         "Wrong image width and height"));
     return;
   }
@@ -275,7 +275,7 @@ void DepthPhotoObject::OnSetReferenceImage(
                                           PXCImage::PIXEL_FORMAT_RGB32,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(SetReferenceImage::Results::Create(std::string(),
+    info->PostResult(SetContainerImage::Results::Create(std::string(),
         "Failed to get color data"));
     return;
   }
@@ -291,22 +291,22 @@ void DepthPhotoObject::OnSetReferenceImage(
   }
   out->ReleaseAccess(&outData);
 
-  info->PostResult(SetReferenceImage::Results::Create(
+  info->PostResult(SetContainerImage::Results::Create(
       std::string("Success"), std::string()));
 }
 
-void DepthPhotoObject::OnSetOriginalImage(
+void DepthPhotoObject::OnSetColorImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+    info->PostResult(SetColorImage::Results::Create(std::string(),
         "Invalid photo object"));
     return;
   }
 
-  scoped_ptr<SetOriginalImage::Params> params(
-      SetOriginalImage::Params::Create(*info->arguments()));
+  scoped_ptr<SetColorImage::Params> params(
+      SetColorImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(SetOriginalImage::
+    info->PostResult(SetColorImage::
         Results::Create(std::string(), "Malformed parameters"));
     return;
   }
@@ -318,15 +318,15 @@ void DepthPhotoObject::OnSetOriginalImage(
   int height = int_array[1];
   char* image_data = data + 2 * sizeof(int);
 
-  PXCImage* out = photo_->QueryOriginalImage();
+  PXCImage* out = photo_->QueryColorImage();
   if (!out) {
-    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+    info->PostResult(SetColorImage::Results::Create(std::string(),
         "The photo image is uninitialized."));
     return;
   }
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+    info->PostResult(SetColorImage::Results::Create(std::string(),
         "Wrong image width and height"));
     return;
   }
@@ -336,7 +336,7 @@ void DepthPhotoObject::OnSetOriginalImage(
                                           PXCImage::PIXEL_FORMAT_RGB32,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(SetOriginalImage::Results::Create(std::string(),
+    info->PostResult(SetColorImage::Results::Create(std::string(),
         "Failed to get color data"));
     return;
   }
@@ -352,7 +352,7 @@ void DepthPhotoObject::OnSetOriginalImage(
   }
   out->ReleaseAccess(&outData);
 
-  info->PostResult(SetOriginalImage::Results::Create(
+  info->PostResult(SetColorImage::Results::Create(
       std::string("Success"), std::string()));
 }
 

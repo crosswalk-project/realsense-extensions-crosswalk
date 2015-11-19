@@ -101,7 +101,7 @@ function main() {
   takePhotoButton.onclick = function(e) {
     ep.takePhoto().then(
         function(photo) {
-          photo.queryReferenceImage().then(
+          photo.queryContainerImage().then(
               function(image) {
                 imageData =
                     imageContext.createImageData(image.width, image.height);
@@ -127,7 +127,7 @@ function main() {
     var dp = new realsense.EnhancedPhotography.DepthPhoto();
     dp.loadXDM(file).then(
         function (sucess) {
-          dp.queryReferenceImage().then(
+          dp.queryContainerImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
                 imageData = imageContext.createImageData(image.width, image.height);

@@ -133,7 +133,7 @@ function depthRefocus(e) {
   ep.depthRefocus(currentPhoto, { x: x, y: y }, 50.0).then(
       function(photo) {
         savePhoto = photo;
-        photo.queryReferenceImage().then(
+        photo.queryContainerImage().then(
             function(image) {
               imageData = imageContext.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Depth refocus success. Please select focus point again.';
@@ -194,7 +194,7 @@ function doPasteOnPlane() {
   ep.pasteOnPlane(currentPhoto, sticker, { x: startX, y: startY }, { x: endX, y: endY }).then(
       function(photo) {
         savePhoto = photo;
-        photo.queryReferenceImage().then(
+        photo.queryContainerImage().then(
             function(image) {
               statusElement.innerHTML = 'Finished paste on plane.';
               imageData.data.set(image.data);
@@ -244,7 +244,7 @@ function popColor(e) {
 
   ep.computeMaskFromCoordinate(currentPhoto, { x: x, y: y }).then(
       function(maskImage) {
-        currentPhoto.queryReferenceImage().then(
+        currentPhoto.queryContainerImage().then(
           function(colorImage) {
             for (var x = 0; x < colorImage.width; x++)
             {
@@ -338,7 +338,7 @@ function main() {
 
       statusElement.innerHTML = 'Select two points to measure distance.';
       overlayContext.clearRect(0, 0, width, height);
-      currentPhoto.queryReferenceImage().then(
+      currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
             imageData = imageContext.createImageData(image.width, image.height);
@@ -358,7 +358,7 @@ function main() {
 
       statusElement.innerHTML = 'Select the refocus point.';
       overlayContext.clearRect(0, 0, width, height);
-      currentPhoto.queryReferenceImage().then(
+      currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
             imageData = imageContext.createImageData(image.width, image.height);
@@ -407,7 +407,7 @@ function main() {
       }
 
       overlayContext.clearRect(0, 0, width, height);
-      currentPhoto.queryReferenceImage().then(
+      currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
             imageData.data.set(image.data);
@@ -426,7 +426,7 @@ function main() {
 
       statusElement.innerHTML = 'Select the point to pop color.';
       overlayContext.clearRect(0, 0, width, height);
-      currentPhoto.queryReferenceImage().then(
+      currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
             imageData.data.set(image.data);
@@ -491,7 +491,7 @@ function main() {
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
-          currentPhoto.queryReferenceImage().then(
+          currentPhoto.queryContainerImage().then(
               function(image) {
                 imageData = imageContext.createImageData(image.width, image.height);
                 statusElement.innerHTML += 'Sucess';
@@ -543,7 +543,7 @@ function main() {
         function(sucess) {
           currentPhoto = dp;
           savePhoto = dp;
-          currentPhoto.queryReferenceImage().then(
+          currentPhoto.queryContainerImage().then(
               function(image) {
                 imageContext.clearRect(0, 0, width, height);
                 imageData = imageContext.createImageData(image.width, image.height);

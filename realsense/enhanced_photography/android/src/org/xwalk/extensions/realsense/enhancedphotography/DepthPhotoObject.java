@@ -31,8 +31,8 @@ public class DepthPhotoObject extends BindingObject {
     public DepthPhotoObject() {
         mDepthPhoto = new DepthPhoto(new DepthContext());
         mHandler.register("loadXDM", this);
-        mHandler.register("queryReferenceImage", this);
-        mHandler.register("queryOriginalImage", this);
+        mHandler.register("queryContainerImage", this);
+        mHandler.register("queryColorImage", this);
         mHandler.register("queryDepthImage", this);
         mHandler.register("queryRawDepthImage", this);
     }
@@ -148,7 +148,7 @@ public class DepthPhotoObject extends BindingObject {
         }
     }
 
-    public void onQueryReferenceImage(FunctionInfo info) {
+    public void onQueryContainerImage(FunctionInfo info) {
         if (mDepthPhoto == null) {
             String errMsg = "DepthPhoto is uninitialized.";
             reportMessage(info, "", errMsg);
@@ -159,7 +159,7 @@ public class DepthPhotoObject extends BindingObject {
         queryColorImage(info, image);
     }
 
-    public void onQueryOriginalImage(FunctionInfo info) {
+    public void onQueryColorImage(FunctionInfo info) {
         if (mDepthPhoto == null) {
             String errMsg = "DepthPhoto is uninitialized.";
             reportMessage(info, "", errMsg);

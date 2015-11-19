@@ -30,12 +30,12 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
  private:
   void OnLoadXDM(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSaveXDM(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnQueryReferenceImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnQueryOriginalImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryContainerImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnQueryColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnSetReferenceImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnSetOriginalImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetContainerImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnClone(scoped_ptr<XWalkExtensionFunctionInfo> info);
