@@ -89,12 +89,12 @@ var DepthPhoto = function(objectId) {
 
   this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArg);
   this._addMethodWithPromise('saveXDM', null, wrapRawDataReturns);
-  this._addMethodWithPromise('queryReferenceImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('queryOriginalImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('queryColorImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
-  this._addBinaryMethodWithPromise('setReferenceImage', wrapRGB32ImageArgs);
-  this._addBinaryMethodWithPromise('setOriginalImage', wrapRGB32ImageArgs);
+  this._addBinaryMethodWithPromise('setContainerImage', wrapRGB32ImageArgs);
+  this._addBinaryMethodWithPromise('setColorImage', wrapRGB32ImageArgs);
   this._addBinaryMethodWithPromise('setDepthImage', wrapDepthImageArgs);
   this._addBinaryMethodWithPromise('setRawDepthImage', wrapDepthImageArgs);
   this._addMethodWithPromise('clone', null, wrapPhotoReturns);
@@ -123,123 +123,6 @@ var EnhancedPhotography = function(objectId) {
     return data;
   };
 
-  function wrapDepthBlendArgsToArrayBuffer(args) {
-    var photoId = args[0].photoId;
-    var image = args[1];
-    var point = args[2];
-    var depth = args[3];
-    var rotation = args[4];
-    var scale = args[5];
-    var alignedPhotoIdLen = photoId.length + 4 - photoId.length % 4;
-
-    if (image.format != 'RGB32')
-      return null;
-
-    const bytesPerFloat = 4;
-    // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData],
-    // point[pointX PointY], depth, rotation[pitch yaw roll], scale
-    var length = bytesPerInt32 + alignedPhotoIdLen + bytesPerInt32 * 2 + image.data.length +
-        bytesPerInt32 * 2 + bytesPerInt32 + bytesPerInt32 * 3 + bytesPerFloat;
-    var arrayBuffer = new ArrayBuffer(length);
-    var offset = 0;
-    var view = new Int32Array(arrayBuffer, offset, 1);
-    view[0] = photoId.length;
-    offset += bytesPerInt32;
-
-    view = new Uint8Array(arrayBuffer, offset, photoId.length);
-    for (var i = 0; i < photoId.length; i++) {
-      view[i] = photoId.charCodeAt(i);
-    }
-    offset += alignedPhotoIdLen;
-
-    view = new Int32Array(arrayBuffer, offset, 2);
-    view[0] = image.width;
-    view[1] = image.height;
-    offset += bytesPerInt32 * 2;
-
-    view = new Uint8Array(arrayBuffer, offset, image.data.length);
-    for (var i = 0; i < image.data.length; i++) {
-      view[i] = image.data[i];
-    }
-    offset += image.data.length;
-
-    view = new Int32Array(arrayBuffer, offset, 6);
-    view[0] = point.x;
-    view[1] = point.y;
-    view[2] = depth;
-    view[3] = rotation.pitch;
-    view[4] = rotation.yaw;
-    view[5] = rotation.roll;
-    offset += bytesPerInt32 * 6;
-
-    view = new Float32Array(arrayBuffer, offset, 1);
-    view[0] = scale;
-
-    return arrayBuffer;
-  };
-
-  function wrapPasteOnPlaneArgsToArrayBuffer(args) {
-    var photoId = args[0].photoId;
-    var image = args[1];
-    var topLeftPoint = args[2];
-    var bottomLeftPoint = args[3];
-    var alignedPhotoIdLen = photoId.length + 4 - photoId.length % 4;
-
-    if (image.format != 'RGB32')
-      return null;
-
-    // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData],
-    // topLeftPoint[x(int), y(int)], bottomLeftPoint[x(int), y(int)]
-    var length = bytesPerInt32 + alignedPhotoIdLen + bytesPerInt32 * 2 + image.data.length +
-        bytesPerInt32 * 2 + bytesPerInt32 * 2;
-    var arrayBuffer = new ArrayBuffer(length);
-    var offset = 0;
-    var view = new Int32Array(arrayBuffer, offset, 1);
-    view[0] = photoId.length;
-    offset += bytesPerInt32;
-
-    view = new Uint8Array(arrayBuffer, offset, photoId.length);
-    for (var i = 0; i < photoId.length; i++) {
-      view[i] = photoId.charCodeAt(i);
-    }
-    offset += alignedPhotoIdLen;
-
-    view = new Int32Array(arrayBuffer, offset, 2);
-    view[0] = image.width;
-    view[1] = image.height;
-    offset += bytesPerInt32 * 2;
-
-    view = new Uint8Array(arrayBuffer, offset, image.data.length);
-    for (var i = 0; i < image.data.length; i++) {
-      view[i] = image.data[i];
-    }
-    offset += image.data.length;
-
-    view = new Int32Array(arrayBuffer, offset, 4);
-    view[0] = topLeftPoint.x;
-    view[1] = topLeftPoint.y;
-    view[2] = bottomLeftPoint.x;
-    view[3] = bottomLeftPoint.y;
-
-    return arrayBuffer;
-  };
-
-  function wrapY8ImageToArrayBuffer(args) {
-    var y8Image = args[0];
-    if (y8Image.format != 'Y8')
-      return null;
-    var length = 2 * bytesPerInt32 + y8Image.width * y8Image.height * bytesPerY8Pixel;
-    var arrayBuffer = new ArrayBuffer(length);
-    var view = new Int32Array(arrayBuffer, 0, 2);
-    view[0] = y8Image.width;
-    view[1] = y8Image.height;
-    var view = new Uint8Array(arrayBuffer, 2 * bytesPerInt32);
-    for (var i = 0; i < y8Image.data.length; i++) {
-      view[i] = y8Image.data[i];
-    }
-    return arrayBuffer;
-  };
-
   function wrapReturns(data) {
     return new DepthPhoto(data.objectId);
   };
@@ -255,17 +138,6 @@ var EnhancedPhotography = function(objectId) {
     return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
   };
 
-  function wrapY8ImageReturns(data) {
-    // 3 int32 (4 bytes) values.
-    var headerByteOffset = 3 * bytesPerInt32;
-    var int32Array = new Int32Array(data, 0, 3);
-    // int32Array[0] is the callback id.
-    var width = int32Array[1];
-    var height = int32Array[2];
-    var buffer = new Uint8Array(data, headerByteOffset, width * height);
-    return { format: 'Y8', width: width, height: height, data: buffer };
-  };
-
   this._addMethodWithPromise('startPreview');
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
@@ -273,14 +145,8 @@ var EnhancedPhotography = function(objectId) {
 
   this._addMethodWithPromise('measureDistance', wrapArgs);
   this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
-  this._addMethodWithPromise('depthResize', wrapArgs, wrapReturns);
-  this._addMethodWithPromise('enhanceDepth', wrapArgs, wrapReturns);
-  this._addBinaryMethodWithPromise('pasteOnPlane', wrapPasteOnPlaneArgsToArrayBuffer, wrapReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
-  this._addBinaryMethodWithPromise('depthBlend', wrapDepthBlendArgsToArrayBuffer, wrapReturns);
-  this._addMethodWithPromise('objectSegment', wrapArgs, wrapY8ImageReturns);
-  this._addBinaryMethodWithPromise('refineMask', wrapY8ImageToArrayBuffer, wrapY8ImageReturns);
   this._addMethodWithPromise('initMotionEffect', wrapArgs);
   this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
 
