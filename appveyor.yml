@@ -15,7 +15,7 @@ install:
 
     cd c:\projects\realsense-extensions-crosswalk
 
-    gclient config --spec=solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions':'git@github.com:otcshare/realsense-extensions-crosswalk.git','extensions/third_party/libpxc':'git@github.com:otcshare/libpxc.git'},'safesync_url':'',},]
+    gclient config --spec=solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions/third_party/libpxc':'git@github.com:otcshare/libpxc.git'},'safesync_url':'',},]
 
     gclient sync
 build_script:
