@@ -1,0 +1,6 @@
+{
+  "name":  "realsense.ScenePerception",
+  "class": "org.xwalk.extensions.realsense.scenePerception.ScenePerceptionExtension",
+  "jsapi": "scene_perception.js",
+  "permissions" : []
+}

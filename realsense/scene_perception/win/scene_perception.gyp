@@ -25,7 +25,7 @@
       },
       'sources': [
         'scene_perception.idl',
-        'scene_perception_api.js',
+        '../js/scene_perception_api.js',
         'scene_perception_extension.cc',
         'scene_perception_extension.h',
         'scene_perception_instance.cc',
