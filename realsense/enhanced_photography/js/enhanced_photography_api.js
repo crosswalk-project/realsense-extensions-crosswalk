@@ -7,6 +7,15 @@ const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
 const bytesPerY8Pixel = 1;
 
+function wrapPhotoArgs(data) {
+  data[0] = { objectId: data[0].photoId };
+  return data;
+}
+
+function wrapPhotoReturns(data) {
+  return new DepthPhoto(data.objectId);
+}
+
 function wrapRGB32ImageReturns(data) {
   var int32Array = new Int32Array(data, 0, 3);
   // int32Array[0] is the callback id.
@@ -65,10 +74,6 @@ var DepthPhoto = function(objectId) {
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
-  function wrapPhotoReturns(data) {
-    return new DepthPhoto(data.objectId);
-  };
-
   function wrapBlobArg(data) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
@@ -118,15 +123,6 @@ var EnhancedPhotography = function(objectId) {
   if (objectId == undefined)
     internal.postMessage('enhancedPhotographyConstructor', [this._id]);
 
-  function wrapArgs(data) {
-    data[0] = { objectId: data[0].photoId };
-    return data;
-  };
-
-  function wrapReturns(data) {
-    return new DepthPhoto(data.objectId);
-  };
-
   function wrapF32ImageReturns(data) {
     // 3 int32 (4 bytes) values.
     var headerByteOffset = 3 * bytesPerInt32;
@@ -141,13 +137,13 @@ var EnhancedPhotography = function(objectId) {
   this._addMethodWithPromise('startPreview');
   this._addMethodWithPromise('stopPreview');
   this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('takePhoto', null, wrapReturns);
+  this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
 
-  this._addMethodWithPromise('measureDistance', wrapArgs);
-  this._addMethodWithPromise('depthRefocus', wrapArgs, wrapReturns);
-  this._addMethodWithPromise('computeMaskFromCoordinate', wrapArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('computeMaskFromThreshold', wrapArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('initMotionEffect', wrapArgs);
+  this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
+  this._addMethodWithPromise('depthRefocus', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('computeMaskFromCoordinate', wrapPhotoArgs, wrapF32ImageReturns);
+  this._addMethodWithPromise('computeMaskFromThreshold', wrapPhotoArgs, wrapF32ImageReturns);
+  this._addMethodWithPromise('initMotionEffect', wrapPhotoArgs);
   this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
 
   this._addEvent('error');
@@ -158,3 +154,17 @@ EnhancedPhotography.prototype = new common.EventTargetPrototype();
 EnhancedPhotography.prototype.constructor = EnhancedPhotography;
 
 exports.EnhancedPhoto = new EnhancedPhotography();
+
+var PhotoUtils = function (objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+
+  if (objectId == undefined)
+    internal.postMessage('photoUtilsConstructor', [this._id]);
+
+  this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns);
+};
+
+PhotoUtils.prototype = new common.EventTargetPrototype();
+PhotoUtils.prototype.constructor = PhotoUtils;
+exports.PhotoUtils = new PhotoUtils();

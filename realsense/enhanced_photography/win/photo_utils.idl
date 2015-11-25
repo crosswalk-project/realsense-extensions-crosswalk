@@ -1,0 +1,21 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// PhotoUtils interface
+namespace photo_utils {
+  enum DepthFillQuality {
+    high,
+    low
+  };
+
+  callback Promise = void(DOMString success, DOMString error);
+  callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
+
+  interface Functions {
+    static void depthResize(depth_photo.Photo photo, long width, optional DepthFillQuality quality, PhotoPromise promise);
+    static void enhanceDepth(depth_photo.Photo photo, DepthFillQuality quality, PhotoPromise promise);
+
+    [nodoc] static PhotoUtils photoUtilsConstructor(DOMString objectId);
+  };
+};

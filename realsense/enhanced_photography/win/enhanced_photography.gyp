@@ -34,7 +34,10 @@
         'enhanced_photography_instance.cc',
         'enhanced_photography_instance.h',
         'enhanced_photography_object.cc',
-        'enhanced_photography_object.h'
+        'enhanced_photography_object.h',
+        'photo_utils.idl',
+        'photo_utils_object.cc',
+        'photo_utils_object.h',
       ],
     },
   ],

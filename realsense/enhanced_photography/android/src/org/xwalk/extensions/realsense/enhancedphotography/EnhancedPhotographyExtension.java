@@ -26,6 +26,7 @@ public class EnhancedPhotographyExtension extends XWalkExtensionClient {
 
         mHandler.register("enhancedPhotographyConstructor", this);
         mHandler.register("depthPhotoConstructor", this);
+        mHandler.register("photoUtilsConstructor", this);
     }
 
     private void handleMessage(int instanceID, String message) {
@@ -47,6 +48,11 @@ public class EnhancedPhotographyExtension extends XWalkExtensionClient {
     public void onDepthPhotoConstructor(FunctionInfo info) {
         DepthPhotoObject dp = new DepthPhotoObject();
         mBindingObjectStore.addBindingObject(info.getObjectId(), dp);
+    }
+
+    public void onPhotoUtilsConstructor(FunctionInfo info) {
+        PhotoUtilsObject pu = new PhotoUtilsObject(mBindingObjectStore);
+        mBindingObjectStore.addBindingObject(info.getObjectId(), pu);
     }
 
     @Override
