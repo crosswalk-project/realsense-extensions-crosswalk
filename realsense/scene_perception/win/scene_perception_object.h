@@ -66,6 +66,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetVoxelResolution(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnGetVoxelSize(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetMeshingThresholds(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetMeshingResolution(

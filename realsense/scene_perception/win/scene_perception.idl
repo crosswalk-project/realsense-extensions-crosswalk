@@ -115,6 +115,7 @@ namespace scene_perception {
   callback MeshDataPromise = void (MeshData meshes, DOMString error);
   callback VoxelResolutionPromise = void (VoxelResolution resolution, DOMString error);
   callback MeshingResolutionPromise = void (MeshingResolution resolution, DOMString error);
+  callback DoublePromise = void (double voxelSize, DOMString error);
 
   interface Events {
     static void onchecking();
@@ -147,6 +148,7 @@ namespace scene_perception {
     static void getVolumePreview(double[] pose, ImagePromise promise);
     static void isReconstructionEnabled(BoolPromise promise);
     static void getVoxelResolution(VoxelResolutionPromise promise);
+    static void getVoxelSize(DoublePromise promise);
     static void getMeshingThresholds(MeshingThresholdsPromise promise);
     static void getMeshingResolution(MeshingResolutionPromise promise);
     static void getMeshData(MeshDataPromise promise);

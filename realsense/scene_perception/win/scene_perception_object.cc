@@ -190,6 +190,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("getVoxelResolution",
                     base::Bind(&ScenePerceptionObject::OnGetVoxelResolution,
                                base::Unretained(this)));
+  handler_.Register("getVoxelSize",
+                    base::Bind(&ScenePerceptionObject::OnGetVoxelSize,
+                               base::Unretained(this)));
   handler_.Register("getMeshingThresholds",
                     base::Bind(&ScenePerceptionObject::OnGetMeshingThresholds,
                                base::Unretained(this)));
@@ -1376,6 +1379,21 @@ void ScenePerceptionObject::OnGetVoxelResolution(
   }
   info->PostResult(GetVoxelResolution::Results::Create(
         jsResolution, std::string()));
+}
+
+/*
+ * VoxelSize is related with voxel resolution.
+ */
+void ScenePerceptionObject::OnGetVoxelSize(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (state_ == IDLE) {
+    info->PostResult(GetVoxelSize::Results::Create(
+        0,
+        std::string("Wrong state, start the process first.")));
+    return;  // wrong state.
+  }
+  info->PostResult(GetVoxelSize::Results::Create(
+      scene_perception_->QueryVoxelSize(), std::string()));
 }
 
 void ScenePerceptionObject::OnGetMeshingThresholds(
