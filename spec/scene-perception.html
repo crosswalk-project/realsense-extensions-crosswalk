@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Scene Perception</title>
+    <meta charset='utf-8'>
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, WG-NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          
+          shortName:            "scene-perception",
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              {
+                  name:       "Donna Wu"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+              {
+                  name:       "Ningxin Hu"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+          ],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This document describes support for creating a digital representation
+        of the observed environment and estimating in real-time the camera pose
+        by leveraging the 3D camera.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
+        as an API Draft.
+        If you wish to make comments regarding this document, please send them to 
+        <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
+        All comments are welcome.
+      </p>
+    </section>
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+      </p>
+    </section>
+    <section>
+      <h2>
+        Interfaces
+      </h2>
+      <section>
+        <h2>
+          <code><a>ScenePerception</a></code>
+        </h2>
+        <p>
+          The <code><a>ScenePerception</a></code> interface provides methods to
+          track and scan scenes for augmented reality applications. 
+          The <code><a>ScenePerception</a></code> interface is exposed through
+          <code>realsense</code> module.
+        </p>
+        <dl title='interface ScenePerception : EventTarget' class='idl'>
+          <dt>
+            Promise&lt;void&gt; init(optional InitialConfiguration config)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; start()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; stop()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; reset()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; destroy()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; enableReconstruction(boolean enable)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; enableRelocalization(boolean enable)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;boolean&gt; isReconstructionEnabled()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;Sample&gt; getSample()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;Vertices&gt; getVertices()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;Normals&gt; getNormals()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getVolumePreview(sequence&lt;float&gt; cameraPose)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;VoxelResolution&gt; getVoxelResolution()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;float&gt; getVoxelSize()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;MeshingThresholds&gt; getMeshingThresholds()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;MeshingResolution&gt; getMeshingResolution()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;MeshData&gt; getMeshData()
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setMeshingResolution(MeshingResolution resolution)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setMeshingThresholds(MeshingThresholds thresholds)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setCameraPose(sequence&lt;float&gt; cameraPose)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setMeshingUpdateConfigs(MeshingUpdateConfigs config)
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            attribute EventHandler onchecking
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>CheckingEvent</code></a> that is dispatched
+              to <code><a>ScenePerception</a></code> when a frame is checked.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onerror
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>ErrorEvent</code></a> that is dispatched
+              to <code><a>ScenePerception</a></code> when there is an error.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onmeshupdated
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>ScenePerception</a></code> when mesh is updated. 
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onsampleprocessed
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>SampleProcessedEvent</code></a> that is dispatched
+              to <code><a>ScenePerception</a></code> when mesh is updated. 
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>CheckingEvent</a></code>
+        </h3>
+        <dl class="idl" title="interface CheckingEvent : Event">
+          <dt>
+            readonly attribute float quality
+          </dt>
+          <dd>
+            <p>
+              a positive value between 0 and 1 to indicate the scene quality,
+              0 representing an unsuitable scene for starting scene perception and
+              1 representing an ideal scene for starting scene perception.
+            </p>
+            <p>
+              a negative value to indicate potential reasons of a tracking failure.
+              -1.0 represents the scene lacks of structural/geometry information. 
+              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.) 
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>SampleProcessedEvent</a></code>
+        </h3>
+        <dl class="idl" title="interface SampleProcessedEvent : Event">
+          <dt>
+            readonly attribute float quality
+          </dt>
+          <dd>
+            <p>
+              a positive value between 0 and 1 to indicate the scene quality,
+              0 representing an unsuitable scene for starting scene perception and
+              1 representing an ideal scene for starting scene perception.
+            </p>
+            <p>
+              a negative value to indicate potential reasons of a tracking failure.
+              -1.0 represents the scene lacks of structural/geometry information. 
+              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.) 
+            </p>
+          </dd>
+          <dt>
+            readonly attribute TrackingAccuracy accuracy
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            readonly attribute float[] cameraPose
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Dictionaries
+      </h2>
+      <section>
+        <h2>
+          <code><a>BlockMesh</a></code>
+        </h2>
+        <dl title='dictionary BlockMesh' class='idl'>
+          <dt>
+            unsigned long meshId
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long vertexStartIndex
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long numVertices
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long faceStartIndex
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long numFaces
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>CaptureSize</a></code>
+        </h2>
+        <dl title='dictionary CaptureSize' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Image</a></code>
+        </h2>
+        <dl title='dictionary Image' class='idl'>
+          <dt>
+            PixelFormat format
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            ArrayBuffer data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>InitialConfiguration</a></code>
+        </h2>
+        <dl title='dictionary InitialConfiguration' class='idl'>
+          <dt>
+            boolean? useOpenCVCoordinateSystem;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            VoxelResolution? voxelResolution;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            sequence&lt;float&gt;? initialCameraPose;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            MeshingThresholds? meshingThresholds;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            CaptureSize? colorCaptureSize;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            CaptureSize? depthCaptureSize;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long? captureFramerate;
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MeshData</a></code>
+        </h2>
+        <dl title='dictionary MeshData' class='idl'>
+          <dt>
+            sequence&lt;BlockMesh&gt; blockMeshes
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long numberOfVertices;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Float32Array vertices;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Uint8Array colors;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long numberOfFaces;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Int32Array faces;
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MeshingThresholds</a></code>
+        </h2>
+        <dl title='dictionary MeshingThresholds' class='idl'>
+          <dt>
+            float max
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            float avg
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MeshingUpdateInfo</a></code>
+        </h2>
+        <dl title='dictionary MeshingUpdateInfo' class='idl'>
+          <dt>
+            boolean countOfBlockMeshesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean blockMeshesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean countOfVeticesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean verticesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean countOfFacesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean facesRequired;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            boolean colorsRequired;
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MeshingUpdateConfigs</a></code>
+        </h2>
+        <dl title='dictionary MeshingUpdateConfigs' class='idl'>
+          <dt>
+            boolean? fillHoles;
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            MeshingUpdateInfo? updateInfo;
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Normals</a></code>
+        </h2>
+        <dl title='dictionary Normals' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Float32Array data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Sample</a></code>
+        </h2>
+        <dl title='dictionary Sample' class='idl'>
+          <dt>
+            Image color
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Image depth
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Vertices</a></code>
+        </h2>
+        <dl title='dictionary Vertices' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Float32Array data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Enumerators
+      </h2>
+      <section>
+        <h2>
+          <code><a>MeshingResolution</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum MeshingResolution">
+          <dt>
+            high
+          </dt>
+          <dd>
+            <p>
+              The high mesh resolution.
+            </p>
+          </dd>
+          <dt>
+            med
+          </dt>
+          <dd>
+            <p>
+              The median mesh resolution.
+            </p>
+          </dd>
+          <dt>
+            low
+          </dt>
+          <dd>
+            <p>
+              The low mesh resolution.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TrackingAccuracy</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum TrackingAccuracy">
+          <dt>
+            high
+          </dt>
+          <dd>
+            <p>
+              The high tracking accuracy.
+            </p>
+          </dd>
+          <dt>
+            med
+          </dt>
+          <dd>
+            <p>
+              The median tracking accuracy.
+            </p>
+          </dd>
+          <dt>
+            low
+          </dt>
+          <dd>
+            <p>
+              The low tracking accuracy.
+            </p>
+          </dd>
+          <dt>
+            failed
+          </dt>
+          <dd>
+            <p>
+              The tracking is failed.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>VoxelResolution</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum VoxelResolution">
+          <dt>
+            high
+          </dt>
+          <dd>
+            <p>
+              The high voxel resolution. Use this resolution in a object-sized scenario (1/256m).
+            </p>
+          </dd>
+          <dt>
+            med
+          </dt>
+          <dd>
+            <p>
+              The median voxel resolution. Use this resolution in a table-top-sized scenario (2/256m).
+            </p>
+          </dd>
+          <dt>
+            low
+          </dt>
+          <dd>
+            <p>
+              The low voxel resolution. Use this resolution in a room-sized scenario (4/256m).
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PixelFormat</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum PixelFormat">
+          <dt>
+            RGBA32
+          </dt>
+          <dd>
+            <p>
+              The 32-bit RGBA32 color format. When <code>format</code> of
+              an <code><a>Image</a></code> instance is set to <code>RGBA32</code>,
+              the <code>data</code> of that image instance must follow the
+              bytes layout of <a href="http://www.w3.org/TR/2dcontext/#canvas-pixel-arraybuffer">Canvas Pixel ArrayBuffer</a>
+              defined in [[!CANVAS-2D]].
+            </p>
+          </dd>
+          <dt>
+            DEPTH
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 16-bit unsigned integer.
+              The values indicate the distance from an object to the camera's XY
+              plane or the Cartesian depth.The value precision is in millimeters.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section class='appendix'>
+      <h2>Acknowledgments</h2>
+      <p>
+      </p>
+    </section>
+  </body>
+</html>
