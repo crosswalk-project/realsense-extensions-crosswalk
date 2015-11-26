@@ -18,7 +18,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var ep;
+var ep, photoUtils;
 var currentPhoto, savePhoto;
 var width = 640, height = 480;
 var canvasWidth = 400, canvasHeight = 300;
@@ -147,7 +147,7 @@ function depthRefocus(e) {
 }
 
 function depthEnhance() {
-  ep.enhanceDepth(currentPhoto, 'low').then(
+  photoUtils.enhanceDepth(currentPhoto, 'low').then(
       function(photo) {
         savePhoto = photo;
         photo.queryDepthImage().then(
@@ -165,7 +165,7 @@ function depthEnhance() {
 }
 
 function depthUpscale() {
-  ep.depthResize(currentPhoto, { width: width, height: height }).then(
+  photoUtils.depthResize(currentPhoto, width).then(
       function(photo) {
         savePhoto = photo;
         photo.queryDepthImage().then(
@@ -291,6 +291,7 @@ function popColor(e) {
 
 function main() {
   ep = realsense.EnhancedPhotography.EnhancedPhoto;
+  photoUtils = realsense.EnhancedPhotography.PhotoUtils;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');

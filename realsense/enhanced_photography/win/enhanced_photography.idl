@@ -17,11 +17,6 @@ namespace enhanced_photography {
     long y;
   };
 
-  dictionary Size {
-    long width;
-    long height;
-  };
-
   dictionary Motion {
     double horizontal;
     double vertical;
@@ -32,11 +27,6 @@ namespace enhanced_photography {
     double pitch;
     double yaw;
     double roll;
-  };
-
-  enum DepthFillQuality {
-    high,
-    low
   };
 
   dictionary PreviewConfiguration {

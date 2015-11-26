@@ -40,6 +40,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthPhotoConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnPhotoUtilsConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   xwalk::common::XWalkExtensionFunctionHandler handler_;
   xwalk::common::BindingObjectStore store_;
