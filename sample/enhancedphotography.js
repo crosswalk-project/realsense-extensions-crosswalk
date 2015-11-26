@@ -18,7 +18,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var ep, photoCapture, photoUtils;
+var ep, paster, photoCapture, photoUtils;
 var currentPhoto, savePhoto;
 var width = 640, height = 480;
 var canvasWidth = 400, canvasHeight = 300;
@@ -182,23 +182,35 @@ function depthUpscale() {
 }
 
 function doPasteOnPlane() {
-  if (!hasImage || !pasteOnPlaneRadio.checked)
+  if (!hasImage || !pasteOnPlaneRadio.checked || !paster)
     return;
 
   if (!hasSelectPoints) {
     statusElement.innerHTML =
-        'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
+        'Select two points on the image to paste the sticker.';
     return;
   }
 
-  ep.pasteOnPlane(currentPhoto, sticker, { x: startX, y: startY }, { x: endX, y: endY }).then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryContainerImage().then(
-            function(image) {
-              statusElement.innerHTML = 'Finished paste on plane.';
-              imageData.data.set(image.data);
-              imageContext.putImageData(imageData, 0, 0);
+  var coordX = parseInt((startX + endX) / 2);
+  var coordY = parseInt((startY + endY) / 2);
+  const PI = 3.14159265;
+  var rotation = 90 - 180 / PI * Math.atan2((endY - startY), (endX - startX));
+  var stickerData = {
+    height: -1,
+    rotation: rotation,
+    isCenter: true
+  };
+  paster.setSticker(sticker, { x: coordX, y: coordY }, stickerData).then(
+      function(success) {
+        paster.paste().then(
+            function(photo) {
+              photo.queryContainerImage().then(
+                  function(image) {
+                    statusElement.innerHTML = 'Finished paste on plane.';
+                    imageData.data.set(image.data);
+                    imageContext.putImageData(imageData, 0, 0);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
             },
             function(e) { statusElement.innerHTML = e; });
       },
@@ -400,12 +412,22 @@ function main() {
         return;
       }
 
+      if (!paster) {
+        try {
+          paster = new realsense.DepthEnabledPhotography.Paster(currentPhoto);
+        } catch (e) {
+          statusElement.innerHTML = e.message;
+          paster = null;
+          return;
+        }
+      }
+
       if (!sticker) {
         statusElement.innerHTML =
             'Please click [Choose file] button to load the pasted image.';
       } else {
         statusElement.innerHTML =
-          'Select TOP LEFT and BOTTOM LEFT corners to paste sticker on plane.';
+          'Select two points on the image to paste the sticker.';
       }
 
       overlayContext.clearRect(0, 0, width, height);

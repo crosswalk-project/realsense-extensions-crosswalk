@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+const bytesPerBool = 1;
+const bytesPerFloat = 4;
 const bytesPerInt32 = 4;
 const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
@@ -25,6 +27,11 @@ function wrapRGB32ImageReturns(data) {
   var headerByteOffset = 3 * bytesPerInt32;
   var buffer = new Uint8Array(data, headerByteOffset, width * height * bytesPerRGB32Pixel);
   return { format: 'RGB32', width: width, height: height, data: buffer };
+}
+
+function InvalidPhotoException(message) {
+  this.message = message;
+  this.name = "InvalidPhotoException";
 }
 
 var DepthPhoto = function(objectId) {
@@ -147,6 +154,102 @@ EnhancedPhotography.prototype.constructor = EnhancedPhotography;
 
 exports.EnhancedPhoto = new EnhancedPhotography();
 
+var Paster = function(photo, objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+  if (!(photo instanceof DepthPhoto))
+    throw new InvalidPhotoException('Invalid Photo object');
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('pasterConstructor', [this._id, { objectId: photo.photoId }]);
+    if (!result)
+      throw new InvalidPhotoException('Invalid Photo object');
+  }
+
+  function wrapSetStickerArgsToArrayBuffer(args) {
+    var sticker = args[0];
+    var coordinates = args[1];
+    var params = args[2];
+    var effects = args[3];
+    var hasEffects = true;
+    if (!effects)
+      hasEffects = false;
+
+    if (sticker.format != 'RGB32')
+      return null;
+
+    var length;
+    // This is for offset alignment
+    const twoBytesPadding = 2;
+    // length: sticker[imageWidth(int) imageHeight(int) imageData], coordinates[x(int), y(int)],
+    // params[height(float), rotation(float), isCenter(bool)], hasEffects(bool)
+    // (optional)effects[matchIllumination(bool), transparency(float), embossHighFreqPass(float),
+    // shadingCorrection(bool), colorCorrection(bool)]
+    if (hasEffects)
+      length = bytesPerInt32 * 2 + sticker.data.length + bytesPerInt32 * 2 + bytesPerFloat * 2 +
+          bytesPerBool * 2 + twoBytesPadding + bytesPerFloat * 2 + bytesPerBool * 3;
+    else
+      length = bytesPerInt32 * 2 + sticker.data.length + bytesPerInt32 * 2 +
+          bytesPerFloat * 2 + bytesPerBool * 2;
+
+    var arrayBuffer = new ArrayBuffer(length);
+    var offset = 0;
+    var view = new Int32Array(arrayBuffer, offset, 2);
+    view[0] = sticker.width;
+    view[1] = sticker.height;
+    offset += bytesPerInt32 * 2;
+
+    view = new Uint8Array(arrayBuffer, offset, sticker.data.length);
+    for (var i = 0; i < sticker.data.length; i++) {
+      view[i] = sticker.data[i];
+    }
+    offset += sticker.data.length;
+
+    view = new Int32Array(arrayBuffer, offset, 2);
+    view[0] = coordinates.x;
+    view[1] = coordinates.y;
+    offset += bytesPerInt32 * 2;
+
+    view = new Float32Array(arrayBuffer, offset, 2);
+    view[0] = params.height;
+    view[1] = params.rotation;
+    offset += bytesPerFloat * 2;
+
+    view = new Uint8Array(arrayBuffer, offset, 2);
+    view[0] = params.isCenter;
+    view[1] = hasEffects;
+    offset += bytesPerBool * 2 + twoBytesPadding;
+
+    if (hasEffects) {
+      view = new Float32Array(arrayBuffer, offset, 2);
+      view[0] = effects.transparency;
+      view[1] = effects.embossHighFreqPass;
+      offset += bytesPerFloat * 2;
+
+      view = new Uint8Array(arrayBuffer, offset, 3);
+      view[0] = effects.matchIllumination;
+      view[1] = effects.shadingCorrection;
+      view[2] = effects.colorCorrection;
+    }
+
+    return arrayBuffer;
+  };
+
+  this._addBinaryMethodWithPromise('setSticker', wrapSetStickerArgsToArrayBuffer);
+  this._addMethodWithPromise('paste', null, wrapPhotoReturns);
+
+  Object.defineProperties(this, {
+    'photo': {
+      value: photo,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+  });
+};
+
+Paster.prototype = new common.EventTargetPrototype();
+Paster.prototype.constructor = Paster;
+exports.Paster = Paster;
+
 var PhotoCapture = function() {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
@@ -167,7 +270,7 @@ PhotoCapture.prototype.constructor = PhotoCapture;
 
 exports.PhotoCapture = new PhotoCapture();
 
-var PhotoUtils = function (objectId) {
+var PhotoUtils = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
 
   if (objectId == undefined)
