@@ -156,6 +156,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("enableReconstruction",
                     base::Bind(&ScenePerceptionObject::OnEnableReconstruction,
                                base::Unretained(this)));
+  handler_.Register("enableRelocalization",
+                    base::Bind(&ScenePerceptionObject::OnEnableRelocalization,
+                               base::Unretained(this)));
   handler_.Register("setMeshingResolution",
                     base::Bind(&ScenePerceptionObject::OnSetMeshingResolution,
                                base::Unretained(this)));
@@ -769,6 +772,45 @@ void ScenePerceptionObject::OnEnableReconstruction(
   sensemanager_thread_.message_loop()->PostTask(
       FROM_HERE,
       base::Bind(&ScenePerceptionObject::DoEnableReconstruction,
+                 base::Unretained(this),
+                 params->enable,
+                 base::Passed(&info)));
+}
+
+void ScenePerceptionObject::DoEnableRelocalization(
+    bool enable, scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+
+  if (PXC_STATUS_NO_ERROR !=
+      scene_perception_->EnableRelocalization(enable)) {
+    info->PostResult(EnableRelocalization::Results::Create(
+          std::string(), std::string("Failed to enable SP relocalization.")));
+  } else {
+    info->PostResult(
+        EnableRelocalization::Results::Create(
+          std::string("success"), std::string()));
+  }
+}
+
+void ScenePerceptionObject::OnEnableRelocalization(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  scoped_ptr<EnableRelocalization::Params> params(
+      EnableRelocalization::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        EnableRelocalization::Results::Create(
+          std::string(), "Malformed parameters for enableRelocalization"));
+    return;
+  }
+  if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
+    info->PostResult(EnableRelocalization::Results::Create(
+        std::string(), std::string("Wrong state to enable SP Relocalization.")));
+    return;  // Wrong state.
+  }
+
+  sensemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::DoEnableRelocalization,
                  base::Unretained(this),
                  params->enable,
                  base::Passed(&info)));

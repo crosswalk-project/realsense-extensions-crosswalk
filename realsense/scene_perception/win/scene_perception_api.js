@@ -118,6 +118,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('destory');
 
   this._addMethodWithPromise('enableReconstruction');
+  this._addMethodWithPromise('enableRelocalization');
   this._addMethodWithPromise('setMeshingResolution');
   this._addMethodWithPromise('setMeshingThresholds');
   this._addMethodWithPromise('setCameraPose');
