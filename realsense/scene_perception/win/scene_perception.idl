@@ -137,6 +137,7 @@ namespace scene_perception {
 
     // setters
     static void enableReconstruction(boolean enable, Promise promise);
+    static void enableRelocalization(boolean enable, Promise promise);
     static void setMeshingResolution(MeshingResolution mResolution, Promise promise);
     static void setMeshingThresholds(MeshingThresholds mThresholds, Promise promise);
     static void setCameraPose(double[] pose, Promise promise);

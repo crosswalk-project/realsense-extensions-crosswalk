@@ -44,6 +44,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   // Configuration changing APIs.
   void OnEnableReconstruction(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnEnableRelocalization(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetMeshingResolution(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetMeshingThresholds(
@@ -90,6 +92,9 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       bool pause,
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoEnableReconstruction(
+      bool enable,
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoEnableRelocalization(
       bool enable,
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoSetMeshingResolution(
