@@ -1,0 +1,1926 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <title>Depth Enabled Photography</title>
+    <meta charset='utf-8'>
+    <script src='https://www.w3.org/Tools/respec/respec-w3c-common'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, WG-NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+          
+          shortName:            "depth-enabled-photography",
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              {
+                  name:       "Ningxin Hu"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+              {
+                  name:       "Jiajia Qin"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+          ],
+
+          localBiblio:  {
+              "XDM": {
+                  title:    "The eXtensible Device Metadata (XDM) Specification"
+              ,   href:     "https://software.intel.com/en-us/articles/the-extensible-device-metadata-xdm-specification-version-10"
+              ,   authors:  [
+                      "Intel"
+                  ]
+              ,   status:   "beta 0.1 8/8/2015"
+              ,   publisher:  "Intel"
+              }
+          },
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This document describes support for capturing 3D depth photo,
+        enhancing photo processing by leveraging the 3D depth information and
+        I/O with [[!XDM]] format.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
+        as an API Draft.
+        If you wish to make comments regarding this document, please send them to 
+        <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
+        All comments are welcome.
+      </p>
+    </section>
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        The APIs described in this document are exposed through
+        <code>realsense.DepthEnabledPhotography</code> module.
+      </p>
+    </section>
+    <section>
+      <h2>
+        Interfaces
+      </h2>
+      <section>
+        <h2>
+          <code><a>EnhancedPhoto</a></code>
+        </h2>
+        <p>
+          The <code><a>EnhancedPhoto</a></code> interface provides methods for
+          enhanced photography features.
+        </p>
+        <dl title='interface EnhancedPhoto' class='idl'>
+          <dt>
+            static Promise&lt;Image&gt; computeMaskFromCoordinate(Photo photo, Point point, optional MaskParams params)
+          </dt>
+          <dd>
+            <p>
+              The <code>computeMaskFromCoordinate()</code> method creates a mask
+              image corresponding to the point in the color image.
+              The mask image is in <code>DEPTH_F32</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>Point point</dt>
+              <dd>
+                The point coordinates in the color image.
+              </dd>
+              <dt>optional MaskParams params</dt>
+              <dd>
+                The optional additional configuration parameters.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Image&gt; computeMaskFromThreshold(Photo photo, float threshold, optional MaskParams params)
+          </dt>
+          <dd>
+            <p>
+              The <code>computeMaskFromThreshold()</code> method creates a mask
+              image corresponding to the depth threshold value.
+              The mask image is in <code>DEPTH_F32</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>float threshold</dt>
+              <dd>
+                The depth threshold value.
+              </dd>
+              <dt>optional MaskParams params</dt>
+              <dd>
+                The optional additional configuration parameters.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; depthRefocus(Photo photo, Point focus, optional float aperture)
+          </dt>
+          <dd>
+            <p>
+              The <code>depthRefocus()</code> method creates a refocused photo
+              image with the specified focusing point and blurring the rest area.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the refocused photo if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>Point focus</dt>
+              <dd>
+                The point of the focusing point (with the color image).
+              </dd>
+              <dt>optional float aperture</dt>
+              <dd>
+                The size of the blurring area. If omitted, the default is 50.0F.
+                The value is in the range of 7.7 to 160, roughly equivalent to f/22 and f/1.1, respectively.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;MeasureData&gt; measureDistance(Photo photo, Point start, Point end)
+          </dt>
+          <dd>
+            <p>
+              The <code>measureDistance()</code> method measures the distance
+              between the starting and ending points of the specified photo image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the measure data if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>Point start</dt>
+              <dd>
+                The starting point of the measurement.
+              </dd>
+              <dt>Point end</dt>
+              <dd>
+                The ending point of the measurement.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Image</a></code>
+        </h2>
+        <p>
+          The image buffer.
+        </p>
+        <dl class="idl" title="[Constructor(PixelFormat format, unsigned long width, unsigned long height, ArrayBuffer data)] interface Image">
+          <dt>
+            readonly attribute PixelFormat format
+          </dt>
+          <dd>
+            <p>
+              The image pixel format.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute unsigned long width
+          </dt>
+          <dd>
+            <p>
+              The image width in pixels.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute unsigned long height
+          </dt>
+          <dd>
+            <p>
+              The image height in pixels.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute ArrayBuffer data
+          </dt>
+          <dd>
+            <p>
+              The image buffer.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MotionEffect</a></code>
+        </h2>
+        <p>
+          The <code><a>MotionEffect</a></code> interface provides methods for
+          6DoF parallax feature.
+        </p>
+        <dl title='[Constructor(Photo photo)] interface MotionEffect' class='idl'>
+          <dt>
+            readonly attribute Photo photo
+          </dt>
+          <dd>
+            <p>
+              The photo instance passed in constructor.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; initMotionEffect()
+          </dt>
+          <dd>
+            <p>
+              The <code>initMotionEffect()</code> method initializes the 6DoF parallax feature.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; applyMotionEffect(Motion motion, Rotation rotation, double zoom)
+          </dt>
+          <dd>
+            <p>
+              The <code>applyMotionEffect()</code> method applies the 6DoF
+              parallax effect, which is the difference in the apparent position
+              of an object when it is viewed from two different positions or viewpoints.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the processed image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Motion motion</dt>
+              <dd>
+                The motion vector that describes the horizontal (positive values
+                indicate moving to the right), vertical (positive values indicate
+                moving up), distance (positive values indicate moving forward) movement.
+              </dd>
+              <dt>Rotation rotation</dt>
+              <dd>
+                The rotation vector that describes the pitch, yaw and roll rotation.
+              </dd>
+              <dt>double zoom</dt>
+              <dd>
+                The zooming factor, with positive values indicating zooming in.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Paster</a></code>
+        </h2>
+        <p>
+          The <code><a>Paster</a></code> interface provides methods to perform
+          sticker image pasting to a photo instance.
+        </p>
+        <dl title='[Constructor(Photo photo)] interface Paster' class='idl'>
+          <dt>
+            readonly attribute Photo photo
+          </dt>
+          <dd>
+            <p>
+              The photo instance passed in constructor.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getPlanesMap()
+          </dt>
+          <dd>
+            <p>
+              The <code>getPlanesMap()</code> method detects the detected planes in the
+              photo, in the form of an image mask. The mask pixels are index of
+              the planes (starting with 1.) A pixel value of zero indicates
+              areas without any detected plane surface.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the image instance with detected planes if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setSticker(Image sticker, Point coordinates, StickerData params, optional PasteEffects effects)
+          </dt>
+          <dd>
+            <p>
+              The <code>setSticker()</code> specifies the sticker image, to be
+              pasted to the photo instance, and the pasting parameters.
+              Use the <code>paste()</code> function to perform the pasting operation.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Image sticker</dt>
+              <dd>
+                The sticker image instance.
+              </dd>
+              <dt>Point coordinates</dt>
+              <dd>
+                The anchor coordinates that specify where the sticker should be placed.
+              </dd>
+              <dt>StickerData params</dt>
+              <dd>
+                Additional details about the sticker image. See the <code><a>StickerData</a></code> for definitions.
+              </dd>
+              <dt>optional PasteEffects effects</dt>
+              <dd>
+                The pasting effect flags. See the <code><a>PasteEffects</a></code> for definitions.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;Photo&gt; paste()
+          </dt>
+          <dd>
+            <p>
+              The <code>setSticker()</code> method pastes the sticker image(s)
+              to the saved photo instance (by the SetPhoto function), and creates
+              the resulting photo. The saved photo is not modified.
+              Any subsequent pasting operations do not add up.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the resulting photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; previewSticker()
+          </dt>
+          <dd>
+            <p>
+              The <code>setSticker()</code> method creates an image mask to
+              preview how the sticker is to be pasted to the photo instance. The
+              image mask uses pixel value 255 for the foreground pixels and 0
+              for background pixels.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the image mask if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Photo</a></code>
+        </h2>
+        <p>
+          The <code><a>Photo</a></code> interface manages a depth photo image
+          conforming to [[!XDM]] format.
+        </p>
+        <dl title='interface Photo' class='idl'>
+          <dt>
+            Promise&lt;boolean&gt; checkSignature()
+          </dt>
+          <dd>
+            <p>
+              The <code>checkSignature()</code> method checks the container image
+              Alder32 signature.
+            </p>
+            <p>
+              This method returns a promise.
+              If the container image is not modified, the promise will be fulfilled
+              with true. Otherwise, the promise will be fulfilled with false.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Photo&gt; clone()
+          </dt>
+          <dd>
+            <p>
+              The <code>clone()</code> method creates a new <code><a>Photo</a></code> instance and
+              copies the content of this photo to the new photo.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with new photo if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;PerspectiveCameraModel&gt; queryCameraPerspectiveModel()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryCameraPerspectiveModel()</code> method gets the 
+              specified camera perspective model parameters.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the specified camera perspective
+              model parameters if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;CameraPose&gt; queryCameraPose()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryCameraPose()</code> method gets the specified
+              camera pose information.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the specified camera pose
+              information if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;VendorInfo&gt; queryCameraVendorInfo()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryCameraVendorInfo()</code> method gets the specified
+              camera vendor information.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the specified
+              camera vendor information if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryColorImage(optional unsigned long cameraIndex)
+          </dt>
+          <dd>
+            <p>
+              The <code>queryColorImage()</code> method gets the color
+              image stored in the specified camera device.
+              If cameraIndex is not specified,
+              the method gets the unedited color image in camera zero.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the color image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>optional unsigned long cameraIndex</dt>
+              <dd>
+                The optional zero-based camera device index. 
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryContainerImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryContainerImage()</code> method gets the container 
+              photo image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the container photo image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryDepthImage(optional unsigned long cameraIndex)
+          </dt>
+          <dd>
+            <p>
+              The <code>queryDepthImage()</code> method gets the depth
+              image stored in the specified camera.
+              If cameraIndex is not specified, the method gets the depth image
+              in camera zero.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the depth image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>optional unsigned long cameraIndex</dt>
+              <dd>
+                The optional zero-based camera device index. 
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;VendorInfo&gt; queryDeviceVendorInfo()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryDeviceVendorInfo()</code> method gets the specified
+              device vendor information.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the specified
+              device vendor information if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;unsigned long&gt; queryNumberOfCameras()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryNumberOfCameras()</code> method gets the number
+              of cameras.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the number of cameras if there
+              are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; queryRawDepthImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryRawDepthImage()</code> method gets the
+              not-processed original depth image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the not-processed original
+              depth image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; resetContainerImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>resetContainerImage()</code> method copies the camera[0]
+              unedited color image to be the container image of the photo instance.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;DOMString&gt; queryXDMRevision()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryXDMRevision()</code> method extracts the XDM file
+              revision string.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the XDM file revision string if
+              there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setColorImage(Image image, optional unsigned long cameraIndex)
+          </dt>
+          <dd>
+            <p>
+              The <code>setColorImage()</code> method sets image to the color
+              image stored in the specified camera device. If cameraIndex is not
+              specified, the method sets the unedited color image in camera zero.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Image image</dt>
+              <dd>
+                The color image.
+              </dd>
+              <dt>optional unsigned long cameraIndex</dt>
+              <dd>
+                The optional zero-based camera device index. 
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setContainerImage(Image image)
+          </dt>
+          <dd>
+            <p>
+              The <code>setContainerImage()</code> method sets image to the
+              container photo image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setDepthImage(Image image, optional unsigned long cameraIndex)
+          </dt>
+          <dd>
+            <p>
+              The <code>setDepthImage()</code> method sets image to the depth
+              image stored in the specified camera device. If cameraIndex is not
+              specified, the method sets the depth image in camera zero.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Image image</dt>
+              <dd>
+                The depth image.
+              </dd>
+              <dt>optional unsigned long cameraIndex</dt>
+              <dd>
+                The optional zero-based camera device index. 
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setRawDepthImage(Image image)
+          </dt>
+          <dd>
+            <p>
+              The <code>setRawDepthImage()</code> method sets image to the
+              not-processed original depth image
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PhotoCapture</a></code>
+        </h2>
+        <p>
+          The <code><a>PhotoCapture</a></code> interface captures a depth photo
+          from 3D camera.
+        </p>
+        <dl title='interface PhotoCapture : EventTarget' class='idl'>
+          <dt>
+            Promise&lt;void&gt; startPreview(optional PreviewConfiguration config)
+          </dt>
+          <dd>
+            <p>
+              The <code>startPreview()</code> method starts the cameras streaming
+              with configuration specified by <code>config</code>.
+              If no <code>config</code> is specified, it uses default configuration.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>optional PreviewConfiguration config</dt>
+              <dd>
+                The preview configuration.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; stopPreview()
+          </dt>
+          <dd>
+            <p>
+              The <code>stopPreview()</code> method stops the cameras streaming.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getPreviewImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>getPreviewImage()</code> method gets the latest
+              available preview image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the latest available
+              preview image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Photo&gt; takePhoto()
+          </dt>
+          <dd>
+            <p>
+              The <code>getPreviewImage()</code> method creates photo instance
+              by importing content from preview images.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the photo instance if there are
+              no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onerror
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>PreviewErrorEvent</code></a> that is dispatched
+              to <code><a>PhotoCapture</a></code> when an error happens
+              in preview.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onpreview
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>PhotoCapture</a></code> when a new preview
+              image is ready.
+            </p>
+          </dd>
+        </dl>
+        <section>
+          <h3>
+            <code><a>PreviewErrorEvent</a></code> interface
+          </h3>
+          <dl class="idl" title="interface PreviewErrorEvent : Event">
+            <dt>
+              readonly attribute DOMString message
+            </dt>
+            <dd>
+              <p>
+                The error message.
+              </p>
+            </dd>
+          </dl>
+        </section>
+      </section>
+      <section>
+        <h2>
+          <code><a>PhotoUtils</a></code>
+        </h2>
+        <p>
+          The <code><a>PhotoUtils</a></code> interface provides a set of utility
+          methods to manipulate a depth photo instance.
+        </p>
+        <dl title='interface PhotoUtils' class='idl'>
+          <dt>
+            static Promise&lt;Photo&gt; colorResize(Photo photo, unsigned long width)
+          </dt>
+          <dd>
+            <p>
+              The <code>colorResize()</code> method resizes the color image of
+              the photo instance. The resized image maintains the same aspect
+              ratio as the original image. Thus only the target image width is
+              specified at the method input.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with a color-resized photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>unsigned long width</dt>
+              <dd>
+                The width of the target color image width, in pixels.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; commonFOV(Photo photo)
+          </dt>
+          <dd>
+            <p>
+              The <code>commonFOV()</code> method creates a new photo instance
+              that matches the field of view of the color and depth images in the
+              input photo instance. Both the color and depth images are cropped
+              and camera meta data re-calculated.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the new photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; depthResize(Photo photo, unsigned long width, optional DepthFillQuality quality)
+          </dt>
+          <dd>
+            <p>
+              The <code>depthResize()</code> method resizes the photo's depth map
+              to the specified size, which must have the same aspect ratio as
+              the original color image (thus only the width value is specified).
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the depth map-resized photo image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>unsigned long width</dt>
+              <dd>
+                The width of the target depth map size.
+              </dd>
+              <dt>optional DepthFillQuality quality</dt>
+              <dd>
+                The optional depth filling quality indicator.
+                See the <code><a>DepthFillQuality</a></code> enumerator for definition.
+                By default, the depth filling quality is <code>high</code>.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; enhanceDepth(Photo photo, DepthFillQuality quality)
+          </dt>
+          <dd>
+            <p>
+              The <code>enhanceDepth()</code> method enhances the depth map
+              image quality by filling holes and performing denoising operations.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the depth enhanced photo image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>DepthFillQuality quality</dt>
+              <dd>
+                The depth filling quality indicator.
+                See the <code><a>DepthFillQuality</a></code> enumerator for definition.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;DepthMapQuality&gt; getDepthQuality(Image image)
+          </dt>
+          <dd>
+            <p>
+              The <code>getDepthQuality()</code> method checks the depth map quality.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the depth map quality as defined
+              in the <code><a>DepthMapQuality</a></code> enumerator if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Image image</dt>
+              <dd>
+                The depth image instance.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; photoCrop(Photo photo, Rect rect)
+          </dt>
+          <dd>
+            <p>
+              The <code>photoCrop()</code> crops the photo instance.
+              The depth map and camera meta data are updated accordingly.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the cropped photo image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo image instance.
+              </dd>
+              <dt>Rect rect</dt>
+              <dd>
+                The cropping rectangle in pixels.
+                The rectangle is specified in term of the color image resolution.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; photoRotate(Photo photo, double rotation)
+          </dt>
+          <dd>
+            <p>
+              The <code>photoRotate()</code> performs 2D rotation of the photo
+              instance and creates the rotated photo instance. The rotation is
+              around the center of the color image clock wise.
+              The depth map and camera meta data are updated.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the rotated photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo image instance.
+              </dd>
+              <dt>double rotation</dt>
+              <dd>
+                The clock-wise rotation degree from 0 to 360.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Segmentation</a></code>
+        </h2>
+        <p>
+          The <code><a>Segmentation</a></code> interface provides methods to
+          perform depth-based object segmentation and refinement.
+        </p>
+        <dl title='[Constructor(Photo photo)] interface Segmentation' class='idl'>
+          <dt>
+            readonly attribute Photo photo
+          </dt>
+          <dd>
+            <p>
+              The photo instance passed in constructor.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; objectSegment(Image boundingMask)
+          </dt>
+          <dd>
+            <p>
+              The <code>objectSegment()</code> generates an initial mask for
+              any object selected by the bounding mask. The mask can then be
+              refined by hints in the <code>refineMask()</code> method.
+              The mask image is in <code>Y8</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Image boundingMask</dt>
+              <dd>
+                The bounding mask.
+                The foreground pixels should have a value of 255 and the
+                background pixels should have 0.
+                The mask image is in <code>Y8</code> pixel format.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; redo()
+          </dt>
+          <dd>
+            <p>
+              The <code>redo()</code> method reapplies the last undo hints and generates
+              the mask image. The mask image is in <code>Y8</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; refineMask(sequence&lt;Point&gt; points, boolean foreground)
+          </dt>
+          <dd>
+            <p>
+              The <code>refineMask()</code> method refines the image mask generated by
+              the <code>objectSegment()</code> method with the specified hint
+              points that indicate foreground or background pixels.
+              The mask image is in <code>Y8</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the refined mask image instance if there are no errors.
+              The returned image mask uses pixel value 255 for detected pixels and 0 for undetected pixels.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>sequence&lt;Point&gt; points</dt>
+              <dd>
+                The array that contains the hint point coordinates.
+              </dd>
+              <dt>boolean foreground</dt>
+              <dd>
+                True if the hints refer to the foreground pixels.
+                A value of false refers to the background pixels.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; undo()
+          </dt>
+          <dd>
+            <p>
+              The <code>undo()</code> method undoes the last hints and generates
+              the mask image.
+              The mask image is in <code>Y8</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>XDMUtils</a></code>
+        </h2>
+        <p>
+          The <code><a>XDMUtils</a></code> provides methods for [[!XDM]] content
+          in <code>Blob</code> instance (described in [[!FILEAPI]]).
+        </p>
+        <dl title='interface XDMUtils' class='idl'>
+          <dt>
+            static Promise&lt;boolean&gt; isXDM(Blob blob)
+          </dt>
+          <dd>
+            <p>
+              The <code>isXDM()</code> method performs a quick check of the
+              specified blob data.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with true if the blob data is in
+              [[!XDM]] format.
+              Otherwise, the promise will be fulfilled with false.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Blob blob</dt>
+              <dd>
+                The blob data.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; loadXDM(Blob blob)
+          </dt>
+          <dd>
+            <p>
+              The <code>loadXDM()</code> method reads the photo content from the
+              specified blob data in [[!XDM]] format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Blob blob</dt>
+              <dd>
+                The blob data of [[!XDM]] format.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Blob&gt; saveXDM(Photo photo)
+          </dt>
+          <dd>
+            <p>
+              The <code>saveXDM()</code> method writes the photo content to the
+              specified blob data in [[!XDM]] format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the blob data if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Dictionaries
+      </h2>
+      <section>
+        <h2>
+          <code><a>CameraPose</a></code>
+        </h2>
+        <dl title='dictionary CameraPose' class='idl'>
+          <dt>
+            TransitionVector transition
+          </dt>
+          <dd>
+            <p>
+              The translation vector.
+            </p>
+          </dd>
+          <dt>
+            RotationQuaternion rotation
+          </dt>
+          <dd>
+            <p>
+              The rotation quaternion.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>CaptureConfiguration</a></code>
+        </h2>
+        <dl title='dictionary CaptureConfiguration' class='idl'>
+          <dt>
+            unsigned long? width
+          </dt>
+          <dd>
+            <p>
+              The specified image width in pixels.
+            </p>
+          </dd>
+          <dt>
+            unsigned long? height
+          </dt>
+          <dd>
+            <p>
+              The specified image height in pixels.
+            </p>
+          </dd>
+          <dt>
+            double? frameRate
+          </dt>
+          <dd>
+            <p>
+              The specified framerate.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MaskParams</a></code>
+        </h2>
+        <dl title='dictionary MaskParams' class='idl'>
+          <dt>
+            float frontObjectDepth
+          </dt>
+          <dd>
+            <p>
+              The hint of the foreground object depth value.
+            </p>
+          </dd>
+          <dt>
+            float backObjectDepth
+          </dt>
+          <dd>
+            <p>
+              The hint of the background object depth value.
+            </p>
+          </dd>
+          <dt>
+            float nearFallOffDepth
+          </dt>
+          <dd>
+            <p>
+              The cut-off depth value for near end. Any object with the depth value smaller than the value is ignored in the processing.
+            </p>
+          </dd>
+          <dt>
+            float farFallOffDepth
+          </dt>
+          <dd>
+            <p>
+              The cut-off depth value for far end. Any object with the depth value bigger than the value is ignored in the processing.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>MeasureData</a></code>
+        </h2>
+        <dl title='dictionary MeasureData' class='idl'>
+          <dt>
+            float distance
+          </dt>
+          <dd>
+            <p>
+              The distance of two points in mm.
+            </p>
+          </dd>
+          <dt>
+            float confidence
+          </dt>
+          <dd>
+            <p>
+              The confidence value from 0 (no confidence) to 1 (high confidence),
+              NaN if not available.
+            </p>
+          </dd>
+          <dt>
+            float precision
+          </dt>
+          <dd>
+            <p>
+              The precision in mm, Nan if not available.
+            </p>
+          </dd>
+          <dt>
+            WorldPoint startPoint
+          </dt>
+          <dd>
+            <p>
+              The starting point of the measurement.
+            </p>
+          </dd>
+          <dt>
+            WorldPoint endPoint
+          </dt>
+          <dd>
+            <p>
+              The end point of the measurement.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Motion</a></code>
+        </h2>
+        <dl title='dictionary Motion' class='idl'>
+          <dt>
+            float horizontal
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving to the right.
+            </p>
+          </dd>
+          <dt>
+            float vertical
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving up.
+            </p>
+          </dd>
+          <dt>
+            float distance
+          </dt>
+          <dd>
+            <p>
+              Positive values indicate moving forward.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PasteEffects</a></code>
+        </h2>
+        <dl title='dictionary PasteEffects' class='idl'>
+          <dt>
+            boolean matchIllumination
+          </dt>
+          <dd>
+            <p>
+              If true, match the illumination of the background picture.
+              By default this option is true.
+            </p>
+          </dd>
+          <dt>
+            float transparency
+          </dt>
+          <dd>
+            <p>
+              Specify the transparency of the pasting operation.
+              The value ranges from 0 (opaque, default) to 1.0f (complete transparent).
+            </p>
+          </dd>
+          <dt>
+            float embossHighFreqPass
+          </dt>
+          <dd>
+            <p>
+              Specify the emboss effect high pass filter parameter.
+              The value ranges from 0 (no emboss, default) to 1.0f (max emboss effect.)
+            </p>
+          </dd>
+          <dt>
+            boolean shadingCorrection
+          </dt>
+          <dd>
+            <p>
+              If true, correct the pixel illumination taking account the background picture shading.
+              By default, this option is false.
+            </p>
+          </dd>
+          <dt>
+            boolean colorCorrection
+          </dt>
+          <dd>
+            <p>
+              If true, add color correction. By default, this option is false.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PerspectiveCameraModel</a></code>
+        </h2>
+        <dl title='dictionary PerspectiveCameraModel' class='idl'>
+          <dt>
+            DOMString model
+          </dt>
+          <dd>
+            <p>
+              The string that contains the camera name.
+            </p>
+          </dd>
+          <dt>
+            Point focalLength
+          </dt>
+          <dd>
+            <p>
+              The focal length of the lens along the x/y-axis,
+              normalized by the maximum dimension of the sensor.
+            </p>
+          </dd>
+          <dt>
+            Point principalPoint
+          </dt>
+          <dd>
+            <p>
+              The position indicating where the camera optical axis crosses the
+              image plane center of the camera along the x/y-axis, normalized
+              by the sensor resolution.
+            </p>
+          </dd>
+          <dt>
+            float skew
+          </dt>
+          <dd>
+            <p>
+              The skew of the image camera in degrees.
+            </p>
+          </dd>
+          <dt>
+            RadialDistortion radialDistortion
+          </dt>
+          <dd>
+            <p>
+              The radial distortion coefficients of the lens distortion.
+            </p>
+          </dd>
+          <dt>
+            TangentialDistortion tangentialDistortion
+          </dt>
+          <dd>
+            <p>
+              The tangential distortion coefficients of the lens distortion.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point</a></code>
+        </h2>
+        <dl title='dictionary Point' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+            <p>
+              The x coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+            <p>
+              The y coordinate of the point.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PreviewConfiguration</a></code>
+        </h2>
+        <dl title='dictionary PreviewConfiguration' class='idl'>
+          <dt>
+            CaptureConfiguration? color
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+          <dt>
+            CaptureConfiguration? depth
+          </dt>
+          <dd>
+            &nbsp;
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>RadialDistortion</a></code>
+        </h2>
+        <dl title='dictionary RadialDistortion' class='idl'>
+          <dt>
+            float k1
+          </dt>
+          <dd>
+            <p>
+              The radial distortion coefficients k1.
+            </p>
+          </dd>
+          <dt>
+            float k2
+          </dt>
+          <dd>
+            <p>
+              The radial distortion coefficients k2.
+            </p>
+          </dd>
+          <dt>
+            float k3
+          </dt>
+          <dd>
+            <p>
+              The radial distortion coefficients k3.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Rect</a></code>
+        </h2>
+        <dl title='dictionary Rect' class='idl'>
+          <dt>
+            unsigned long x
+          </dt>
+          <dd>
+            <p>
+              The horizontal coordinate of the top left pixel of the rectangle.
+            </p>
+          </dd>
+          <dt>
+            unsigned long y
+          </dt>
+          <dd>
+            <p>
+              The vertical coordinate of the top left pixel of the rectangle.
+            </p>
+          </dd>
+          <dt>
+            unsigned long w
+          </dt>
+          <dd>
+            <p>
+              The rectangle width in pixels.
+            </p>
+          </dd>
+          <dt>
+            unsigned long h
+          </dt>
+          <dd>
+            <p>
+              The rectangle height in pixels.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Rotation</a></code>
+        </h2>
+        <dl title='dictionary Rotation' class='idl'>
+          <dt>
+            float pitch
+          </dt>
+          <dd>
+            <p>
+              A positive pitch value indicates that rotates with X axis.
+            </p>
+          </dd>
+          <dt>
+            float yaw
+          </dt>
+          <dd>
+            <p>
+              A positive yaw value indicates that rotates with Y axis.
+            </p>
+          </dd>
+          <dt>
+            float roll
+          </dt>
+          <dd>
+            <p>
+              A positive roll value indicates that clockwise rotates.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>RotationQuaternion</a></code>
+        </h2>
+        <dl title='dictionary RotationQuaternion' class='idl'>
+          <dt>
+            float rotationAngle
+          </dt>
+          <dd>
+            The rotation angle around the axis.
+          </dd>
+          <dt>
+            float rotationAxisX
+          </dt>
+          <dd>
+            The x component of the rotation vector in the angle axis representation.
+          </dd>
+          <dt>
+            float rotationAxisY
+          </dt>
+          <dd>
+            The y component of the rotation vector in the angle axis representation.
+          </dd>
+          <dt>
+            float rotationAxisZ
+          </dt>
+          <dd>
+            The z component of the rotation vector in the angle axis representation.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Size</a></code>
+        </h2>
+        <dl title='dictionary Size' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+            <p>
+              The rectangle width in pixels.
+            </p>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+            <p>
+              The rectangle height in pixels.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>StickerData</a></code>
+        </h2>
+        <dl title='dictionary StickerData' class='idl'>
+          <dt>
+            float height
+          </dt>
+          <dd>
+            <p>
+              The height of the sticker image in pixels.
+            </p>
+          </dd>
+          <dt>
+            float rotation
+          </dt>
+          <dd>
+            <p>
+              Specify the image rotation, in degree.
+              A positive value rotates the image clock-wise.
+            </p>
+          </dd>
+          <dt>
+            boolean isCenter
+          </dt>
+          <dd>
+            <p>
+              If true, the anchor of the sticker image is in the center of the image.
+              If false, the anchor of the image is at the top left.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TangentialDistortion</a></code>
+        </h2>
+        <dl title='dictionary TangentialDistortion' class='idl'>
+          <dt>
+            float p1
+          </dt>
+          <dd>
+            <p>
+              The tangential distortion coefficients p1.
+            </p>
+          </dd>
+          <dt>
+            float p2
+          </dt>
+          <dd>
+            <p>
+              The tangential distortion coefficients p2.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TransitionVector</a></code>
+        </h2>
+        <dl title='dictionary TransitionVector' class='idl'>
+          <dt>
+            float x
+          </dt>
+          <dd>
+            The x component of the transition vector.
+          </dd>
+          <dt>
+            float y
+          </dt>
+          <dd>
+            The y component of the transition vector.
+          </dd>
+          <dt>
+            float z
+          </dt>
+          <dd>
+            The z component of the transition vector.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>VendorInfo</a></code>
+        </h2>
+        <dl title='dictionary VendorInfo' class='idl'>
+          <dt>
+            DOMString model
+          </dt>
+          <dd>
+            <p>
+              The string that contains the camera or device name.
+            </p>
+          </dd>
+          <dt>
+            DOMString manufacturer
+          </dt>
+          <dd>
+            <p>
+              The manufacturer name.
+            </p>
+          </dd>
+          <dt>
+            DOMString notes
+          </dt>
+          <dd>
+            <p>
+              Special notes about the device or camera device.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>WorldPoint</a></code>
+        </h2>
+        <dl title='dictionary WorldPoint' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+            <p>
+              The x coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+            <p>
+              The y coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double z
+          </dt>
+          <dd>
+            <p>
+              The z coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            float confidence
+          </dt>
+          <dd>
+            <p>
+              The confidence value from 0 (no confidence) to 1 (high confidence),
+              NaN if not available.
+            </p>
+          </dd>
+          <dt>
+            float precision
+          </dt>
+          <dd>
+            <p>
+              The precision in mm, Nan if not available.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Enumerators
+      </h2>
+      <section>
+        <h2>
+          <code><a>DepthFillQuality</a></code> enum
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum DepthFillQuality">
+          <dt>
+            high
+          </dt>
+          <dd>
+            <p>
+              Use the high quality depth filling algorithm for the case of offline photo processing.
+            </p>
+          </dd>
+          <dt>
+            low
+          </dt>
+          <dd>
+            <p>
+              Use the low quality depth filling algorithm for the case of real time live streaming.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>DepthMapQuality</a></code> enum
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum DepthMapQuality">
+          <dt>
+            bad
+          </dt>
+          <dd>
+            <p>
+              The depth map quality is poor.
+            </p>
+          </dd>
+          <dt>
+            fair
+          </dt>
+          <dd>
+            <p>
+              The depth map quality is reasonably good for depth enabled photography functions but may lead to wrong results.
+            </p>
+          </dd>
+          <dt>
+            good
+          </dt>
+          <dd>
+            <p>
+              The depth map quality is good.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>PixelFormat</a></code> enum
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum PixelFormat">
+          <dt>
+            RGBA32
+          </dt>
+          <dd>
+            <p>
+              The 32-bit RGBA32 color format. When <code>format</code> of
+              an <code><a>Image</a></code> instance is set to <code>RGBA32</code>,
+              the <code>data</code> of that image instance must follow the
+              bytes layout of <a href="http://www.w3.org/TR/2dcontext/#canvas-pixel-arraybuffer">Canvas Pixel ArrayBuffer</a>
+              defined in [[!CANVAS-2D]].
+            </p>
+          </dd>
+          <dt>
+            DEPTH
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 16-bit unsigned integer.
+              The values indicate the distance from an object to the camera's XY
+              plane or the Cartesian depth.The value precision is in millimeters.
+            </p>
+          </dd>
+          <dt>
+            DEPTH_F32
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 32-bit floating point.
+              The value precision is in millimeters.
+            </p>
+          </dd>
+          <dt>
+            Y8
+          </dt>
+          <dd>
+            <p>
+              The 8-bit gray format.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section class='appendix'>
+      <h2>Acknowledgments</h2>
+      <p>
+      </p>
+    </section>
+  </body>
+</html>
