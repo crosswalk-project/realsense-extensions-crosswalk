@@ -45,6 +45,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnPasterConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoCaptureConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoUtilsConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSegmentationConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   xwalk::common::XWalkExtensionFunctionHandler handler_;
   xwalk::common::BindingObjectStore store_;

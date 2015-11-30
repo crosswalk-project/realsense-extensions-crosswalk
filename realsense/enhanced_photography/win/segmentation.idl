@@ -1,0 +1,17 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// Segmentation interface
+namespace segmentation {
+  callback ImagePromise = void(depth_photo.Image image, DOMString error);
+
+  interface Functions {
+    static void objectSegment(ArrayBuffer buffer, ImagePromise promise);
+    static void redo(ImagePromise promise);
+    static void refineMask(ArrayBuffer buffer, ImagePromise promise);
+    static void undo(ImagePromise promise);
+
+    [nodoc] static Paster segmentationConstructor(DOMString objectId, depth_photo.Photo photo);
+  };
+};
