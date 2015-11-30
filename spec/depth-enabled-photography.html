@@ -440,7 +440,7 @@
             </p>
           </dd>
           <dt>
-            Promise&lt;PerspectiveCameraModel&gt; queryCameraPerspectiveModel()
+            Promise&lt;PerspectiveCameraModel&gt; queryCameraPerspectiveModel(unsigned long cameraIndex)
           </dt>
           <dd>
             <p>
@@ -453,9 +453,15 @@
               model parameters if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
+            <dl class='parameters'>
+              <dt>unsigned long cameraIndex</dt>
+              <dd>
+                The zero-based camera device index.
+              </dd>
+            </dl>
           </dd>
           <dt>
-            Promise&lt;CameraPose&gt; queryCameraPose()
+            Promise&lt;CameraPose&gt; queryCameraPose(unsigned long cameraIndex)
           </dt>
           <dd>
             <p>
@@ -468,9 +474,15 @@
               information if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
+            <dl class='parameters'>
+              <dt>unsigned long cameraIndex</dt>
+              <dd>
+                The zero-based camera device index.
+              </dd>
+            </dl>
           </dd>
           <dt>
-            Promise&lt;VendorInfo&gt; queryCameraVendorInfo()
+            Promise&lt;VendorInfo&gt; queryCameraVendorInfo(unsigned long cameraIndex)
           </dt>
           <dd>
             <p>
@@ -483,6 +495,12 @@
               camera vendor information if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
+            <dl class='parameters'>
+              <dt>unsigned long cameraIndex</dt>
+              <dd>
+                The zero-based camera device index.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;Image&gt; queryColorImage(optional unsigned long cameraIndex)
