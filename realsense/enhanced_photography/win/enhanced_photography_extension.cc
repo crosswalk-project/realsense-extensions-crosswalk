@@ -24,7 +24,7 @@ namespace realsense {
 namespace enhanced_photography {
 
 EnhancedPhotographyExtension::EnhancedPhotographyExtension() {
-  SetExtensionName("realsense.EnhancedPhotography");
+  SetExtensionName("realsense.DepthEnabledPhotography");
   std::string jsapi(kSource_common_api);
   jsapi += kSource_enhanced_photography_api;
   SetJavaScriptAPI(jsapi.c_str());

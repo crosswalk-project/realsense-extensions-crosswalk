@@ -290,8 +290,8 @@ function popColor(e) {
 }
 
 function main() {
-  ep = realsense.EnhancedPhotography.EnhancedPhoto;
-  photoUtils = realsense.EnhancedPhotography.PhotoUtils;
+  ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -539,7 +539,7 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    var dp = new realsense.EnhancedPhotography.DepthPhoto();
+    var dp = new realsense.DepthEnabledPhotography.DepthPhoto();
     dp.loadXDM(file).then(
         function(sucess) {
           currentPhoto = dp;
