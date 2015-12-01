@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
-#define REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
+#ifndef REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
+#define REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
 
 #include <string>
 
@@ -40,6 +40,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthPhotoConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnPhotoCaptureConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoUtilsConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   xwalk::common::XWalkExtensionFunctionHandler handler_;
@@ -50,4 +51,4 @@ class EnhancedPhotographyInstance : public Instance {
 }  // namespace enhanced_photography
 }  // namespace realsense
 
-#endif  // REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
+#endif  // REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_INSTANCE_H_
