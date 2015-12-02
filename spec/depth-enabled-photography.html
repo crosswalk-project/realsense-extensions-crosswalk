@@ -246,6 +246,10 @@
           The <code><a>MotionEffect</a></code> interface provides methods for
           6DoF parallax feature.
         </p>
+        <p>
+          The <code>Photo</code> passed to the constructor MUST be valid.
+          Otherwise an <code>InvalidPhotoException</code> will be thrown.
+        </p>
         <dl title='[Constructor(Photo photo)] interface MotionEffect' class='idl'>
           <dt>
             readonly attribute Photo photo
@@ -308,6 +312,10 @@
         <p>
           The <code><a>Paster</a></code> interface provides methods to perform
           sticker image pasting to a photo instance.
+        </p>
+        <p>
+          The <code>Photo</code> passed to the constructor MUST be valid.
+          Otherwise an <code>InvalidPhotoException</code> will be thrown.
         </p>
         <dl title='[Constructor(Photo photo)] interface Paster' class='idl'>
           <dt>
@@ -1019,6 +1027,10 @@
         <p>
           The <code><a>Segmentation</a></code> interface provides methods to
           perform depth-based object segmentation and refinement.
+        </p>
+        <p>
+          The <code>Photo</code> passed to the constructor MUST be valid.
+          Otherwise an <code>InvalidPhotoException</code> will be thrown.
         </p>
         <dl title='[Constructor(Photo photo)] interface Segmentation' class='idl'>
           <dt>
@@ -1932,6 +1944,18 @@
               The 8-bit gray format.
             </p>
           </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Exceptions
+      </h2>
+      <section>
+        <h2>
+          <code><a>InvalidPhotoException</a></code>
+        </h2>
+        <dl id="exception-basic" class="idl" title="exception InvalidPhotoException">
         </dl>
       </section>
     </section>
