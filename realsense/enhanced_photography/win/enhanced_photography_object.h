@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_OBJECT_H_
-#define REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_OBJECT_H_
+#ifndef REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_OBJECT_H_
+#define REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_OBJECT_H_
 
 #include <string>
 #include <vector>
@@ -26,23 +26,12 @@ namespace enhanced_photography {
 using xwalk::common::XWalkExtensionFunctionInfo;
 using namespace jsapi::enhanced_photography; // NOLINT
 
-class EnhancedPhotographyObject : public xwalk::common::EventTarget {
+class EnhancedPhotographyObject : public xwalk::common::BindingObject {
  public:
   explicit EnhancedPhotographyObject(EnhancedPhotographyInstance* instance);
   ~EnhancedPhotographyObject() override;
 
-  // EventTarget implementation.
-  void StartEvent(const std::string& type) override;
-  void StopEvent(const std::string& type) override;
-
  private:
-  void OnStartPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnStopPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnGetPreviewImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-
-  // This method will capture a photo from preview and bind it with |photo_|
-  void OnTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
-
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromCoordinate(
@@ -55,33 +44,10 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
                               jsapi::depth_photo::Photo* photo);
   bool CopyColorImage(PXCImage* pxcimage);
   bool CopyMaskImage(PXCImage* pxcimage);
-  void ReleaseMainResources();
-  void ReleasePreviewResources();
-
-  // Run on ep_preview_thread_
-  void OnEnhancedPhotoPreviewPipeline();
-  void CaptureOnPreviewThread(
-      scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnStopAndDestroyPipeline(
-      scoped_ptr<XWalkExtensionFunctionInfo> info);
-
-  enum State {
-    IDLE,
-    PREVIEW,
-  };
-  State state_;
-
-  bool on_preview_;
-
-  base::Lock lock_;
-  base::Thread ep_preview_thread_;
-  scoped_refptr<base::MessageLoopProxy> message_loop_;
+  void ReleaseResources();
 
   PXCSession* session_;
-  PXCSenseManager* sense_manager_;
   PXCEnhancedPhoto* ep_;
-  PXCPhoto* preview_photo_;
-  PXCImage* preview_image_;
 
   EnhancedPhotographyInstance* instance_;
 
@@ -92,4 +58,4 @@ class EnhancedPhotographyObject : public xwalk::common::EventTarget {
 }  // namespace enhanced_photography
 }  // namespace realsense
 
-#endif  // REALSENSE_ENHANCED_PHOTOGRAPHY_ENHANCED_PHOTOGRAPHY_OBJECT_H_
+#endif  // REALSENSE_ENHANCED_PHOTOGRAPHY_WIN_ENHANCED_PHOTOGRAPHY_OBJECT_H_

@@ -7,7 +7,7 @@ var loadPhoto = document.getElementById('loadPhoto');
 var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
 
-var ep;
+var ep, photoCapture;
 var previewContext, previewData, imageContext, imageData;
 
 var width = 640, height = 480;
@@ -69,17 +69,18 @@ function doMothionEffect() {
 
 function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
   previewData = previewContext.createImageData(width, height);
 
   var gettingImage = false;
-  ep.onpreview = function(e) {
+  photoCapture.onpreview = function(e) {
     if (gettingImage)
       return;
     gettingImage = true;
-    ep.getPreviewImage().then(
+    photoCapture.getPreviewImage().then(
         function(image) {
           previewData.data.set(image.data);
           previewContext.putImageData(previewData, 0, 0);
@@ -87,19 +88,19 @@ function main() {
         }, function() { });
   };
 
-  ep.onerror = function(e) {
+  photoCapture.onerror = function(e) {
     statusElement.innerHTML = 'Status Info : onerror: ' + e.status;
   };
 
   startButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Start: ';
     gettingImage = false;
-    ep.startPreview().then(function(e) { statusElement.innerHTML += e; },
-                           function(e) { statusElement.innerHTML += e; });
+    photoCapture.startPreview().then(function(e) { statusElement.innerHTML += e; },
+                                     function(e) { statusElement.innerHTML += e; });
   };
 
   takePhotoButton.onclick = function(e) {
-    ep.takePhoto().then(
+    photoCapture.takePhoto().then(
         function(photo) {
           photo.queryContainerImage().then(
               function(image) {
@@ -149,7 +150,7 @@ function main() {
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';
-    ep.stopPreview().then(function(e) { statusElement.innerHTML += e; },
-                          function(e) { statusElement.innerHTML += e; });
+    photoCapture.stopPreview().then(function(e) { statusElement.innerHTML += e; },
+                                    function(e) { statusElement.innerHTML += e; });
   };
 }

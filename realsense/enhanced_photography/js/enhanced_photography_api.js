@@ -134,26 +134,38 @@ var EnhancedPhotography = function(objectId) {
     return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
   };
 
-  this._addMethodWithPromise('startPreview');
-  this._addMethodWithPromise('stopPreview');
-  this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
-
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
   this._addMethodWithPromise('depthRefocus', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapPhotoArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapPhotoArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('initMotionEffect', wrapPhotoArgs);
   this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
-
-  this._addEvent('error');
-  this._addEvent('preview');
 };
 
 EnhancedPhotography.prototype = new common.EventTargetPrototype();
 EnhancedPhotography.prototype.constructor = EnhancedPhotography;
 
 exports.EnhancedPhoto = new EnhancedPhotography();
+
+var PhotoCapture = function() {
+  common.BindingObject.call(this, common.getUniqueId());
+  common.EventTarget.call(this);
+
+  internal.postMessage('photoCaptureConstructor', [this._id]);
+
+  this._addMethodWithPromise('startPreview');
+  this._addMethodWithPromise('stopPreview');
+  this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
+
+  this._addEvent('error');
+  this._addEvent('preview');
+};
+
+PhotoCapture.prototype = new common.EventTargetPrototype();
+PhotoCapture.prototype.constructor = PhotoCapture;
+
+exports.PhotoCapture = new PhotoCapture();
 
 var PhotoUtils = function (objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());

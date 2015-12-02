@@ -18,7 +18,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var ep, photoUtils;
+var ep, photoCapture, photoUtils;
 var currentPhoto, savePhoto;
 var width = 640, height = 480;
 var canvasWidth = 400, canvasHeight = 300;
@@ -291,6 +291,7 @@ function popColor(e) {
 
 function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
 
   previewContext = previewCanvas.getContext('2d');
@@ -462,11 +463,11 @@ function main() {
 
   var gettingImage = false;
 
-  ep.onpreview = function(e) {
+  photoCapture.onpreview = function(e) {
     if (gettingImage)
       return;
     gettingImage = true;
-    ep.getPreviewImage().then(
+    photoCapture.getPreviewImage().then(
         function(image) {
           previewData.data.set(image.data);
           previewContext.putImageData(previewData, 0, 0);
@@ -475,20 +476,20 @@ function main() {
         }, function() {});
   };
 
-  ep.onerror = function(e) {
+  photoCapture.onerror = function(e) {
     statusElement.innerHTML = 'Status Info : onerror: ' + e.status;
   };
 
   startButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Start: ';
     gettingImage = false;
-    ep.startPreview().then(function(e) { statusElement.innerHTML += e; },
-                           function(e) { statusElement.innerHTML += e; });
+    photoCapture.startPreview().then(function(e) { statusElement.innerHTML += e; },
+                                     function(e) { statusElement.innerHTML += e; });
   };
 
   snapShotButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : TakePhoto: ';
-    ep.takePhoto().then(
+    photoCapture.takePhoto().then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
@@ -567,7 +568,7 @@ function main() {
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';
-    ep.stopPreview().then(function(e) { statusElement.innerHTML += e; },
-                          function(e) { statusElement.innerHTML += e; });
+    photoCapture.stopPreview().then(function(e) { statusElement.innerHTML += e; },
+                                    function(e) { statusElement.innerHTML += e; });
   };
 }

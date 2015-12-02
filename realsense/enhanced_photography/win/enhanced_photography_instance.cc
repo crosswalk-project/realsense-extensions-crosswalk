@@ -14,6 +14,7 @@
 #include "base/json/json_string_value_serializer.h"
 #include "realsense/enhanced_photography/win/enhanced_photography_object.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/photo_capture_object.h"
 #include "realsense/enhanced_photography/win/photo_utils_object.h"
 
 namespace realsense {
@@ -32,6 +33,9 @@ EnhancedPhotographyInstance::EnhancedPhotographyInstance()
                  base::Unretained(this)));
   handler_.Register("depthPhotoConstructor",
       base::Bind(&EnhancedPhotographyInstance::OnDepthPhotoConstructor,
+                 base::Unretained(this)));
+  handler_.Register("photoCaptureConstructor",
+      base::Bind(&EnhancedPhotographyInstance::OnPhotoCaptureConstructor,
                  base::Unretained(this)));
   handler_.Register("photoUtilsConstructor",
       base::Bind(&EnhancedPhotographyInstance::OnPhotoUtilsConstructor,
@@ -102,6 +106,17 @@ void EnhancedPhotographyInstance::OnDepthPhotoConstructor(
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new DepthPhotoObject(this));
+  store_.AddBindingObject(params->object_id, obj.Pass());
+}
+
+void EnhancedPhotographyInstance::OnPhotoCaptureConstructor(
+  scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+  scoped_ptr<jsapi::photo_capture::PhotoCaptureConstructor::
+      Params> params(jsapi::photo_capture::PhotoCaptureConstructor::
+          Params::Create(*info->arguments()));
+
+  scoped_ptr<BindingObject> obj(new PhotoCaptureObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
 }
 

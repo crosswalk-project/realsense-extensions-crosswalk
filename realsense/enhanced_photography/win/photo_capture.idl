@@ -1,0 +1,36 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// PhotoCapture interface
+namespace photo_capture {
+  dictionary ErrorEvent {
+    DOMString status;
+  };
+
+  dictionary PreviewConfiguration {
+    long? colorWidth;
+    long? colorHeight;
+    long? depthWidth;
+    long? depthHeight;
+    double? framerate;
+  };
+
+  callback ImagePromise = void(depth_photo.Image image, DOMString error);
+  callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
+  callback Promise = void(DOMString success, DOMString error);
+
+  interface Events {
+    static void onerror();
+    static void onpreview();
+  };
+
+  interface Functions {
+    static void startPreview(optional PreviewConfiguration config, Promise promise);
+    static void stopPreview(Promise promise);
+    static void getPreviewImage(ImagePromise promise);
+    static void takePhoto(PhotoPromise promise);
+    
+    [nodoc] static PhotoCapture photoCaptureConstructor(DOMString objectId);
+  };
+};

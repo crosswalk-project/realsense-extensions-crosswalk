@@ -10,7 +10,7 @@ var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
 var overlayCanvas = document.getElementById('overlay');
 
-var ep;
+var ep, photoCapture;
 var previewContext, previewData, imageContext, imageData, overlayContext;
 var currentPhoto, savePhoto;
 
@@ -46,6 +46,7 @@ function doBlendColorPop(colorImage, maskImage) {
 
 function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -197,7 +198,7 @@ function main() {
     }
   }, false);
 
-  ep.onpreview = function(e) {
+  photoCapture.onpreview = function(e) {
     if (gettingImage)
       return;
     gettingImage = true;
@@ -209,19 +210,19 @@ function main() {
         }, function() { });
   };
 
-  ep.onerror = function(e) {
+  photoCapture.onerror = function(e) {
     statusElement.innerHTML = 'Status Info : onerror: ' + e.status;
   };
 
   startButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Start: ';
     gettingImage = false;
-    ep.startPreview().then(function(e) { statusElement.innerHTML += e; },
-                           function(e) { statusElement.innerHTML += e; });
+    photoCapture.startPreview().then(function(e) { statusElement.innerHTML += e; },
+                                     function(e) { statusElement.innerHTML += e; });
   };
 
   takePhotoButton.onclick = function(e) {
-    ep.takePhoto().then(
+    photoCapture.takePhoto().then(
         function(photo) {
           currentPhoto = photo;
           savePhoto = photo;
@@ -289,8 +290,8 @@ function main() {
 
   stopButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Stop: ';
-    ep.stopPreview().then(function(e) { statusElement.innerHTML += e; },
-                          function(e) { statusElement.innerHTML += e; });
+    photoCapture.stopPreview().then(function(e) { statusElement.innerHTML += e; },
+                                    function(e) { statusElement.innerHTML += e; });
   };
 
   segmentationButton.onclick = function(e) {
