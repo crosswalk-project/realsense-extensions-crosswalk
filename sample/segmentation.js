@@ -202,7 +202,7 @@ function main() {
     if (gettingImage)
       return;
     gettingImage = true;
-    ep.getPreviewImage().then(
+    photoCapture.getPreviewImage().then(
         function(image) {
           previewData.data.set(image.data);
           previewContext.putImageData(previewData, 0, 0);
