@@ -25,6 +25,7 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   ~DepthPhotoObject() override;
 
   PXCPhoto* GetPhoto() { return photo_; }
+  void SetPhoto(PXCPhoto* photo) { photo_ = photo; }
   void DestroyPhoto();
 
  private:
