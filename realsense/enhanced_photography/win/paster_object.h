@@ -30,17 +30,22 @@ class PasterObject : public xwalk::common::BindingObject {
   ~PasterObject() override;
 
  private:
+  void OnGetPlanesMap(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnPreviewSticker(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
                               jsapi::depth_photo::Photo* photo);
+  bool CopyMaskImageToBinaryMessage(PXCImage* mask);
 
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::Paster* paster_;
   PXCPhoto* photo_;
   std::vector<PXCImage::ImageData> sticker_data_set_;
+  scoped_ptr<uint8[]> binary_message_;
+  size_t binary_message_size_;
 };
 
 }  // namespace enhanced_photography

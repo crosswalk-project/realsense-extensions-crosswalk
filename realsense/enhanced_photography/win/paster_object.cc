@@ -13,12 +13,19 @@ namespace enhanced_photography {
 PasterObject::PasterObject(EnhancedPhotographyInstance* instance,
                            PXCPhoto* photo)
     : instance_(instance),
-      photo_(photo) {
+      photo_(photo),
+      binary_message_size_(0) {
+  handler_.Register("getPlanesMap",
+      base::Bind(&PasterObject::OnGetPlanesMap,
+                 base::Unretained(this)));
   handler_.Register("setSticker",
       base::Bind(&PasterObject::OnSetSticker,
                  base::Unretained(this)));
   handler_.Register("paste",
       base::Bind(&PasterObject::OnPaste,
+                 base::Unretained(this)));
+  handler_.Register("previewSticker",
+      base::Bind(&PasterObject::OnPreviewSticker,
                  base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
@@ -39,6 +46,30 @@ PasterObject::~PasterObject() {
     session_->Release();
     session_ = nullptr;
   }
+}
+
+void PasterObject::OnGetPlanesMap(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Image image;
+  if (!photo_) {
+    info->PostResult(GetPlanesMap::Results::Create(
+        image, "Invalid Paster object"));
+    return;
+  }
+
+  DCHECK(paster_);
+  PXCImage* mask = paster_->GetPlanesMap();
+  if (!CopyMaskImageToBinaryMessage(mask)) {
+    info->PostResult(GetPlanesMap::Results::Create(image,
+        "Failed to getPlanesMap."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
 }
 
 void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
@@ -172,6 +203,30 @@ void PasterObject::OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   info->PostResult(Paste::Results::Create(photo, std::string()));
 }
 
+void PasterObject::OnPreviewSticker(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Image image;
+  if (!photo_) {
+    info->PostResult(PreviewSticker::Results::Create(
+        image, "Invalid Paster object"));
+    return;
+  }
+
+  DCHECK(paster_);
+  PXCImage* mask = paster_->PreviewSticker();
+  if (!CopyMaskImageToBinaryMessage(mask)) {
+    info->PostResult(PreviewSticker::Results::Create(image,
+        "Failed to previewSticker."));
+    return;
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+      reinterpret_cast<const char*>(binary_message_.get()),
+      binary_message_size_));
+  info->PostResult(result.Pass());
+}
+
 void PasterObject::CreateDepthPhotoObject(
   PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
   DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
@@ -180,6 +235,46 @@ void PasterObject::CreateDepthPhotoObject(
   std::string object_id = base::GenerateGUID();
   instance_->AddBindingObject(object_id, obj.Pass());
   photo->object_id = object_id;
+}
+
+bool PasterObject::CopyMaskImageToBinaryMessage(PXCImage* mask) {
+  if (!mask) return false;
+
+  PXCImage::ImageInfo mask_info = mask->QueryInfo();
+  PXCImage::ImageData mask_data;
+  if (mask->AcquireAccess(PXCImage::ACCESS_READ,
+      mask_info.format, &mask_data) < PXC_STATUS_NO_ERROR) {
+    return false;
+  }
+
+  if (mask_info.format == PXCImage::PixelFormat::PIXEL_FORMAT_Y8) {
+    // binary image message: call_id (i32), width (i32), height (i32),
+    // mask data (int8 buffer, size = width * height)
+    size_t requset_size = 4 * 3 + mask_info.width * mask_info.height;
+    binary_message_.reset(new uint8[requset_size]);
+    binary_message_size_ = requset_size;
+
+    int* int_array = reinterpret_cast<int*>(binary_message_.get());
+    int_array[1] = mask_info.width;
+    int_array[2] = mask_info.height;
+
+    uint8_t* uint8_data_array = reinterpret_cast<uint8_t*>(
+        binary_message_.get() + 3 * sizeof(int));
+    int k = 0;
+    for (int y = 0; y < mask_info.height; ++y) {
+      for (int x = 0; x < mask_info.width; ++x) {
+        uint8_t* depth8 = reinterpret_cast<uint8_t*>(
+            mask_data.planes[0] + mask_data.pitches[0] * y);
+        uint8_data_array[k++] = depth8[x];
+      }
+    }
+  } else {
+    DLOG(WARNING) << "Unsupported Image Format";
+    return false;
+  }
+
+  mask->ReleaseAccess(&mask_data);
+  return true;
 }
 
 }  // namespace enhanced_photography
