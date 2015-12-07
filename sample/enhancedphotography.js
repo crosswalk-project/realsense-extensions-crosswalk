@@ -562,7 +562,7 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    var dp = new realsense.DepthEnabledPhotography.DepthPhoto();
+    var dp = new realsense.DepthEnabledPhotography.Photo();
     dp.loadXDM(file).then(
         function(sucess) {
           currentPhoto = dp;
