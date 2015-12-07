@@ -18,12 +18,14 @@
     <button id='load' style='position: absolute; left: 335px; top: 15px; width: 100px; height: 25px'>Load</button>
     <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 335px; top: 15px; width: 100px; opacity:0; height: 25px' />
     <button id='save' style='position: absolute; left: 440px; top: 15px; width: 100px; height: 25px'>Save</button>
-    <button id='segmentation' style='position: absolute; left: 545px; top: 10px; width: 100px;'> restart segmentation</button>
+    <button id='restart' style='position: absolute; left: 560px; top: 15px; width: 80px; height: 25px'> Restart</button>
+    <button id='undo' style='position: absolute; left: 645px; top: 15px; width: 80px; height: 25px'> Undo</button>
+    <button id='redo' style='position: absolute; left: 730px; top: 15px; width: 80px; height: 25px'> Redo</button>
   </div>
   <div id='canvas_container'>
     <canvas id='preview' width='640' height='480' style='position: absolute; left: 20px; top: 50px;'></canvas>
     <canvas id='image' width='640' height='480' style='position: absolute; left: 435px; top: 50px;'></canvas>
-    <canvas id='overlay' width='640' height='480' style='position: absolute; left: 435px; top: 50px;'></cavnas>
+    <canvas id='overlay' width='640' height='480' style='position: absolute; left: 435px; top: 50px;'></canvas>
   </div>
   <p id='status' style='position: absolute; left: 10px; top: 360px;'></p>
   <img id="imageDisplayArea" height="300" width="300" style='position: absolute; left: 10px; top: 400px;'>

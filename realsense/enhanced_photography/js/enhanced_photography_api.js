@@ -29,9 +29,20 @@ function wrapRGB32ImageReturns(data) {
   return { format: 'RGB32', width: width, height: height, data: buffer };
 }
 
+function wrapY8ImageReturns(data) {
+  // 3 int32 (4 bytes) values.
+  var header_byte_offset = 3 * 4;
+  var int32_array = new Int32Array(data, 0, 3);
+  // int32_array[0] is the callback id.
+  var width = int32_array[1];
+  var height = int32_array[2];
+  var buffer = new Uint8Array(data, header_byte_offset, width * height);
+  return { format: 'Y8', width: width, height: height, data: buffer };
+}
+
 function InvalidPhotoException(message) {
   this.message = message;
-  this.name = "InvalidPhotoException";
+  this.name = 'InvalidPhotoException';
 }
 
 var DepthPhoto = function(objectId) {
@@ -283,3 +294,73 @@ var PhotoUtils = function(objectId) {
 PhotoUtils.prototype = new common.EventTargetPrototype();
 PhotoUtils.prototype.constructor = PhotoUtils;
 exports.PhotoUtils = new PhotoUtils();
+
+var Segmentation = function(photo, objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+
+  if (!(photo instanceof DepthPhoto))
+    throw new InvalidPhotoException('Invalid Photo object');
+
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage(
+        'segmentationConstructor', [this._id, { objectId: photo.photoId }]);
+    if (!result)
+      throw new InvalidPhotoException('Invalid Photo object');
+  }
+
+  function wrapY8ImageToArrayBuffer(args) {
+    var y8Image = args[0];
+    if (y8Image.format != 'Y8')
+      return null;
+    var length = 2 * bytesPerInt32 + y8Image.width * y8Image.height * bytesPerY8Pixel;
+    var arrayBuffer = new ArrayBuffer(length);
+    var view = new Int32Array(arrayBuffer, 0, 2);
+    view[0] = y8Image.width;
+    view[1] = y8Image.height;
+    var view = new Uint8Array(arrayBuffer, 2 * bytesPerInt32);
+    for (var i = 0; i < y8Image.data.length; i++) {
+      view[i] = y8Image.data[i];
+    }
+    return arrayBuffer;
+  };
+
+  function wrapRefineMaskToArrayBuffer(args) {
+    var points = args[0];
+    var foreground = args[1];
+    // length = pointsNumber + pointsData + foreground
+    var length = bytesPerInt32 + points.length * bytesPerInt32 * 2 + 1;
+    var arrayBuffer = new ArrayBuffer(length);
+    var view = new Int32Array(arrayBuffer, 0, points.length * 2 + 1);
+    view[0] = points.length;
+    var k = 1;
+    for (var i = 0; i < points.length; i++) {
+      view[k] = points[i].x;
+      k++;
+      view[k] = points[i].y;
+      k++;
+    }
+
+    view = new Uint8Array(arrayBuffer, bytesPerInt32 + points.length * bytesPerInt32 * 2);
+    view[0] = foreground;
+
+    return arrayBuffer;
+  };
+
+  this._addBinaryMethodWithPromise('objectSegment', wrapY8ImageToArrayBuffer, wrapY8ImageReturns);
+  this._addMethodWithPromise('redo', null, wrapY8ImageReturns);
+  this._addBinaryMethodWithPromise('refineMask', wrapRefineMaskToArrayBuffer, wrapY8ImageReturns);
+  this._addMethodWithPromise('undo', null, wrapY8ImageReturns);
+
+  Object.defineProperties(this, {
+    'photo': {
+      value: photo,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+  });
+};
+
+Segmentation.prototype = new common.EventTargetPrototype();
+Segmentation.prototype.constructor = Segmentation;
+exports.Segmentation = Segmentation;
