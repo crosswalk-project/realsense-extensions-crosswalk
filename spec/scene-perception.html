@@ -153,6 +153,15 @@
           <dd>
           </dd>
           <dt>
+            Promise&lt;Blob&gt; saveMesh(optional SaveMeshInfo info)
+          </dt>
+          <dd>
+            <p>
+              Save the mesh data of the volume to an ASCII file.
+              It will return a blob with 'text/plain' type.
+            </p>
+          </dd>
+          <dt>
             Promise&lt;void&gt; setMeshingResolution(MeshingResolution resolution)
           </dt>
           <dd>
@@ -501,6 +510,31 @@
             MeshingUpdateInfo? updateInfo;
           </dt>
           <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>SaveMeshInfo</a></code>
+        </h2>
+        <dl title='dictionary SaveMeshInfo' class='idl'>
+          <dt>
+            boolean? fillMeshHoles;
+          </dt>
+          <dd>
+            If true, fill the mesh holes.
+          </dd>
+          <dt>
+            boolean? saveMeshColor;
+          </dt>
+          <dd>
+            If true, save the mesh color data.
+          </dd>
+          <dt>
+            MeshingResolution? meshResolution;
+          </dt>
+          <dd>
+            Specify the mesh resolution.
           </dd>
         </dl>
       </section>
