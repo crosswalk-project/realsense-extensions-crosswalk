@@ -7,7 +7,7 @@ var loadPhoto = document.getElementById('loadPhoto');
 var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
 
-var ep, photoCapture;
+var ep, photoCapture, XDMUtils;
 var previewContext, previewData, imageContext, imageData;
 
 var width = 640, height = 480;
@@ -70,6 +70,7 @@ function doMothionEffect() {
 function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
+  XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -125,25 +126,32 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    var dp = new realsense.DepthEnabledPhotography.Photo();
-    dp.loadXDM(file).then(
-        function (sucess) {
-          dp.queryContainerImage().then(
-              function(image) {
-                imageContext.clearRect(0, 0, width, height);
-                imageData = imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML = 'Load successfully';
-                imageData.data.set(image.data);
-                imageContext.putImageData(imageData, 0, 0);
-                hasImage = true;
-                ep.initMotionEffect(dp).then(
-                    function() {
-                      isInitialized = true;
-                      doMothionEffect();
-                    },
-                    function(e) { statusElement.innerHTML = e });
-              },
-              function(e) { statusElement.innerHTML = e; });
+    XDMUtils.isXDM(file).then(
+        function(success) {
+          if (success) {
+            XDMUtils.loadXDM(file).then(
+                function(photo) {
+                  photo.queryContainerImage().then(
+                      function(image) {
+                        imageContext.clearRect(0, 0, width, height);
+                        imageData = imageContext.createImageData(image.width, image.height);
+                        statusElement.innerHTML = 'Load successfully';
+                        imageData.data.set(image.data);
+                        imageContext.putImageData(imageData, 0, 0);
+                        hasImage = true;
+                        ep.initMotionEffect(photo).then(
+                            function() {
+                              isInitialized = true;
+                              doMothionEffect();
+                            },
+                            function(e) { statusElement.innerHTML = e });
+                      },
+                      function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
+          } else {
+            statusElement.innerHTML = 'This is not a XDM file. Load failed.';
+          }
         },
         function(e) { statusElement.innerHTML = e; });
   });
