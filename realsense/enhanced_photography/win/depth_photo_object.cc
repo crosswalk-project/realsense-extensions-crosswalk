@@ -121,8 +121,10 @@ void DepthPhotoObject::OnSaveXDM(
       FILE_PATH_LITERAL("tmp_img.jpg"));
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (photo_->SaveXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(SaveXDM::Results::Create(buffer,
-        "Failed to SaveXDM"));
+    scoped_ptr<base::ListValue> results(new base::ListValue());
+    results->Append(new base::StringValue(std::string()));
+    results->Append(new base::StringValue(std::string("Failed to saveXDM")));
+    info->PostResult(results.Pass());
     return;
   }
 
