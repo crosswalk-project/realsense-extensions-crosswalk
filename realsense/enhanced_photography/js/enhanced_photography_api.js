@@ -244,8 +244,10 @@ var Paster = function(photo, objectId) {
     return arrayBuffer;
   };
 
+  this._addMethodWithPromise('getPlanesMap', null, wrapY8ImageReturns);
   this._addBinaryMethodWithPromise('setSticker', wrapSetStickerArgsToArrayBuffer);
   this._addMethodWithPromise('paste', null, wrapPhotoReturns);
+  this._addMethodWithPromise('previewSticker', null, wrapY8ImageReturns);
 
   Object.defineProperties(this, {
     'photo': {

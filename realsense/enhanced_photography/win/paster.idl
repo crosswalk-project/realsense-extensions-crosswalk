@@ -18,12 +18,15 @@ namespace paster {
     boolean colorCorrection;
   };
 
+  callback ImagePromise = void(depth_photo.Image image, DOMString error);
   callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
+    static void getPlanesMap(ImagePromise promise);
     static void setSticker(depth_photo.Image sticker, enhanced_photography.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
     static void paste(PhotoPromise promise);
+    static void previewSticker(ImagePromise promise);
 
     [nodoc] static Paster pasterConstructor(DOMString objectId, depth_photo.Photo photo);
   };
