@@ -6,6 +6,7 @@ var resetButton = document.getElementById('reset');
 var destoryButton = document.getElementById('destory');
 var startButton = document.getElementById('startSP');
 var stopButton = document.getElementById('stopSP');
+var saveButton = document.getElementById('saveMesh');
 var toggleReconstructionButton = document.getElementById('toggleReconstruction');
 var volumePreviewRadio = document.getElementById('volumePreviewRadio');
 var meshingRadio = document.getElementById('meshingRadio');
@@ -82,6 +83,7 @@ function resetButtonState(beforeStart) {
   destoryButton.disabled = beforeStart;
   startButton.disabled = beforeStart;
   stopButton.disabled = true;
+  saveButton.disabled = true;
   toggleReconstructionButton.disabled = beforeStart;
 }
 
@@ -177,6 +179,7 @@ function main() {
     sp.start().then(function() {
       startButton.disabled = true;
       stopButton.disabled = false;
+      saveButton.disabled = false;
       console.log('SP started successfully');
     }, function(e) {console.log(e);});
   };
@@ -188,6 +191,24 @@ function main() {
       stopButton.disabled = true;
       accuracyElement.innerHTML = 'Accuracy: ';
       showCamera(false);
+    }, function(e) {console.log(e);});
+  };
+
+  saveButton.onclick = function(e) {
+    sp.saveMesh().then(function(blob) {
+      var reader = new FileReader();
+      reader.onload = function(evt) {
+        console.log(evt.target.result);
+        // Currently, crosswalk has bugs to download (see XWALK-5220). So the following code
+        // doesn't work. Once download is enabled. The processed image will be
+        // downloaded into 'Downloads' folder.
+        var a = document.createElement('a');
+        a.href = evt.target.result;
+        a.download = true;
+        a.click();
+        alert('Save successfully');
+      };
+      reader.readAsDataURL(blob);
     }, function(e) {console.log(e);});
   };
 
