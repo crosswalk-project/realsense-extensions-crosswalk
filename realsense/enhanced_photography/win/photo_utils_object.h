@@ -27,6 +27,8 @@ class PhotoUtilsObject : public xwalk::common::BindingObject {
  private:
   void OnDepthResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnEnhanceDepth(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnPhotoCrop(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnPhotoRotate(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo);
 

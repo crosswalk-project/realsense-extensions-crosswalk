@@ -291,6 +291,8 @@ var PhotoUtils = function(objectId) {
 
   this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('photoCrop', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('photoRotate', wrapPhotoArgs, wrapPhotoReturns);
 };
 
 PhotoUtils.prototype = new common.EventTargetPrototype();

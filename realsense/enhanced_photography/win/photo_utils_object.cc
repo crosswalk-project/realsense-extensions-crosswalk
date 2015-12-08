@@ -18,6 +18,12 @@ PhotoUtilsObject::PhotoUtilsObject(EnhancedPhotographyInstance* instance)
   handler_.Register("enhanceDepth",
                     base::Bind(&PhotoUtilsObject::OnEnhanceDepth,
                                base::Unretained(this)));
+  handler_.Register("photoCrop",
+                    base::Bind(&PhotoUtilsObject::OnPhotoCrop,
+                               base::Unretained(this)));
+  handler_.Register("photoRotate",
+                    base::Bind(&PhotoUtilsObject::OnPhotoRotate,
+                               base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
   photo_utils_ = PXCEnhancedPhoto::PhotoUtils::CreateInstance(session_);
@@ -120,6 +126,82 @@ void PhotoUtilsObject::OnEnhanceDepth(
 
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
+  pxcphoto->Release();
+}
+
+void PhotoUtilsObject::OnPhotoCrop(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Photo photo;
+  scoped_ptr<PhotoCrop::Params> params(
+      PhotoCrop::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        PhotoCrop::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(PhotoCrop::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(photo_utils_);
+  PXCRectI32 pxcrect;
+  pxcrect.x = params->rect.x;
+  pxcrect.y = params->rect.y;
+  pxcrect.w = params->rect.w;
+  pxcrect.h = params->rect.h;
+
+  PXCPhoto* pxcphoto = photo_utils_->PhotoCrop(depthPhotoObject->GetPhoto(),
+                                               pxcrect);
+  if (!pxcphoto) {
+    info->PostResult(PhotoCrop::Results::Create(photo,
+        "Failed to operate photoCrop"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(PhotoCrop::Results::Create(photo, std::string()));
+  pxcphoto->Release();
+}
+
+void PhotoUtilsObject::OnPhotoRotate(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Photo photo;
+  scoped_ptr<PhotoRotate::Params> params(
+      PhotoRotate::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        PhotoRotate::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(PhotoRotate::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(photo_utils_);
+
+  pxcF32 rotation = params->rotation;
+  PXCPhoto* pxcphoto = photo_utils_->PhotoRotate(depthPhotoObject->GetPhoto(),
+                                                 rotation);
+  if (!pxcphoto) {
+    info->PostResult(PhotoRotate::Results::Create(photo,
+        "Failed to operate photoRotate"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(PhotoRotate::Results::Create(photo, std::string()));
   pxcphoto->Release();
 }
 
