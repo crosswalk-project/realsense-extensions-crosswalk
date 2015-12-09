@@ -103,8 +103,8 @@ function main() {
         }
         // Draw landmark points on every tracked faces.
         if (face.landmark) {
-          for (var i = 0; i < face.landmark.points.length; ++i) {
-            var landmark_point = face.landmark.points[i];
+          for (var j = 0; j < face.landmark.points.length; ++j) {
+            var landmark_point = face.landmark.points[j];
             color_context.font = '6px';
             if (landmark_point.confidenceImage) {
               // White color for confidence point.

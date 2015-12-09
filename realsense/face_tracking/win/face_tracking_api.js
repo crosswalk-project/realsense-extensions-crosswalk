@@ -99,7 +99,7 @@ var FaceTracking = function(object_id) {
         var num_of_points = int32_array[0];
         offset = offset + 4; // 1 int32(4 bytes)
 
-        for (var i = 0; i < num_of_points; ++i) {
+        for (var j = 0; j < num_of_points; ++j) {
           int32_array = new Int32Array(data, offset, 3);
           offset = offset + 3 * 4; // 3 int32(4 bytes)
           var float32_array = new Float32Array(data, offset, 5);
