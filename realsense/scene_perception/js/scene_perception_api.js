@@ -99,6 +99,37 @@ var ScenePerception = function(objectId) {
       faces: faces};
   }
 
+  function wrapVoxelsReturn(data) {
+    // The format:
+    //   CallbackID(int32),
+    //   dataPending(int32),
+    //   numberOfSurfaceVoxels(int32),
+    //   hasColorData(int32, whether the color data is available),
+    //   centerOfsurface_voxels_data_(Point3D[])
+    //   surfaceVoxelsColorData(unit8[], 3 * BYTE,  RGB for each voxel)
+    const BYTES_PER_INT = 4;
+    const BYTES_PER_FLOAT = 4;
+    var int32Array = new Int32Array(data, 0, 4);
+    var dataPending = int32Array[1];
+    var numberOfVoxels = int32Array[2];
+    var hasColorData = int32Array[3];
+    var voxelsOffset = 4 * BYTES_PER_INT;
+    var voxels = new Float32Array(data, voxelsOffset, numberOfVoxels * 3);
+    var colorData = null;
+    if (hasColorData) {
+      var colorDataOffset = voxelsOffset + numberOfVoxels * 3 * BYTES_PER_FLOAT;
+      colorData = new Uint8Array(data, colorDataOffset, numberOfVoxels * 3);
+    }
+
+    return {
+      dataPending: dataPending,
+      centerOfSurfaceVoxels: voxels,
+      numberOfSurfaceVoxels: numberOfVoxels,
+      surfaceVoxelsColor: colorData
+
+    };
+  }
+
   function wrapMeshFileReturn(data) {
     // 1 int32 (4 bytes) value (callback id).
     var dataBuffer = data.slice(4);
@@ -131,6 +162,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('setMeshingThresholds');
   this._addMethodWithPromise('setCameraPose');
   this._addMethodWithPromise('setMeshingUpdateConfigs');
+  this._addMethodWithPromise('configureSurfaceVoxelsData');
 
   this._addMethodWithPromise('getSample', null, wrapSampleReturns);
   this._addMethodWithPromise('getVolumePreview', null, wrapVolumePreviewReturn);
@@ -142,6 +174,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('getMeshingThresholds');
   this._addMethodWithPromise('getMeshingResolution');
   this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn);
+  this._addMethodWithPromise('getSurfaceVoxels', null, wrapVoxelsReturn);
 
   this._addMethodWithPromise('saveMesh', null, wrapMeshFileReturn);
 

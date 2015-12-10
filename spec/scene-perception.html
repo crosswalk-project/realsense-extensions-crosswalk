@@ -155,6 +155,40 @@
           <dd>
           </dd>
           <dt>
+            Promise&lt;SurfaceVoxelsData&gt; getSurfaceVoxels(optional InterestRegion region)
+          </dt>
+          <dd>
+            <p>
+              The <code>getSurfaceVoxels</code> function exports the centers of the voxels intersected by the surface scanned.
+              <br>
+              The voxels size is set based on the resolution of the color images.
+              <br>
+              Optionally, you can specify the <code>region</code> of interested bounding box.
+            </p>
+            <p>
+              The <code>getSurfaceVoxels</code> function returns promise.
+              <br>
+              The promise will be fulfilled with surface voxels in batches
+              if there are no errors, the <code>dataPending</code> attribute in the result will be true when there are remaining surface voxels.
+              <br>
+              Please call the function again until the <code>dataPending</code> flag returns false.
+              <br>
+              The promise will be rejected if there is a failure.
+            </p>
+            <p>
+              If <code>useColor</code> was set to <code>false</code> by calling <code>configureSurfaceVoxelsData</code> function before
+              <code>getSurfaceVoxels</code> function, the <code>surfaceVoxelsColor</code> member of
+              the returned result from <code>getSurfaceVoxels</code> function will be <code>null</code>.
+            </p>
+            <dl class='parameters'>
+              <dt>optional InterestRegion region</dt>
+                <dd>
+                The optional region of interest by specifying the lower left and upper right of the region of interest bounding box.
+                </dd>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
             Promise&lt;Blob&gt; saveMesh(optional SaveMeshInfo info)
           </dt>
           <dd>
@@ -182,6 +216,14 @@
             Promise&lt;void&gt; setMeshingUpdateConfigs(MeshingUpdateConfigs config)
           </dt>
           <dd>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; configureSurfaceVoxelsData(VoxelsDataConfig config)
+          </dt>
+          <dd>
+            <p>
+              This interface sets the configurations of <code>getSurfaceVoxels</code> function.
+            </p>
           </dd>
           <dt>
             attribute EventHandler onchecking
@@ -404,6 +446,25 @@
       </section>
       <section>
         <h2>
+          <code><a>InterestRegion</a></code>
+        </h2>
+        <dl title='dictionary InterestRegion' class='idl'>
+          <dt>
+            Point3D lowerLeftFrontPoint;
+          </dt>
+          <dd>
+            The lower left point of the interest region.
+          </dd>
+          <dt>
+            Point3D upperRightRearPoint;
+          </dt>
+          <dd>
+            The upper right point of the interest region.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>MeshData</a></code>
         </h2>
         <dl title='dictionary MeshData' class='idl'>
@@ -517,6 +578,70 @@
       </section>
       <section>
         <h2>
+          <code><a>Normals</a></code>
+        </h2>
+        <dl title='dictionary Normals' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Float32Array data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point3D</a></code>
+        </h2>
+        <dl title='dictionary Point3D' class='idl'>
+          <dt>
+            float x;
+          </dt>
+          <dd>
+            The x coordinate of the point.
+          </dd>
+          <dt>
+            float y;
+          </dt>
+          <dd>
+            The y coordinate of the point.
+          </dd>
+          <dt>
+            float z;
+          </dt>
+          <dd>
+            The z coordinate of the point.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Sample</a></code>
+        </h2>
+        <dl title='dictionary Sample' class='idl'>
+          <dt>
+            Image color
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            Image depth
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>SaveMeshInfo</a></code>
         </h2>
         <dl title='dictionary SaveMeshInfo' class='idl'>
@@ -542,40 +667,33 @@
       </section>
       <section>
         <h2>
-          <code><a>Normals</a></code>
+          <code><a>SurfaceVoxelsData</a></code>
         </h2>
-        <dl title='dictionary Normals' class='idl'>
+        <dl title='dictionary SurfaceVoxelsData' class='idl'>
           <dt>
-            unsigned long width
+            boolean dataPending;
           </dt>
           <dd>
+            Indicates whether there is remaining surface voxels data.
           </dd>
           <dt>
-            unsigned long height
+            Float32Buffer centerOfSurfaceVoxels
           </dt>
           <dd>
+            The array of center of surface voxels.
           </dd>
           <dt>
-            Float32Array data
+            unsigned long numberOfSurfaceVoxels;
           </dt>
           <dd>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
-          <code><a>Sample</a></code>
-        </h2>
-        <dl title='dictionary Sample' class='idl'>
-          <dt>
-            Image color
-          </dt>
-          <dd>
+            The number of surface voxels.
           </dd>
           <dt>
-            Image depth
+            Uint8Array surfaceVoxelsColor;
           </dt>
           <dd>
+            The array of color channels for voxels which contains the three RGB channels for each voxel.
+            The data type of this array is Byte and the length is 3 * <code>numberOfSurfaceVoxels</code>.
           </dd>
         </dl>
       </section>
@@ -598,6 +716,27 @@
             Float32Array data
           </dt>
           <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>VoxelsDataConfig</a></code>
+        </h2>
+        <dl title='dictionary VoxelsDataConfig' class='idl'>
+          <dt>
+            unsigned long voxelCount;
+          </dt>
+          <dd>
+            The maximum number of voxels you can get by calling
+            <code>getSurfaceVoxels</code> function.
+          </dd>
+          <dt>
+            boolean useColor;
+          </dt>
+          <dd>
+            Indicate if color should be returned per voxel when you call
+            <code>getSurfaceVoxels</code> function.
           </dd>
         </dl>
       </section>

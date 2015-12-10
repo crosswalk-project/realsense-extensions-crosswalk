@@ -114,6 +114,7 @@ ScenePerceptionObject::ScenePerceptionObject() :
     sense_manager_(NULL),
     scene_perception_(NULL),
     block_meshing_data_(NULL),
+    surface_voxels_data_(NULL),
     latest_color_image_(NULL),
     latest_depth_image_(NULL) {
   last_meshing_time_ = base::TimeTicks::Now();
@@ -176,6 +177,10 @@ ScenePerceptionObject::ScenePerceptionObject() :
                     base::Bind(
                       &ScenePerceptionObject::OnSetMeshingUpdateConfigs,
                       base::Unretained(this)));
+  handler_.Register("configureSurfaceVoxelsData",
+                    base::Bind(
+                      &ScenePerceptionObject::OnConfigureSurfaceVoxelsData,
+                      base::Unretained(this)));
 
   // Data and configurations getting APIs.
   handler_.Register("getSample",
@@ -210,6 +215,10 @@ ScenePerceptionObject::ScenePerceptionObject() :
                     base::Bind(&ScenePerceptionObject::OnGetMeshData,
                                base::Unretained(this)));
 
+  handler_.Register("getSurfaceVoxels",
+                    base::Bind(&ScenePerceptionObject::OnGetSurfaceVoxels,
+                               base::Unretained(this)));
+
   handler_.Register("saveMesh",
                     base::Bind(&ScenePerceptionObject::OnSaveMesh,
                                base::Unretained(this)));
@@ -241,6 +250,11 @@ void ScenePerceptionObject::ReleaseResources() {
   if (block_meshing_data_) {
     block_meshing_data_->Release();
     block_meshing_data_ = NULL;
+  }
+
+  if (surface_voxels_data_) {
+    surface_voxels_data_->Release();
+    surface_voxels_data_ = NULL;
   }
 
   if (sense_manager_) {
@@ -351,7 +365,7 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   }
 
   scoped_ptr<Init::Params> params(Init::Params::Create(*info->arguments()));
-  if (!(params && params->config)) {
+  if (!params || !(params->config)) {
     // Set the coordinate system as OPENCV.
     session_->SetCoordinateSystem(kCoordinateSystem);
   } else {
@@ -667,7 +681,10 @@ void ScenePerceptionObject::OnResetScenePerception(
     return;
   }
   scene_perception_->Reset();
-  block_meshing_data_->Reset();
+
+  if (block_meshing_data_)  block_meshing_data_->Reset();
+
+  if (surface_voxels_data_)  surface_voxels_data_->Reset();
 }
 
 void ScenePerceptionObject::DoPauseScenePerception(
@@ -1236,6 +1253,50 @@ void ScenePerceptionObject::OnSetMeshingUpdateConfigs(
   }
 }
 
+void ScenePerceptionObject::OnConfigureSurfaceVoxelsData(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
+    info->PostResult(ConfigureSurfaceVoxelsData::Results::Create(
+        std::string(),
+        std::string("Wrong state to get configure surfaceVoxlesData.")));
+    return;  // Wrong state.
+  }
+  sensemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::DoConfigureSurfaceVoxelsData,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+}
+
+void ScenePerceptionObject::DoConfigureSurfaceVoxelsData(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<ConfigureSurfaceVoxelsData::Params> params(
+      ConfigureSurfaceVoxelsData::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(ConfigureSurfaceVoxelsData::Results::Create(
+        std::string(),
+        std::string("Malformed parameters for configureSurfaceVoxelsData.")));
+    return;
+  }
+  // Re-allocate the memory for surface voxels data.
+  if (surface_voxels_data_) surface_voxels_data_->Release();
+
+  surface_voxels_data_ =
+    scene_perception_->CreatePXCSurfaceVoxelsData(
+        params->config.voxel_count, params->config.use_color);
+  if (surface_voxels_data_) {
+    info->PostResult(ConfigureSurfaceVoxelsData::Results::Create(
+        std::string("Success"),
+        std::string()));
+  } else {
+    info->PostResult(ConfigureSurfaceVoxelsData::Results::Create(
+        std::string(),
+        std::string("Failed to configureSurfaceVoxelsData.")));
+  }
+}
+
 /** ---------------- Implementation for getters --------------**/
 void ScenePerceptionObject::OnGetSample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
@@ -1519,6 +1580,131 @@ void ScenePerceptionObject::DoGetMeshingResolution(
   }
   info->PostResult(GetMeshingResolution::Results::Create(
         mr, std::string()));
+}
+
+void ScenePerceptionObject::OnGetSurfaceVoxels(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  SurfaceVoxelsData data;
+  if (!sensemanager_thread_.IsRunning()) {
+    info->PostResult(GetSurfaceVoxels::Results::Create(
+          data,
+          std::string("Wrong state to get surface voxels.")));
+    return;  // wrong state.
+  }
+
+  sensemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::DoGetSurfaceVoxels,
+        base::Unretained(this),
+        base::Passed(&info)));
+}
+
+void ScenePerceptionObject::DoGetSurfaceVoxels(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+
+  SurfaceVoxelsData data;
+
+  PXCPoint3DF32* lowerLeftFrontPoint = NULL;
+  PXCPoint3DF32* upperRightRearPoint = NULL;
+
+  // Allocate the memory if needed.
+  if (!surface_voxels_data_) {
+    surface_voxels_data_ = scene_perception_->CreatePXCSurfaceVoxelsData();
+    if (!surface_voxels_data_) {
+      info->PostResult(GetSurfaceVoxels::Results::Create(
+            data,
+            std::string("Failed to create surface voxels data.")));
+      return;
+    }
+  }
+
+  scoped_ptr<GetSurfaceVoxels::Params> params(
+      GetSurfaceVoxels::Params::Create(*info->arguments()));
+  if (params && params->region) {
+    PXCPoint3DF32 lowPoint = PXCPoint3DF32();
+    lowPoint.x = params->region->lower_left_front_point.x;
+    lowPoint.y = params->region->lower_left_front_point.y;
+    lowPoint.z = params->region->lower_left_front_point.z;
+    lowerLeftFrontPoint = &lowPoint;
+
+    PXCPoint3DF32 upperPoint = PXCPoint3DF32();
+    upperPoint.x = params->region->upper_right_rear_point.x;
+    upperPoint.y = params->region->upper_right_rear_point.y;
+    upperPoint.z = params->region->upper_right_rear_point.z;
+    upperRightRearPoint = &upperPoint;
+  }
+
+  pxcStatus status = scene_perception_->ExportSurfaceVoxels(
+                       surface_voxels_data_,
+                       lowerLeftFrontPoint,
+                       upperRightRearPoint);
+  int dataPending = 0;
+  if (status == PXC_STATUS_DATA_PENDING) {
+    dataPending = 1;
+  } else if (status != PXC_STATUS_NO_ERROR) {
+    info->PostResult(GetSurfaceVoxels::Results::Create(
+          data,
+          std::string("Failed to get surface voxels.")));
+    return;
+  }
+
+  // Put all data in a binary buffer.
+  // Format:
+  //   CallbackID(int32),
+  //   dataPending(int32),
+  //   numberOfSurfaceVoxels(int32),
+  //   hasColorData(int32, whether the color data is available),
+  //   centerOfsurface_voxels_data_(Point3D[])
+  //   surfaceVoxelsColorData(unit8[], 3 * BYTE,  RGB for each voxel)
+  int numberOfVoxels = surface_voxels_data_->QueryNumberOfSurfaceVoxels();
+  float* voxels = reinterpret_cast<float*>(
+      surface_voxels_data_->QueryCenterOfSurfaceVoxels());
+  if (!voxels) {
+    info->PostResult(GetSurfaceVoxels::Results::Create(
+          data,
+          std::string("No surface voxels data.")));
+    return;
+  }
+  // It will return NULL, if no voxels color data.
+  uint8_t* voxelsColor = reinterpret_cast<uint8_t*>(
+                         surface_voxels_data_->QuerySurfaceVoxelsColor());
+  int hasColorData = voxelsColor ? 1 : 0;
+
+  int voxelsDataOffset = 4 * sizeof(int);
+  int colorOffset = voxelsDataOffset + numberOfVoxels * 3 * sizeof(float);
+  size_t bMessageSize = colorOffset + numberOfVoxels * 3;
+  scoped_ptr<uint8[]> bMessage;
+  bMessage.reset(new uint8[bMessageSize]);
+
+  // The first sizeof(int) bytes will be used for callback id.
+  int* intBuffer = reinterpret_cast<int*>(bMessage.get() + 1 * sizeof(int));
+  intBuffer[0] = dataPending;
+  intBuffer[1] = numberOfVoxels;
+  intBuffer[2] = hasColorData;
+
+  // Put the voxels data into bMessage.
+  float* voxelsData = reinterpret_cast<float*>(
+                      bMessage.get() + voxelsDataOffset);
+  for (int i = 0; i < numberOfVoxels * 3; i++) {
+    voxelsData[i] = voxels[i];
+  }
+
+  // Put the voxels color data into bMessage.
+  if (hasColorData) {
+    uint8_t* rgbColor = reinterpret_cast<uint8_t*>(
+                        bMessage.get() + colorOffset);
+    for (int i = 0; i < numberOfVoxels * 3; i++) {
+      rgbColor[i] = voxelsColor[i];
+    }
+  }
+
+  // Post binary message to JS side.
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(bMessage.get()),
+        bMessageSize));
+  info->PostResult(result.Pass());
 }
 
 // Save the Mesh data to an ASCII obj file.

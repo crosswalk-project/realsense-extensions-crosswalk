@@ -107,6 +107,29 @@ namespace scene_perception {
     MeshingResolution? meshResolution;
   };
 
+  dictionary Point3D {
+    double x;
+    double y;
+    double z;
+  };
+
+  dictionary InterestRegion {
+    Point3D lowerLeftFrontPoint;
+    Point3D upperRightRearPoint;
+  };
+
+  dictionary VoxelsDataConfig {
+    long voxelCount;
+    boolean useColor;
+  };
+
+  dictionary SurfaceVoxelsData {
+    double[] centerOfSurfaceVoxels;
+    long numberOfSurfaceVoxels;
+    long[] surfaceVoxelsColor;
+    boolean dataPending;
+  };
+
   dictionary ErrorEvent {
     DOMString status;
   };
@@ -123,6 +146,7 @@ namespace scene_perception {
   callback MeshingResolutionPromise = void (MeshingResolution resolution, DOMString error);
   callback DoublePromise = void (double voxelSize, DOMString error);
   callback ArrayBufferPromise = void(ArrayBuffer buffer, DOMString error);
+  callback SurfaceVoxelsDataPromise = void(SurfaceVoxelsData data, DOMString error);
 
   interface Events {
     static void onchecking();
@@ -149,6 +173,7 @@ namespace scene_perception {
     static void setMeshingThresholds(MeshingThresholds mThresholds, Promise promise);
     static void setCameraPose(double[] pose, Promise promise);
     static void setMeshingUpdateConfigs(MeshingUpdateConfigs config, Promise promise);
+    static void configureSurfaceVoxelsData(VoxelsDataConfig config, Promise promise);
     // getters
     static void getSample(SamplePromise promise);
     static void getVertices(VerticesPromise vertices);
@@ -160,6 +185,7 @@ namespace scene_perception {
     static void getMeshingThresholds(MeshingThresholdsPromise promise);
     static void getMeshingResolution(MeshingResolutionPromise promise);
     static void getMeshData(MeshDataPromise promise);
+    static void getSurfaceVoxels(optional InterestRegion region, SurfaceVoxelsDataPromise promise);
 
     static void saveMesh(optional SaveMeshInfo info, ArrayBufferPromise promise);
 
