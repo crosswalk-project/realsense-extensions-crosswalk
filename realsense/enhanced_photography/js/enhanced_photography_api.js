@@ -132,7 +132,7 @@ var DepthPhoto = function(objectId) {
 
 DepthPhoto.prototype = new common.EventTargetPrototype();
 DepthPhoto.prototype.constructor = DepthPhoto;
-exports.DepthPhoto = DepthPhoto;
+exports.Photo = DepthPhoto;
 
 var EnhancedPhotography = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
