@@ -18,6 +18,19 @@ install:
     gclient config --spec=solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions/third_party/libpxc':'git@github.com:otcshare/libpxc.git'},'safesync_url':'',},]
 
     gclient sync
+before_build:
+- cmd: >-
+    curl -fsS -o get-pip.py https://bootstrap.pypa.io/get-pip.py
+
+    python get-pip.py
+
+    set PATH=%PATH%;c:\Python27\Scripts
+
+    pip install https://closure-linter.googlecode.com/svn/trunk/
+
+    cd c:\projects\realsense-extensions-crosswalk\src\extensions
+
+    python ..\tools\lint.py
 build_script:
 - cmd: >-
     cd c:\projects\realsense-extensions-crosswalk\src
