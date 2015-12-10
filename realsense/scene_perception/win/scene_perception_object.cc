@@ -5,6 +5,10 @@
 #include "realsense/scene_perception/win/scene_perception_object.h"
 
 #include "base/bind.h"
+#include "base/files/file.h"
+#include "base/files/file_path.h"
+#include "base/files/file_util.h"
+#include "base/files/scoped_temp_dir.h"
 #include "base/logging.h"
 
 namespace {
@@ -204,6 +208,10 @@ ScenePerceptionObject::ScenePerceptionObject() :
                                base::Unretained(this)));
   handler_.Register("getMeshData",
                     base::Bind(&ScenePerceptionObject::OnGetMeshData,
+                               base::Unretained(this)));
+
+  handler_.Register("saveMesh",
+                    base::Bind(&ScenePerceptionObject::OnSaveMesh,
                                base::Unretained(this)));
 }
 
@@ -804,7 +812,8 @@ void ScenePerceptionObject::OnEnableRelocalization(
   }
   if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
     info->PostResult(EnableRelocalization::Results::Create(
-        std::string(), std::string("Wrong state to enable SP Relocalization.")));
+        std::string(),
+        std::string("Wrong state to enable SP Relocalization.")));
     return;  // Wrong state.
   }
 
@@ -834,6 +843,8 @@ void ScenePerceptionObject::OnGetVertices(
 
 void ScenePerceptionObject::DoCopyVertices(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+
   if (!latest_vertices_) {
     VerticesOrNormals data;
     info->PostResult(GetVertices::Results::Create(
@@ -1509,5 +1520,95 @@ void ScenePerceptionObject::DoGetMeshingResolution(
   info->PostResult(GetMeshingResolution::Results::Create(
         mr, std::string()));
 }
+
+// Save the Mesh data to an ASCII obj file.
+void ScenePerceptionObject::OnSaveMesh(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  std::vector<char> buffer;
+  if (!sensemanager_thread_.IsRunning()) {
+    info->PostResult(SaveMesh::Results::Create(
+          buffer,
+          std::string("Wrong state to save mesh, start the process first.")));
+    return;  // wrong state.
+  }
+
+  sensemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::DoSaveMesh,
+        base::Unretained(this),
+        base::Passed(&info)));
+}
+
+// Default configurations in the info.
+//    fillMeshHoles: false,
+//    saveMeshColor: true,
+//    MeshResolution: HIGH_RESOLUTION_MESH
+void ScenePerceptionObject::DoSaveMesh(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+
+  std::vector<char> buffer;
+  PXCScenePerception::SaveMeshInfo mInfo;
+
+  mInfo.fillMeshHoles = false;
+  mInfo.saveMeshColor = true;
+  mInfo.meshResolution =
+    PXCScenePerception::MeshResolution::HIGH_RESOLUTION_MESH;
+
+  scoped_ptr<SaveMesh::Params> params(
+      SaveMesh::Params::Create(*info->arguments()));
+  if (params && params->info) {
+    if (params->info->fill_mesh_holes)
+      mInfo.fillMeshHoles = *(params->info->fill_mesh_holes.get());
+    if (params->info->save_mesh_color)
+      mInfo.saveMeshColor = *(params->info->save_mesh_color.get());
+    if (params->info->mesh_resolution) {
+      MeshingResolution r = params->info->mesh_resolution;
+      switch (r) {
+        case MESHING_RESOLUTION_LOW:
+          mInfo.meshResolution
+            = PXCScenePerception::MeshResolution::LOW_RESOLUTION_MESH;
+          break;
+        case MESHING_RESOLUTION_MED:
+          mInfo.meshResolution
+            = PXCScenePerception::MeshResolution::MED_RESOLUTION_MESH;
+          break;
+        case MESHING_RESOLUTION_HIGH:
+          mInfo.meshResolution
+            = PXCScenePerception::MeshResolution::HIGH_RESOLUTION_MESH;
+          break;
+      }
+    }
+  }
+
+  // Create a tmp file to get mesh data.
+  base::ScopedTempDir tmp_dir;
+  tmp_dir.CreateUniqueTempDir();
+  base::FilePath tmp_file = tmp_dir.path().Append(
+      FILE_PATH_LITERAL("tmp_mesh.obj"));
+  wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
+  if (scene_perception_->SaveMeshExtended(wfile, &mInfo)
+      < PXC_STATUS_NO_ERROR) {
+    info->PostResult(SaveMesh::Results::Create(buffer, "Failed to SaveMesh"));
+    return;
+  }
+
+  base::File file(tmp_file, base::File::FLAG_OPEN | base::File::FLAG_READ);
+  int64 file_length = file.GetLength();
+  size_t bMessageSize = file_length + sizeof(int);
+  scoped_ptr<uint8[]> bMessage;
+  bMessage.reset(new uint8[bMessageSize]);
+  // the first sizeof(int) bytes will be used for callback id.
+  char* data = reinterpret_cast<char*>(bMessage.get() + 1 * sizeof(int));
+  file.Read(0, data, file_length);
+  file.Close();
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(bMessage.get()),
+        bMessageSize));
+  info->PostResult(result.Pass());
+}
+
 }  // namespace scene_perception
 }  // namespace realsense

@@ -76,6 +76,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetMeshData(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSaveMesh(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Run on sensemanager_thread_
   void OnCreateAndStartPipeline(
@@ -124,6 +126,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   void DoGetVolumePreview(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoGetMeshData(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoSaveMesh(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Run on meshing_thread_

@@ -98,6 +98,13 @@ var ScenePerception = function(objectId) {
       faces: faces};
   }
 
+  function wrapMeshFileReturn(data) {
+    // 1 int32 (4 bytes) value (callback id).
+    var dataBuffer = data.slice(4);
+    var blob = new Blob([dataBuffer], { type: 'text/plain' });
+    return blob;
+  }
+
   function wrapVerticesOrNormalsReturn(data) {
     const BYTES_PER_FLOAT = 4;
     var int32Array = new Int32Array(data);
@@ -134,6 +141,8 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('getMeshingThresholds');
   this._addMethodWithPromise('getMeshingResolution');
   this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn);
+
+  this._addMethodWithPromise('saveMesh', null, wrapMeshFileReturn);
 
   this._addEvent('error');
   this._addEvent('checking');
