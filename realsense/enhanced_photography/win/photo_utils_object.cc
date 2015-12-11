@@ -4,6 +4,8 @@
 
 #include "realsense/enhanced_photography/win/photo_utils_object.h"
 
+#include <string>
+
 #include "base/guid.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
@@ -38,7 +40,6 @@ PhotoUtilsObject::~PhotoUtilsObject() {
     session_->Release();
     session_ = nullptr;
   }
-
 }
 
 void PhotoUtilsObject::OnDepthResize(
@@ -72,7 +73,9 @@ void PhotoUtilsObject::OnDepthResize(
     } else {
       pxcquality = PXCEnhancedPhoto::PhotoUtils::DepthFillQuality::LOW;
     }
-    pxcphoto = photo_utils_->DepthResize(depthPhotoObject->GetPhoto(), width, pxcquality);
+    pxcphoto = photo_utils_->DepthResize(depthPhotoObject->GetPhoto(),
+                                         width,
+                                         pxcquality);
   } else {
     pxcphoto = photo_utils_->DepthResize(depthPhotoObject->GetPhoto(), width);
   }

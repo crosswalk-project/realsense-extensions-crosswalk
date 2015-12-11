@@ -293,46 +293,44 @@ function popColor(e) {
   ep.computeMaskFromCoordinate(currentPhoto, { x: x, y: y }).then(
       function(maskImage) {
         currentPhoto.queryContainerImage().then(
-          function(colorImage) {
-            for (var x = 0; x < colorImage.width; x++)
-            {
-              for (var y = 0; y < colorImage.height; y++)
-              {
-                var index = y * colorImage.width * 4 + x * 4;
-                var maskIndex = y * maskImage.width + x;
-                var alpha = 1.0 - maskImage.data[maskIndex];
+            function(colorImage) {
+              for (var x = 0; x < colorImage.width; x++) {
+                for (var y = 0; y < colorImage.height; y++) {
+                  var index = y * colorImage.width * 4 + x * 4;
+                  var maskIndex = y * maskImage.width + x;
+                  var alpha = 1.0 - maskImage.data[maskIndex];
 
-                // BGR
-                var grey = 0.0722 * colorImage.data[index + 2] +
-                    0.7152 * colorImage.data[index + 1] + 0.2126 * colorImage.data[index];
+                  // BGR
+                  var grey = 0.0722 * colorImage.data[index + 2] +
+                      0.7152 * colorImage.data[index + 1] + 0.2126 * colorImage.data[index];
 
-                colorImage.data[index] =
-                    parseInt(colorImage.data[index] * (1 - alpha) + grey * (alpha));
-                colorImage.data[index + 1] =
-                    parseInt(colorImage.data[index + 1] * (1 - alpha) + grey * (alpha));
-                colorImage.data[index + 2] =
-                    parseInt(colorImage.data[index + 2] * (1 - alpha) + grey * (alpha));
+                  colorImage.data[index] =
+                      parseInt(colorImage.data[index] * (1 - alpha) + grey * (alpha));
+                  colorImage.data[index + 1] =
+                      parseInt(colorImage.data[index + 1] * (1 - alpha) + grey * (alpha));
+                  colorImage.data[index + 2] =
+                      parseInt(colorImage.data[index + 2] * (1 - alpha) + grey * (alpha));
+                }
               }
-            }
 
-            imageContext.clearRect(0, 0, width, height);
-            imageData = imageContext.createImageData(colorImage.width, colorImage.height);
-            imageData.data.set(colorImage.data);
-            imageContext.putImageData(imageData, 0, 0);
+              imageContext.clearRect(0, 0, width, height);
+              imageData = imageContext.createImageData(colorImage.width, colorImage.height);
+              imageData.data.set(colorImage.data);
+              imageContext.putImageData(imageData, 0, 0);
 
-            currentPhoto.clone().then(
-                function(photo) {
-                  savePhoto = photo;
-                  savePhoto.setReferenceImage(colorImage).then(
-                      function() {
-                        statusElement.innerHTML =
-                            'Finish processing color pop, select again!';
-                      },
-                      function(e) { statusElement.innerHTML = e; });
-                },
-                function(e) { statusElement.innerHTML = e; });
-          },
-          function(e) { statusElement.innerHTML = e; });
+              currentPhoto.clone().then(
+                  function(photo) {
+                    savePhoto = photo;
+                    savePhoto.setContainerImage(colorImage).then(
+                        function() {
+                          statusElement.innerHTML =
+                              'Finish processing color pop, select again!';
+                        },
+                        function(e) { statusElement.innerHTML = e; });
+                  },
+                  function(e) { statusElement.innerHTML = e; });
+            },
+            function(e) { statusElement.innerHTML = e; });
       },
       function(e) { statusElement.innerHTML = e; });
 }
@@ -485,7 +483,7 @@ function main() {
             'Please click [Choose file] button to load the pasted image.';
       } else {
         statusElement.innerHTML =
-          'Select two points on the image to paste the sticker.';
+            'Select two points on the image to paste the sticker.';
       }
 
       overlayContext.clearRect(0, 0, width, height);

@@ -170,7 +170,8 @@ var Paster = function(photo, objectId) {
   if (!(photo instanceof DepthPhoto))
     throw new InvalidPhotoException('Invalid Photo object');
   if (objectId == undefined) {
-    var result = internal.sendSyncMessage('pasterConstructor', [this._id, { objectId: photo.photoId }]);
+    var result = internal.sendSyncMessage(
+        'pasterConstructor', [this._id, { objectId: photo.photoId }]);
     if (!result)
       throw new InvalidPhotoException('Invalid Photo object');
   }
