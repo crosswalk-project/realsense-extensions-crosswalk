@@ -10,9 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.Byte;
 import java.lang.Integer;
 import java.nio.ByteBuffer;
@@ -30,7 +27,6 @@ public class DepthPhotoObject extends BindingObject {
 
     public DepthPhotoObject() {
         mDepthPhoto = new DepthPhoto(new DepthContext());
-        mHandler.register("loadXDM", this);
         mHandler.register("queryContainerImage", this);
         mHandler.register("queryColorImage", this);
         mHandler.register("queryDepthImage", this);
@@ -114,38 +110,6 @@ public class DepthPhotoObject extends BindingObject {
 
     public void setDepthPhoto(DepthPhoto depthPhoto) {
         mDepthPhoto = depthPhoto;
-    }
-
-    public void onLoadXDM(FunctionInfo info) {
-        try {
-            ByteBuffer buffer = info.getBinaryArgs();
-            int offset = buffer.position();
-            int count = buffer.array().length - offset;
-            File file = File.createTempFile("temp", ".jpg");
-            String fileName = file.getAbsolutePath();
-            Log.d(TAG, "fileName = " + fileName);
-            FileOutputStream fo = new FileOutputStream(file);
-            fo.write(buffer.array(), offset, count);
-            fo.flush();
-            fo.close();
-
-            if (!DepthReader.isXDMFile(new DepthContext(), fileName)) {
-                String errMsg = "The selected file is not a compatible image for this app.";
-                reportMessage(info, "", errMsg);
-                return;
-            }
-
-            DepthContext context = new DepthContext();
-            mDepthPhoto = DepthReader.read(context, fileName);
-            if (mDepthPhoto == null) {
-                String errMsg = "loadXDM failed";
-                reportMessage(info, "", errMsg);
-                return;
-            }
-            reportMessage(info, "success", "");
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-        }
     }
 
     public void onQueryContainerImage(FunctionInfo info) {

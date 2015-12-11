@@ -92,26 +92,6 @@ var DepthPhoto = function(objectId) {
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
-  function wrapBlobArg(data) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var buffer = e.target.result;
-        resolve(buffer);
-      };
-      reader.readAsArrayBuffer(data[0]);
-    });
-  }
-
-  function wrapRawDataReturns(data) {
-    // 1 int32 (4 bytes) value (callback id).
-    var dataBuffer = data.slice(4);
-    var blob = new Blob([dataBuffer], { type: 'image/jpeg' });
-    return blob;
-  };
-
-  this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArg);
-  this._addMethodWithPromise('saveXDM', null, wrapRawDataReturns);
   this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryColorImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
@@ -369,3 +349,36 @@ var Segmentation = function(photo, objectId) {
 Segmentation.prototype = new common.EventTargetPrototype();
 Segmentation.prototype.constructor = Segmentation;
 exports.Segmentation = Segmentation;
+
+var XDMUtils = function(objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+
+  if (objectId == undefined)
+    internal.postMessage('XDMUtilsConstructor', [this._id]);
+
+  function wrapBlobArgs(data) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var buffer = e.target.result;
+        resolve(buffer);
+      };
+      reader.readAsArrayBuffer(data[0]);
+    });
+  };
+
+  function wrapBlobReturns(data) {
+    // 1 int32 (4 bytes) value (callback id).
+    var dataBuffer = data.slice(4);
+    var blob = new Blob([dataBuffer], { type: 'image/jpeg' });
+    return blob;
+  };
+
+  this._addBinaryMethodWithPromise2('isXDM', wrapBlobArgs);
+  this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('saveXDM', wrapPhotoArgs, wrapBlobReturns);
+};
+
+XDMUtils.prototype = new common.EventTargetPrototype();
+XDMUtils.prototype.constructor = XDMUtils;
+exports.XDMUtils = new XDMUtils();

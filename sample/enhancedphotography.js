@@ -20,7 +20,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var ep, paster, photoCapture, photoUtils;
+var ep, paster, photoCapture, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
 var width = 640, height = 480;
 var canvasWidth = 400, canvasHeight = 300;
@@ -339,6 +339,7 @@ function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
+  XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -596,7 +597,7 @@ function main() {
       statusElement.innerHTML = 'There is no photo to save';
       return;
     }
-    savePhoto.saveXDM().then(
+    XDMUtils.saveXDM(savePhoto).then(
         function(blob) {
           var reader = new FileReader();
           reader.onload = function(evt) {
@@ -618,28 +619,35 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    var dp = new realsense.DepthEnabledPhotography.Photo();
-    dp.loadXDM(file).then(
-        function(sucess) {
-          currentPhoto = dp;
-          savePhoto = dp;
-          currentPhoto.queryContainerImage().then(
-              function(image) {
-                imageContext.clearRect(0, 0, width, height);
-                imageData = imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML = 'Load successfully';
-                overlayContext.clearRect(0, 0, width, height);
-                imageData.data.set(image.data);
-                imageContext.putImageData(imageData, 0, 0);
-                hasImage = true;
-                if (depthEnhanceRadio.checked) {
-                  depthEnhance();
-                }
-                if (depthUpscaleRadio.checked) {
-                  depthUpscale();
-                }
-              },
-              function(e) { statusElement.innerHTML = e; });
+    XDMUtils.isXDM(file).then(
+        function(success) {
+          if (success) {
+            XDMUtils.loadXDM(file).then(
+                function(photo) {
+                  currentPhoto = photo;
+                  savePhoto = photo;
+                  currentPhoto.queryContainerImage().then(
+                      function(image) {
+                        imageContext.clearRect(0, 0, width, height);
+                        imageData = imageContext.createImageData(image.width, image.height);
+                        statusElement.innerHTML = 'Load successfully';
+                        overlayContext.clearRect(0, 0, width, height);
+                        imageData.data.set(image.data);
+                        imageContext.putImageData(imageData, 0, 0);
+                        hasImage = true;
+                        if (depthEnhanceRadio.checked) {
+                          depthEnhance();
+                        }
+                        if (depthUpscaleRadio.checked) {
+                          depthUpscale();
+                        }
+                      },
+                      function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
+          } else {
+            statusElement.innerHTML = 'This is not a XDM file. Load failed.';
+          }
         },
         function(e) { statusElement.innerHTML = e; });
   });

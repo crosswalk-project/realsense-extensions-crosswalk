@@ -13,7 +13,7 @@ var imageCanvas = document.getElementById('image');
 var overlayCanvas = document.getElementById('overlay');
 
 const FirstClick = 0, SecondClick = 1, TraceClicks = 2;
-var ep, segmentation, photoCapture;
+var ep, segmentation, photoCapture, XDMUtils;
 var previewContext, previewData, imageContext, imageData, overlayContext;
 var currentPhoto, savePhoto;
 
@@ -110,6 +110,7 @@ function updateMarkupImage(pointX, pointY, isForeground) {
 function main() {
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
+  XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
@@ -313,7 +314,7 @@ function main() {
       statusElement.innerHTML = 'There is no photo to save';
       return;
     }
-    savePhoto.saveXDM().then(
+    XDMUtils.saveXDM(savePhoto).then(
         function(blob) {
           var reader = new FileReader();
           reader.onload = function(evt) {
@@ -335,37 +336,45 @@ function main() {
 
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
-    var dp = new realsense.DepthEnabledPhotography.Photo();
-    dp.loadXDM(file).then(
-        function(sucess) {
-          currentPhoto = dp;
-          savePhoto = dp;
-          if (!segmentation) {
-            try {
-              segmentation = new realsense.DepthEnabledPhotography.Segmentation(currentPhoto);
-            } catch (e) {
-              statusElement.innerHTML = e.message;
-              segmentation = null;
-              return;
-            }
-          }
+    XDMUtils.isXDM(file).then(
+        function(success) {
+          if (success) {
+            XDMUtils.loadXDM(file).then(
+                function(photo) {
+                  currentPhoto = photo;
+                  savePhoto = photo;
+                  if (!segmentation) {
+                    try {
+                      segmentation =
+                          new realsense.DepthEnabledPhotography.Segmentation(currentPhoto);
+                    } catch (e) {
+                      statusElement.innerHTML = e.message;
+                      segmentation = null;
+                      return;
+                    }
+                  }
 
-          currentPhoto.queryContainerImage().then(
-              function(image) {
-                curPhotoWidth = image.width;
-                curPhotoHeight = image.height;
-                resetMarkupImgHints();
-                resetPoints();
-                nextClick = FirstClick;
-                imageContext.clearRect(0, 0, width, height);
-                imageData = imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML = 'Select the bounding box around the object.';
-                overlayContext.clearRect(0, 0, width, height);
-                imageData.data.set(image.data);
-                imageContext.putImageData(imageData, 0, 0);
-                hasImage = true;
-              },
-              function(e) { statusElement.innerHTML = e; });
+                  currentPhoto.queryContainerImage().then(
+                      function(image) {
+                        curPhotoWidth = image.width;
+                        curPhotoHeight = image.height;
+                        resetMarkupImgHints();
+                        resetPoints();
+                        nextClick = FirstClick;
+                        imageContext.clearRect(0, 0, width, height);
+                        imageData = imageContext.createImageData(image.width, image.height);
+                        statusElement.innerHTML = 'Select the bounding box around the object.';
+                        overlayContext.clearRect(0, 0, width, height);
+                        imageData.data.set(image.data);
+                        imageContext.putImageData(imageData, 0, 0);
+                        hasImage = true;
+                      },
+                      function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
+          } else {
+            statusElement.innerHTML = 'This is not a XDM file. Load failed.';
+          }
         },
         function(e) { statusElement.innerHTML = e; });
   });
