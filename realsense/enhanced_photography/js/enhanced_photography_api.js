@@ -170,7 +170,8 @@ var Paster = function(photo, objectId) {
   if (!(photo instanceof DepthPhoto))
     throw new InvalidPhotoException('Invalid Photo object');
   if (objectId == undefined) {
-    var result = internal.sendSyncMessage('pasterConstructor', [this._id, { objectId: photo.photoId }]);
+    var result = internal.sendSyncMessage(
+        'pasterConstructor', [this._id, { objectId: photo.photoId }]);
     if (!result)
       throw new InvalidPhotoException('Invalid Photo object');
   }
@@ -291,6 +292,8 @@ var PhotoUtils = function(objectId) {
 
   this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('photoCrop', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('photoRotate', wrapPhotoArgs, wrapPhotoReturns);
 };
 
 PhotoUtils.prototype = new common.EventTargetPrototype();

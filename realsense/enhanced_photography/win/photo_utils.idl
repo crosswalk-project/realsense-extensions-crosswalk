@@ -9,12 +9,21 @@ namespace photo_utils {
     low
   };
 
+  dictionary Rect {
+    long x;
+    long y;
+    long w;
+    long h;
+  };
+
   callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
     static void depthResize(depth_photo.Photo photo, long width, optional DepthFillQuality quality, PhotoPromise promise);
     static void enhanceDepth(depth_photo.Photo photo, DepthFillQuality quality, PhotoPromise promise);
+    static void photoCrop(depth_photo.Photo photo, Rect rect, PhotoPromise promise);
+    static void photoRotate(depth_photo.Photo photo, double rotation, PhotoPromise promise);
 
     [nodoc] static PhotoUtils photoUtilsConstructor(DOMString objectId);
   };
