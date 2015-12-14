@@ -75,7 +75,8 @@ var ScenePerception = function(objectId) {
       };
       blockMeshes.push(blockMesh);
     }
-    var verticesOffset = headerBytesLength + numberOfBlockMesh * blockMeshIntLength * BYTES_PER_INT;
+    var verticesOffset =
+        headerBytesLength + numberOfBlockMesh * blockMeshIntLength * BYTES_PER_INT;
     var vertices =
         new Float32Array(data,
                          verticesOffset,

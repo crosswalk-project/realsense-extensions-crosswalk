@@ -10,7 +10,7 @@ xwalk_idlgen("scene_perception_idl") {
 }
 
 xwalk_js2c("scene_perception_js") {
-  sources = [ "scene_perception_api.js" ]
+  sources = [ "../js/scene_perception_api.js" ]
 }
 
 shared_library("scene_perception") {
