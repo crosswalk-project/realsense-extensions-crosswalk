@@ -181,6 +181,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
                     base::Bind(
                       &ScenePerceptionObject::OnConfigureSurfaceVoxelsData,
                       base::Unretained(this)));
+  handler_.Register("setMeshingRegion",
+                    base::Bind(&ScenePerceptionObject::OnSetMeshingRegion,
+                               base::Unretained(this)));
 
   // Data and configurations getting APIs.
   handler_.Register("getSample",
@@ -221,6 +224,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
 
   handler_.Register("saveMesh",
                     base::Bind(&ScenePerceptionObject::OnSaveMesh,
+                               base::Unretained(this)));
+  handler_.Register("clearMeshingRegion",
+                    base::Bind(&ScenePerceptionObject::OnClearMeshingRegion,
                                base::Unretained(this)));
 }
 
@@ -1297,6 +1303,45 @@ void ScenePerceptionObject::DoConfigureSurfaceVoxelsData(
   }
 }
 
+void ScenePerceptionObject::OnSetMeshingRegion(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Operations on meshing region should after initialization.
+  if (!sensemanager_thread_.IsRunning()) {
+    info->PostResult(SetMeshingRegion::Results::Create(
+          std::string(),
+          std::string("Wrong state to setMeshingRegion.")));
+    return;
+  }
+  scoped_ptr<SetMeshingRegion::Params> params(
+         SetMeshingRegion::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(SetMeshingRegion::Results::Create(
+          std::string(),
+          std::string("Malformed parameters for setMeshingRegion.")));
+    return;
+  }
+  PXCPoint3DF32 lowPoint = PXCPoint3DF32();
+  lowPoint.x = params->region.lower_left_front_point.x;
+  lowPoint.y = params->region.lower_left_front_point.y;
+  lowPoint.z = params->region.lower_left_front_point.z;
+
+  PXCPoint3DF32 upperPoint = PXCPoint3DF32();
+  upperPoint.x = params->region.upper_right_rear_point.x;
+  upperPoint.y = params->region.upper_right_rear_point.y;
+  upperPoint.z = params->region.upper_right_rear_point.z;
+
+  if (scene_perception_->SetMeshingRegion(&lowPoint, &upperPoint)
+      < PXC_STATUS_NO_ERROR) {
+    info->PostResult(SetMeshingRegion::Results::Create(
+          std::string(),
+          std::string("Failed to setMeshingRegion.")));
+    return;
+  }
+  info->PostResult(SetMeshingRegion::Results::Create(
+        std::string("Succeeded to setMeshingRegion."),
+        std::string()));
+}
+
 /** ---------------- Implementation for getters --------------**/
 void ScenePerceptionObject::OnGetSample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
@@ -1794,6 +1839,27 @@ void ScenePerceptionObject::DoSaveMesh(
         reinterpret_cast<const char*>(bMessage.get()),
         bMessageSize));
   info->PostResult(result.Pass());
+}
+
+void ScenePerceptionObject::OnClearMeshingRegion(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Operations on meshing region should after initialization.
+  if (!sensemanager_thread_.IsRunning()) {
+    info->PostResult(ClearMeshingRegion::Results::Create(
+          std::string(),
+          std::string("Wrong state to clearMeshingRegion.")));
+    return;
+  }
+  if (scene_perception_->ClearMeshingRegion()
+      < PXC_STATUS_NO_ERROR) {
+    info->PostResult(ClearMeshingRegion::Results::Create(
+          std::string(),
+          std::string("Failed to clearMeshingRegion.")));
+    return;
+  }
+  info->PostResult(ClearMeshingRegion::Results::Create(
+        std::string("Succeeded to clearMeshingRegion."),
+        std::string()));
 }
 
 }  // namespace scene_perception

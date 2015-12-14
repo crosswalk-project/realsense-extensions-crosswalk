@@ -163,6 +163,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('setCameraPose');
   this._addMethodWithPromise('setMeshingUpdateConfigs');
   this._addMethodWithPromise('configureSurfaceVoxelsData');
+  this._addMethodWithPromise('setMeshingRegion');
 
   this._addMethodWithPromise('getSample', null, wrapSampleReturns);
   this._addMethodWithPromise('getVolumePreview', null, wrapVolumePreviewReturn);
@@ -177,6 +178,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('getSurfaceVoxels', null, wrapVoxelsReturn);
 
   this._addMethodWithPromise('saveMesh', null, wrapMeshFileReturn);
+  this._addMethodWithPromise('clearMeshingRegion');
 
   this._addEvent('error');
   this._addEvent('checking');

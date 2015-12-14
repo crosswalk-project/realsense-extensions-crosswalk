@@ -226,6 +226,27 @@
             </p>
           </dd>
           <dt>
+            Promise&lt;void&gt; setMeshingRegion(InterestRegion region)
+          </dt>
+          <dd>
+            The <code>setMeshingRegion</code> function sets the meshing region of interest for the <code>getMeshData</code> function.
+            <br/>
+            The region of interest is specified as a bounding box.
+            <dl class='parameters'>
+              <dt>InterestRegion region</dt>
+                <dd>
+                  The region of interest by specifying the lower left and upper right of the region of interest bounding box.
+                </dd>
+              </dt>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; clearMeshingRegion()
+          </dt>
+          <dd>
+            The <code>clearMeshingRegion</code> function removes any previously set meshing region of insterest for the <code>getMeshData</code> function.
+          </dd>
+          <dt>
             attribute EventHandler onchecking
           </dt>
           <dd>
