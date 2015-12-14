@@ -9,6 +9,12 @@ namespace photo_utils {
     low
   };
 
+  enum DepthMapQuality {
+    bad,
+    fair,
+    good
+  };
+
   dictionary Rect {
     long x;
     long y;
@@ -16,12 +22,16 @@ namespace photo_utils {
     long h;
   };
 
+  callback DepthMapQualityPromise = void(DepthMapQuality quality, DOMString error);
   callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
+    static void colorResize(depth_photo.Photo photo, long width, PhotoPromise promise);
+    static void commonFOV(depth_photo.Photo photo, PhotoPromise promise);
     static void depthResize(depth_photo.Photo photo, long width, optional DepthFillQuality quality, PhotoPromise promise);
     static void enhanceDepth(depth_photo.Photo photo, DepthFillQuality quality, PhotoPromise promise);
+    static void getDepthQuality(depth_photo.Photo photo, DepthMapQualityPromise promise);
     static void photoCrop(depth_photo.Photo photo, Rect rect, PhotoPromise promise);
     static void photoRotate(depth_photo.Photo photo, double rotation, PhotoPromise promise);
 

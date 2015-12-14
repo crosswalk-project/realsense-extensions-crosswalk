@@ -270,8 +270,11 @@ var PhotoUtils = function(objectId) {
   if (objectId == undefined)
     internal.postMessage('photoUtilsConstructor', [this._id]);
 
+  this._addMethodWithPromise('colorResize', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('commonFOV', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('getDepthQuality', wrapPhotoArgs);
   this._addMethodWithPromise('photoCrop', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('photoRotate', wrapPhotoArgs, wrapPhotoReturns);
 };
