@@ -22,7 +22,7 @@ var previewContext, previewData, imageContext, imageData;
 var overlayContext;
 var ep, paster, photoCapture, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
-var width = 640, height = 480;
+var width = 1920, height = 1080;
 var canvasWidth = 400, canvasHeight = 300;
 
 var clickCount = 0;
@@ -562,8 +562,14 @@ function main() {
   startButton.onclick = function(e) {
     statusElement.innerHTML = 'Status Info : Start: ';
     gettingImage = false;
-    photoCapture.startPreview().then(function(e) { statusElement.innerHTML += e; },
-                                     function(e) { statusElement.innerHTML += e; });
+    photoCapture.startPreview({
+      colorWidth: 1920,
+      colorHeight: 1080,
+      depthWidth: 480,
+      depthHeight: 360,
+      framerate: 30}).then(
+        function(e) { statusElement.innerHTML += e; },
+        function(e) { statusElement.innerHTML += e; });
   };
 
   snapShotButton.onclick = function(e) {
