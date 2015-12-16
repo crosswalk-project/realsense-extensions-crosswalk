@@ -56,6 +56,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnConfigureSurfaceVoxelsData(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetMeshingRegion(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Data and configurations getting APIs.
   void OnGetSample(
@@ -81,6 +83,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   void OnGetSurfaceVoxels(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSaveMesh(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnClearMeshingRegion(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Run on sensemanager_thread_
