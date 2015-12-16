@@ -54,6 +54,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetMeshingUpdateConfigs(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnConfigureSurfaceVoxelsData(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Data and configurations getting APIs.
   void OnGetSample(
@@ -75,6 +77,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   void OnGetMeshingResolution(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetMeshData(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnGetSurfaceVoxels(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSaveMesh(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
@@ -128,6 +132,10 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   void DoGetMeshData(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoSaveMesh(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoConfigureSurfaceVoxelsData(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoGetSurfaceVoxels(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Run on meshing_thread_
@@ -193,6 +201,10 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   int max_vertices_;
   bool b_use_color_;
 
+  // Configurations for surface voxels data.
+  int voxel_count_;
+  bool voxel_use_color_;
+
   base::TimeTicks last_meshing_time_;
 
   PXCSession* session_;
@@ -201,6 +213,9 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   PXCScenePerception::ScenePerceptionIntrinsics sp_intrinsics_;
 
   PXCBlockMeshingData* block_meshing_data_;
+  // All actions on surface_voxels_data_
+  // should be taken on sensemanager_thread_;
+  PXCSurfaceVoxelsData* surface_voxels_data_;
   PXCScenePerception::MeshingUpdateInfo  meshing_update_info_;
   pxcBool b_fill_holes_;
 
