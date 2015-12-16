@@ -8,40 +8,16 @@ namespace enhanced_photography {
     double distance;
   };
 
-  dictionary ErrorEvent {
-    DOMString status;
-  };
-
   dictionary Point {
     long x;
     long y;
   };
 
-  dictionary PreviewConfiguration {
-    long? colorWidth;
-    long? colorHeight;
-    long? depthWidth;
-    long? depthHeight;
-    double? framerate;
-  };
-
   callback DistancePromise = void(Distance distance, DOMString error);
-  callback ImagePromise = void(depth_photo.Image image, DOMString error);
   callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
-  callback ArrayBufferPromise = void(ArrayBuffer buffer, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
-
-  interface Events {
-    static void onerror();
-    static void onpreview();
-  };
 
   interface Functions {
-    static void startPreview(optional PreviewConfiguration config, Promise promise);
-    static void stopPreview(Promise promise);
-    static void getPreviewImage(ImagePromise promise);
-    static void takePhoto(PhotoPromise promise);
     static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
     static void depthRefocus(depth_photo.Photo photo, Point focus, double aperture, PhotoPromise promise);
     static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, MaskImagePromise promise);
