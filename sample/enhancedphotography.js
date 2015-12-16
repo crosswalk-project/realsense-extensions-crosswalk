@@ -491,6 +491,7 @@ function main() {
       currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
+            imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
@@ -510,6 +511,7 @@ function main() {
       currentPhoto.queryContainerImage().then(
           function(image) {
             imageContext.clearRect(0, 0, width, height);
+            imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
