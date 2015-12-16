@@ -7,7 +7,7 @@ var loadPhoto = document.getElementById('loadPhoto');
 var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
 
-var ep, photoCapture, XDMUtils;
+var motionEffect, photoCapture, XDMUtils;
 var previewContext, previewData, imageContext, imageData;
 
 var width = 1920, height = 1080;
@@ -53,12 +53,12 @@ function outputZoomUpdate(value) {
 }
 
 function doMothionEffect() {
-  if (!hasImage || !isInitialized)
+  if (!hasImage || !isInitialized || !motionEffect)
     return;
 
-  ep.applyMotionEffect({ horizontal: right, vertical: up, distance: forward },
-                       { pitch: pitch, yaw: yaw, roll: roll },
-                       zoom).then(
+  motionEffect.applyMotionEffect({ horizontal: right, vertical: up, distance: forward },
+                                 { pitch: pitch, yaw: yaw, roll: roll },
+                                 zoom).then(
       function(image) {
         statusElement.innerHTML = 'Finished MotionEffects';
         imageData.data.set(image.data);
@@ -68,7 +68,6 @@ function doMothionEffect() {
 }
 
 function main() {
-  ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
@@ -118,7 +117,16 @@ function main() {
                 imageContext.putImageData(imageData, 0, 0);
                 hasImage = true;
 
-                ep.initMotionEffect(photo).then(
+                if (!motionEffect) {
+                  try {
+                    motionEffect = new realsense.DepthEnabledPhotography.MotionEffect(photo);
+                  } catch (e) {
+                    statusElement.innerHTML = e.message;
+                    motionEffect = null;
+                    return;
+                  }
+                }
+                motionEffect.initMotionEffect().then(
                     function() {
                       isInitialized = true;
                       doMothionEffect();
@@ -145,7 +153,17 @@ function main() {
                         imageData.data.set(image.data);
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
-                        ep.initMotionEffect(photo).then(
+                        if (!motionEffect) {
+                          try {
+                            motionEffect =
+                                new realsense.DepthEnabledPhotography.MotionEffect(photo);
+                          } catch (e) {
+                            statusElement.innerHTML = e.message;
+                            motionEffect = null;
+                            return;
+                          }
+                        }
+                        motionEffect.initMotionEffect().then(
                             function() {
                               isInitialized = true;
                               doMothionEffect();

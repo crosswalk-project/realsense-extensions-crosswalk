@@ -42,6 +42,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthPhotoConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnMotionEffectConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPasterConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoCaptureConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoUtilsConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
