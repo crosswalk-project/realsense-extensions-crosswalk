@@ -18,26 +18,87 @@ namespace depth_photo {
     long[] data;
   };
 
-  dictionary MaskImage{
+  dictionary MaskImage {
     PixelFormat format;
     long width;
     long height;
     double[] data;
   };
 
-  dictionary Photo{
+  dictionary Photo {
     DOMString objectId;
   };
 
+  dictionary RadialDistortion {
+    double k1;
+    double k2;
+    double k3;
+  };
+
+  dictionary TangentialDistortion {
+    double p1;
+    double p2;
+  };
+
+  dictionary Point {
+    double x;
+    double y;
+  };
+
+  dictionary PerspectiveCameraModel {
+    DOMString model;
+    Point focalLength;
+    Point principalPoint;
+    double skew;
+    RadialDistortion radialDistortion;
+    TangentialDistortion tangentialDistortion;
+  };
+
+  dictionary TransitionVector {
+    double x;
+    double y;
+    double z;
+  };
+
+  dictionary RotationQuaternion {
+    double rotationAngle;
+    double rotationAxisX;
+    double rotationAxisY;
+    double rotationAxisZ;
+  };
+
+  dictionary CameraPose {
+    TransitionVector transition;
+    RotationQuaternion rotation;
+  };
+
+  dictionary VendorInfo {
+    DOMString model;
+    DOMString manufacturer;
+    DOMString notes;
+  };
+
+  callback BooleanPromise = void(boolean success, DOMString error);
+  callback CameraPosePromise = void(CameraPose cameraPose, DOMString error);
   callback ImagePromise = void(Image image, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
+  callback IntPromise = void(long number, DOMString error);
+  callback PerspectiveCameraModelPromise = void(PerspectiveCameraModel model, DOMString error);
   callback PhotoPromise = void(Photo photo, DOMString error);
+  callback Promise = void(DOMString success, DOMString error);
+  callback VendorInfoPromise = void(VendorInfo vendorInfo, DOMString error);
 
   interface Functions {
+    static void checkSignature(BooleanPromise promise);
+    static void queryCameraPerspectiveModel(long cameraIndex, PerspectiveCameraModelPromise promise);
+    static void queryCameraPose(long cameraIndex, CameraPosePromise promise);
+    static void queryCameraVendorInfo(long cameraIndex, VendorInfoPromise promise);
     static void queryContainerImage(ImagePromise promise);
     static void queryColorImage(ImagePromise promise);
     static void queryDepthImage(ImagePromise promise);
+    static void queryDeviceVendorInfo(VendorInfoPromise promise);
+    static void queryNumberOfCameras(IntPromise promise);
     static void queryRawDepthImage(ImagePromise promise);
+    static void queryXDMRevision(Promise promise);
     static void setContainerImage(ArrayBuffer image, Promise promise);
     static void setColorImage(ArrayBuffer image, Promise promise);
     static void setDepthImage(ArrayBuffer image, Promise promise);

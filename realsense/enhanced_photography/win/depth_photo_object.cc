@@ -16,6 +16,18 @@ namespace enhanced_photography {
 DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
     : instance_(instance),
       binary_message_size_(0) {
+  handler_.Register("checkSignature",
+                    base::Bind(&DepthPhotoObject::OnCheckSignature,
+                               base::Unretained(this)));
+  handler_.Register("queryCameraPerspectiveModel",
+                    base::Bind(&DepthPhotoObject::OnQueryCameraPerspectiveModel,
+                               base::Unretained(this)));
+  handler_.Register("queryCameraPose",
+                    base::Bind(&DepthPhotoObject::OnQueryCameraPose,
+                               base::Unretained(this)));
+  handler_.Register("queryCameraVendorInfo",
+                    base::Bind(&DepthPhotoObject::OnQueryCameraVendorInfo,
+                               base::Unretained(this)));
   handler_.Register("queryContainerImage",
                     base::Bind(&DepthPhotoObject::OnQueryContainerImage,
                                base::Unretained(this)));
@@ -25,8 +37,17 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("queryDepthImage",
                     base::Bind(&DepthPhotoObject::OnQueryDepthImage,
                                base::Unretained(this)));
+  handler_.Register("queryDeviceVendorInfo",
+                    base::Bind(&DepthPhotoObject::OnQueryDeviceVendorInfo,
+                               base::Unretained(this)));
+  handler_.Register("queryNumberOfCameras",
+                    base::Bind(&DepthPhotoObject::OnQueryNumberOfCameras,
+                               base::Unretained(this)));
   handler_.Register("queryRawDepthImage",
                     base::Bind(&DepthPhotoObject::OnQueryRawDepthImage,
+                               base::Unretained(this)));
+  handler_.Register("queryXDMRevision",
+                    base::Bind(&DepthPhotoObject::OnQueryXDMRevision,
                                base::Unretained(this)));
   handler_.Register("setContainerImage",
                     base::Bind(&DepthPhotoObject::OnSetContainerImage,
@@ -60,6 +81,114 @@ void DepthPhotoObject::DestroyPhoto() {
     session_->Release();
     session_ = nullptr;
   }
+}
+
+scoped_ptr<base::ListValue> DepthPhotoObject::CreateStringErrorResult(
+    const std::string& error) {
+  scoped_ptr<base::ListValue> create_results(new base::ListValue());
+  // The first value is useless since we only need the error field.
+  // So here use base::FundamentalValue type to save space
+  create_results->Append(new base::FundamentalValue(false));
+  create_results->Append(new base::StringValue(error));
+  return create_results.Pass();
+}
+
+void DepthPhotoObject::OnCheckSignature(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  pxcBool result = photo_->CheckSignature();
+  info->PostResult(CheckSignature::Results::Create(result, std::string()));
+}
+
+void DepthPhotoObject::OnQueryCameraPerspectiveModel(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  scoped_ptr<QueryCameraPerspectiveModel::Params> params(
+      QueryCameraPerspectiveModel::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  PXCPhoto::PerspectiveCameraModel model;
+  photo_->QueryCameraPerspectiveModel(params->camera_index, model);
+  PerspectiveCameraModel camera_model;
+  char* c_model = reinterpret_cast<char*>(model.model);
+  camera_model.model = std::string(c_model);
+  camera_model.focal_length.x = model.focalLength.x;
+  camera_model.focal_length.y = model.focalLength.y;
+  camera_model.principal_point.x = model.principalPoint.x;
+  camera_model.principal_point.y = model.principalPoint.y;
+  camera_model.skew = model.skew;
+  camera_model.radial_distortion.k1 = model.radialDistortion[0];
+  camera_model.radial_distortion.k2 = model.radialDistortion[1];
+  camera_model.radial_distortion.k3 = model.radialDistortion[2];
+  camera_model.tangential_distortion.p1 = model.tangentialDistortion[0];
+  camera_model.tangential_distortion.p2 = model.tangentialDistortion[1];
+  info->PostResult(QueryCameraPerspectiveModel::Results::Create(
+      camera_model, std::string()));
+}
+
+void DepthPhotoObject::OnQueryCameraPose(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  scoped_ptr<QueryCameraPose::Params> params(
+      QueryCameraPose::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  PXCPoint3DF32 translation;
+  PXCPoint4DF32 rotation;
+  photo_->QueryCameraPose(params->camera_index, translation, rotation);
+  CameraPose camera_pose;
+  camera_pose.transition.x = translation.x;
+  camera_pose.transition.y = translation.y;
+  camera_pose.transition.z = translation.z;
+  camera_pose.rotation.rotation_angle = rotation.w;
+  camera_pose.rotation.rotation_axis_x = rotation.x;
+  camera_pose.rotation.rotation_axis_y = rotation.y;
+  camera_pose.rotation.rotation_axis_z = rotation.z;
+  info->PostResult(QueryCameraPose::Results::Create(
+      camera_pose, std::string()));
+}
+
+void DepthPhotoObject::OnQueryCameraVendorInfo(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  scoped_ptr<QueryCameraVendorInfo::Params> params(
+      QueryCameraVendorInfo::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  PXCPhoto::VendorInfo vendor_info;
+  photo_->QueryCameraVendorInfo(params->camera_index, vendor_info);
+  VendorInfo camera_vendor;
+  camera_vendor.model = std::string(reinterpret_cast<char*>(vendor_info.model));
+  camera_vendor.manufacturer = std::string(
+      reinterpret_cast<char*>(vendor_info.manufacturer));
+  camera_vendor.notes = std::string(reinterpret_cast<char*>(vendor_info.notes));
+  info->PostResult(QueryCameraVendorInfo::Results::Create(
+      camera_vendor, std::string()));
 }
 
 void DepthPhotoObject::OnQueryContainerImage(
@@ -131,6 +260,36 @@ void DepthPhotoObject::OnQueryDepthImage(
   info->PostResult(result.Pass());
 }
 
+void DepthPhotoObject::OnQueryDeviceVendorInfo(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  PXCPhoto::VendorInfo vendor_info;
+  photo_->QueryDeviceVendorInfo(vendor_info);
+  VendorInfo camera_vendor;
+  camera_vendor.model = std::string(reinterpret_cast<char*>(vendor_info.model));
+  camera_vendor.manufacturer = std::string(
+      reinterpret_cast<char*>(vendor_info.manufacturer));
+  camera_vendor.notes = std::string(reinterpret_cast<char*>(vendor_info.notes));
+  info->PostResult(QueryDeviceVendorInfo::Results::Create(
+      camera_vendor, std::string()));
+}
+
+void DepthPhotoObject::OnQueryNumberOfCameras(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  pxcI32 number = photo_->QueryNumberOfCameras();
+  info->PostResult(QueryNumberOfCameras::Results::Create(
+      number, std::string()));
+}
+
 void DepthPhotoObject::OnQueryRawDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
@@ -152,6 +311,18 @@ void DepthPhotoObject::OnQueryRawDepthImage(
       reinterpret_cast<const char*>(binary_message_.get()),
       binary_message_size_));
   info->PostResult(result.Pass());
+}
+
+void DepthPhotoObject::OnQueryXDMRevision(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  const pxcCHAR* xdm_version = photo_->QueryXDMRevision();
+  info->PostResult(QueryXDMRevision::Results::Create(
+      reinterpret_cast<const char*>(xdm_version), std::string()));
 }
 
 void DepthPhotoObject::OnSetContainerImage(
