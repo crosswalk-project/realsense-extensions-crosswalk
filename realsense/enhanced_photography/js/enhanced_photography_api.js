@@ -136,14 +136,40 @@ var EnhancedPhotography = function(objectId) {
   this._addMethodWithPromise('depthRefocus', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapPhotoArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapPhotoArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('initMotionEffect', wrapPhotoArgs);
-  this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
 };
 
 EnhancedPhotography.prototype = new common.EventTargetPrototype();
 EnhancedPhotography.prototype.constructor = EnhancedPhotography;
 
 exports.EnhancedPhoto = new EnhancedPhotography();
+
+var MotionEffect = function(photo, objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+  if (!(photo instanceof DepthPhoto))
+    throw new InvalidPhotoException('Invalid Photo object');
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage(
+        'motionEffectConstructor', [this._id, { objectId: photo.photoId }]);
+    if (!result)
+      throw new InvalidPhotoException('Invalid Photo object');
+  }
+
+  this._addMethodWithPromise('initMotionEffect');
+  this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
+
+  Object.defineProperties(this, {
+    'photo': {
+      value: photo,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+  });
+};
+
+MotionEffect.prototype = new common.EventTargetPrototype();
+MotionEffect.prototype.constructor = MotionEffect;
+exports.MotionEffect = MotionEffect;
 
 var Paster = function(photo, objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());

@@ -37,12 +37,9 @@ class EnhancedPhotographyObject : public xwalk::common::BindingObject {
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromThreshold(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnInitMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnApplyMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
                               jsapi::depth_photo::Photo* photo);
-  bool CopyColorImage(PXCImage* pxcimage);
   bool CopyMaskImage(PXCImage* pxcimage);
   void ReleaseResources();
 

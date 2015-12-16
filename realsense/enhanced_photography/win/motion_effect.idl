@@ -1,0 +1,28 @@
+// Copyright (c) 2015 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// MotionEffect interface
+namespace motion_effect {
+  dictionary Motion {
+    double horizontal;
+    double vertical;
+    double distance;
+  };
+
+  dictionary Rotation {
+    double pitch;
+    double yaw;
+    double roll;
+  };
+
+  callback ImagePromise = void(depth_photo.Image image, DOMString error);
+  callback Promise = void(DOMString success, DOMString error);
+
+  interface Functions {
+    static void initMotionEffect(Promise promise);
+    static void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
+
+    [nodoc] static MotionEffect motionEffectConstructor(DOMString objectId, depth_photo.Photo photo);
+  };
+};
