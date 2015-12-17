@@ -54,12 +54,12 @@ void EnhancedPhotographyObject::CreateDepthPhotoObject(
 
 void EnhancedPhotographyObject::OnMeasureDistance(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  Distance distance;
+  MeasureData measure_data;
   scoped_ptr<MeasureDistance::Params> params(
       MeasureDistance::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        MeasureDistance::Results::Create(distance, "Malformed parameters"));
+        MeasureDistance::Results::Create(measure_data, "Malformed parameters"));
     return;
   }
 
@@ -67,7 +67,7 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(MeasureDistance::Results::Create(distance,
+    info->PostResult(MeasureDistance::Results::Create(measure_data,
         "Invalid Photo object."));
     return;
   }
@@ -82,8 +82,17 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   PXCEnhancedPhoto::MeasureData data;
   ep_->MeasureDistance(depthPhotoObject->GetPhoto(), start, end, &data);
 
-  distance.distance = data.distance;
-  info->PostResult(MeasureDistance::Results::Create(distance, std::string()));
+  measure_data.distance = data.distance;
+  measure_data.confidence = data.confidence;
+  measure_data.precision = data.precision;
+  measure_data.start_point.x = data.startPoint.coord.x;
+  measure_data.start_point.y = data.startPoint.coord.y;
+  measure_data.start_point.z = data.startPoint.coord.z;
+  measure_data.end_point.x = data.endPoint.coord.x;
+  measure_data.end_point.x = data.endPoint.coord.y;
+  measure_data.end_point.x = data.endPoint.coord.z;
+  info->PostResult(MeasureDistance::Results::Create(
+      measure_data, std::string()));
 }
 
 void EnhancedPhotographyObject::OnDepthRefocus(
@@ -111,11 +120,13 @@ void EnhancedPhotographyObject::OnDepthRefocus(
   focus.x = params->focus.x;
   focus.y = params->focus.y;
 
-  double aperture = params->aperture;
-
-  PXCPhoto* pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(),
-                                         focus,
-                                         aperture);
+  PXCPhoto* pxcphoto;
+  if (params->aperture)
+    pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(),
+                                 focus,
+                                 *(params->aperture.get()));
+  else
+    pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(), focus);
   if (!pxcphoto) {
     info->PostResult(DepthRefocus::Results::Create(photo,
         "Failed to operate DepthRefocus"));
@@ -152,8 +163,22 @@ void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
   point.x = params->point.x;
   point.y = params->point.y;
 
-  PXCImage* pxcimage =
-      ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(), point);
+  PXCImage* pxcimage;
+  if (params->params) {
+    PXCEnhancedPhoto::MaskParams mask_params;
+
+    mask_params.frontObjectDepth = params->params->front_object_depth;
+    mask_params.backOjectDepth = params->params->back_object_depth;
+    mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
+    mask_params.farFallOffDepth = params->params->far_fall_off_depth;
+    pxcimage = ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(),
+                                              point,
+                                              &mask_params);
+  } else {
+    pxcimage = ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(),
+                                              point);
+  }
+
   if (!CopyMaskImage(pxcimage)) {
     info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
         "Failed to get image data."));
@@ -190,9 +215,21 @@ void EnhancedPhotographyObject::OnComputeMaskFromThreshold(
   }
 
   DCHECK(ep_);
+  PXCImage* pxcimage;
+  if (params->params) {
+    PXCEnhancedPhoto::MaskParams mask_params;
+    mask_params.frontObjectDepth = params->params->front_object_depth;
+    mask_params.backOjectDepth = params->params->back_object_depth;
+    mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
+    mask_params.farFallOffDepth = params->params->far_fall_off_depth;
+    pxcimage = ep_->ComputeMaskFromThreshold(depthPhotoObject->GetPhoto(),
+                                             params->threshold,
+                                             &mask_params);
+  } else {
+    pxcimage = ep_->ComputeMaskFromThreshold(depthPhotoObject->GetPhoto(),
+                                             params->threshold);
+  }
 
-  PXCImage* pxcimage = ep_->ComputeMaskFromThreshold(
-      depthPhotoObject->GetPhoto(), params->threshold);
   if (!CopyMaskImage(pxcimage)) {
     info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
       "Failed to get image data."));

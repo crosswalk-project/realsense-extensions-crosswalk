@@ -105,8 +105,11 @@ function measureDistance(e) {
     statusElement.innerHTML = 'Status Info : Measure: ';
     ep.measureDistance(currentPhoto, {x: startX, y: startY}, {x: x, y: y}).then(
         function(d) {
-          statusElement.innerHTML += 'distance = ' +
-              parseFloat(d.distance).toFixed(2) + ' millimeters';
+          statusElement.innerHTML +=
+              'Distance between(' + startX + ',' + startY + ') - (' + x + ',' + y + ') = ' +
+              parseFloat(d.distance).toFixed(2) + ' millimeters, Confidence = ' +
+              parseFloat(d.confidence).toFixed(2) + ', Precision=' +
+              parseFloat(d.precision).toFixed(2) + 'mm';
           overlayContext.fillStyle = 'blue';
           overlayContext.font = 'bold 14px Arial';
           overlayContext.fillText(
