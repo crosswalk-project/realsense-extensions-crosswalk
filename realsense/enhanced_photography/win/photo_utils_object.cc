@@ -14,11 +14,20 @@ namespace enhanced_photography {
 
 PhotoUtilsObject::PhotoUtilsObject(EnhancedPhotographyInstance* instance)
     : instance_(instance) {
+  handler_.Register("colorResize",
+                    base::Bind(&PhotoUtilsObject::OnColorResize,
+                               base::Unretained(this)));
+  handler_.Register("commonFOV",
+                    base::Bind(&PhotoUtilsObject::OnCommonFOV,
+                               base::Unretained(this)));
   handler_.Register("depthResize",
                     base::Bind(&PhotoUtilsObject::OnDepthResize,
                                base::Unretained(this)));
   handler_.Register("enhanceDepth",
                     base::Bind(&PhotoUtilsObject::OnEnhanceDepth,
+                               base::Unretained(this)));
+  handler_.Register("getDepthQuality",
+                    base::Bind(&PhotoUtilsObject::OnGetDepthQuality,
                                base::Unretained(this)));
   handler_.Register("photoCrop",
                     base::Bind(&PhotoUtilsObject::OnPhotoCrop,
@@ -40,6 +49,76 @@ PhotoUtilsObject::~PhotoUtilsObject() {
     session_->Release();
     session_ = nullptr;
   }
+}
+
+void PhotoUtilsObject::OnColorResize(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Photo photo;
+  scoped_ptr<ColorResize::Params> params(
+      ColorResize::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        ColorResize::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(ColorResize::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(photo_utils_);
+  int width = params->width;
+  PXCPhoto* pxcphoto =
+      photo_utils_->ColorResize(depthPhotoObject->GetPhoto(), width);
+
+  if (!pxcphoto) {
+    info->PostResult(ColorResize::Results::Create(photo,
+        "Failed to operate colorResize"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(ColorResize::Results::Create(photo, std::string()));
+  pxcphoto->Release();
+}
+
+void PhotoUtilsObject::OnCommonFOV(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::depth_photo::Photo photo;
+  scoped_ptr<CommonFOV::Params> params(
+      CommonFOV::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        CommonFOV::Results::Create(photo, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(CommonFOV::Results::Create(photo,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(photo_utils_);
+  PXCPhoto* pxcphoto = photo_utils_->CommonFOV(depthPhotoObject->GetPhoto());
+
+  if (!pxcphoto) {
+    info->PostResult(CommonFOV::Results::Create(photo,
+        "Failed to operate commonFOV"));
+    return;
+  }
+
+  CreateDepthPhotoObject(pxcphoto, &photo);
+  info->PostResult(CommonFOV::Results::Create(photo, std::string()));
+  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnDepthResize(
@@ -130,6 +209,46 @@ void PhotoUtilsObject::OnEnhanceDepth(
   CreateDepthPhotoObject(pxcphoto, &photo);
   info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
   pxcphoto->Release();
+}
+
+void PhotoUtilsObject::OnGetDepthQuality(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  jsapi::photo_utils::DepthMapQuality depth_quality;
+  scoped_ptr<GetDepthQuality::Params> params(
+      GetDepthQuality::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(GetDepthQuality::Results::Create(
+        depth_quality, "Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(GetDepthQuality::Results::Create(depth_quality,
+        "Invalid Photo object."));
+    return;
+  }
+
+  DCHECK(photo_utils_);
+  PXCEnhancedPhoto::PhotoUtils::DepthMapQuality qulity =
+      photo_utils_->GetDepthQuality(
+          depthPhotoObject->GetPhoto()->QueryDepthImage());
+  if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::BAD) {
+    depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_BAD;
+  } else if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::FAIR) {
+    depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_FAIR;
+  } else if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::GOOD) {
+    depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_GOOD;
+  } else {
+    info->PostResult(GetDepthQuality::Results::Create(depth_quality,
+        "Unsupported depth quality."));
+    return;
+  }
+
+  info->PostResult(GetDepthQuality::Results::Create(
+      depth_quality, std::string()));
 }
 
 void PhotoUtilsObject::OnPhotoCrop(

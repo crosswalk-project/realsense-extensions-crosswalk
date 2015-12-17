@@ -25,8 +25,11 @@ class PhotoUtilsObject : public xwalk::common::BindingObject {
   ~PhotoUtilsObject() override;
 
  private:
+  void OnColorResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnCommonFOV(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthResize(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnEnhanceDepth(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnGetDepthQuality(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoCrop(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPhotoRotate(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
