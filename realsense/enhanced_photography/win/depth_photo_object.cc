@@ -9,6 +9,7 @@
 
 #include "base/bind.h"
 #include "base/guid.h"
+#include "base/strings/sys_string_conversions.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -124,8 +125,7 @@ void DepthPhotoObject::OnQueryCameraPerspectiveModel(
   PXCPhoto::PerspectiveCameraModel model;
   photo_->QueryCameraPerspectiveModel(params->camera_index, model);
   PerspectiveCameraModel camera_model;
-  char* c_model = reinterpret_cast<char*>(model.model);
-  camera_model.model = std::string(c_model);
+  camera_model.model = base::SysWideToUTF8(model.model);
   camera_model.focal_length.x = model.focalLength.x;
   camera_model.focal_length.y = model.focalLength.y;
   camera_model.principal_point.x = model.principalPoint.x;
@@ -186,10 +186,9 @@ void DepthPhotoObject::OnQueryCameraVendorInfo(
   PXCPhoto::VendorInfo vendor_info;
   photo_->QueryCameraVendorInfo(params->camera_index, vendor_info);
   VendorInfo camera_vendor;
-  camera_vendor.model = std::string(reinterpret_cast<char*>(vendor_info.model));
-  camera_vendor.manufacturer = std::string(
-      reinterpret_cast<char*>(vendor_info.manufacturer));
-  camera_vendor.notes = std::string(reinterpret_cast<char*>(vendor_info.notes));
+  camera_vendor.model = base::SysWideToUTF8(vendor_info.model);
+  camera_vendor.manufacturer = base::SysWideToUTF8(vendor_info.manufacturer);
+  camera_vendor.notes = base::SysWideToUTF8(vendor_info.notes);
   info->PostResult(QueryCameraVendorInfo::Results::Create(
       camera_vendor, std::string()));
 }
@@ -294,13 +293,12 @@ void DepthPhotoObject::OnQueryDeviceVendorInfo(
 
   PXCPhoto::VendorInfo vendor_info;
   photo_->QueryDeviceVendorInfo(vendor_info);
-  VendorInfo camera_vendor;
-  camera_vendor.model = std::string(reinterpret_cast<char*>(vendor_info.model));
-  camera_vendor.manufacturer = std::string(
-      reinterpret_cast<char*>(vendor_info.manufacturer));
-  camera_vendor.notes = std::string(reinterpret_cast<char*>(vendor_info.notes));
+  VendorInfo device_vendor;
+  device_vendor.model = base::SysWideToUTF8(vendor_info.model);
+  device_vendor.manufacturer = base::SysWideToUTF8(vendor_info.manufacturer);
+  device_vendor.notes = base::SysWideToUTF8(vendor_info.notes);
   info->PostResult(QueryDeviceVendorInfo::Results::Create(
-      camera_vendor, std::string()));
+      device_vendor, std::string()));
 }
 
 void DepthPhotoObject::OnQueryNumberOfCameras(
