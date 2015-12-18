@@ -93,12 +93,13 @@ namespace depth_photo {
     static void queryCameraPose(long cameraIndex, CameraPosePromise promise);
     static void queryCameraVendorInfo(long cameraIndex, VendorInfoPromise promise);
     static void queryContainerImage(ImagePromise promise);
-    static void queryColorImage(ImagePromise promise);
-    static void queryDepthImage(ImagePromise promise);
+    static void queryColorImage(optional long cameraIndex, ImagePromise promise);
+    static void queryDepthImage(optional long cameraIndex, ImagePromise promise);
     static void queryDeviceVendorInfo(VendorInfoPromise promise);
     static void queryNumberOfCameras(IntPromise promise);
     static void queryRawDepthImage(ImagePromise promise);
     static void queryXDMRevision(Promise promise);
+    static void resetContainerImage(Promise promise);
     static void setContainerImage(ArrayBuffer image, Promise promise);
     static void setColorImage(ArrayBuffer image, Promise promise);
     static void setDepthImage(ArrayBuffer image, Promise promise);

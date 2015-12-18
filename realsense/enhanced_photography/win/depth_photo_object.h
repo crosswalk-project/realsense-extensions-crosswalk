@@ -43,6 +43,7 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   void OnQueryNumberOfCameras(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryXDMRevision(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnResetContainerImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetContainerImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetColorImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);

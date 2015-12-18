@@ -92,10 +92,18 @@ var DepthPhoto = function(objectId) {
     return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
+  this._addMethodWithPromise('checkSignature');
+  this._addMethodWithPromise('queryCameraPerspectiveModel');
+  this._addMethodWithPromise('queryCameraPose');
+  this._addMethodWithPromise('queryCameraVendorInfo');
   this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryColorImage', null, wrapRGB32ImageReturns);
   this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryDeviceVendorInfo');
+  this._addMethodWithPromise('queryNumberOfCameras');
   this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryXDMRevision');
+  this._addMethodWithPromise('resetContainerImage');
   this._addBinaryMethodWithPromise('setContainerImage', wrapRGB32ImageArgs);
   this._addBinaryMethodWithPromise('setColorImage', wrapRGB32ImageArgs);
   this._addBinaryMethodWithPromise('setDepthImage', wrapDepthImageArgs);
