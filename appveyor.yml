@@ -38,4 +38,14 @@ build_script:
     python gyp_all
 
     ninja -C out\Release_x64 all
+deploy:
+  description: 'Release Description'
+  provider: GitHub
+  auth_token:
+    secure: x7Q/400f4Ng1G+6j+c70wrgd866E3lDV1buKeHZPdftRo/cog1kP3CFE612n/kP5
+  artifact: rec.zip
+  draft: true
+  prerelease: true
+  on:
+    appveyor_repo_tag: true
 test: off
