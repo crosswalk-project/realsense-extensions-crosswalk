@@ -42,7 +42,7 @@ after_build:
 - cmd: >-
     cd c:\projects\realsense-extensions-crosswalk\src\out\Release_x64
 
-    7z a rec.zip enhanced_photography.dll face.dll scene_perception.dll session.dll
+    7z a rec.zip *.dll -x!dbghelp.dll
 
     appveyor PushArtifact rec.zip
 deploy:
