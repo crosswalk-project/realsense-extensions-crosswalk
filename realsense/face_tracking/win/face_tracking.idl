@@ -127,20 +127,15 @@ namespace face_tracking {
   };
 
   // Single Face Data
-  dictionary Face {
+  dictionary FaceData {
     Detection? detection;
     Landmark? landmark;
-  };
-
-  // All detected faces 
-  dictionary FaceResults {
-    Face[] faces;
   };
 
   dictionary ProcessedSample {
     Image color;
     Image? depth;
-    FaceResults faceResults;  
+    FaceData[] faces;
   };
 
   callback ProcessedSamplePromise = void (ProcessedSample sample, DOMString error);
