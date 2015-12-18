@@ -49,6 +49,9 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("queryXDMRevision",
                     base::Bind(&DepthPhotoObject::OnQueryXDMRevision,
                                base::Unretained(this)));
+  handler_.Register("resetContainerImage",
+                    base::Bind(&DepthPhotoObject::OnResetContainerImage,
+                               base::Unretained(this)));
   handler_.Register("setContainerImage",
                     base::Bind(&DepthPhotoObject::OnSetContainerImage,
                                base::Unretained(this)));
@@ -223,7 +226,18 @@ void DepthPhotoObject::OnQueryColorImage(
     return;
   }
 
-  PXCImage* imColor = photo_->QueryColorImage();
+  scoped_ptr<QueryColorImage::Params> params(
+      QueryColorImage::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  PXCImage* imColor;
+  if (params->camera_index)
+    imColor = photo_->QueryColorImage(*(params->camera_index.get()));
+  else
+    imColor = photo_->QueryColorImage();
   if (!CopyColorImage(imColor)) {
     info->PostResult(QueryColorImage::Results::Create(img,
         "Failed to QueryColorImage."));
@@ -246,7 +260,18 @@ void DepthPhotoObject::OnQueryDepthImage(
     return;
   }
 
-  PXCImage* imDepth = photo_->QueryDepthImage();
+  scoped_ptr<QueryDepthImage::Params> params(
+      QueryDepthImage::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  PXCImage* imDepth;
+  if (params->camera_index)
+    imDepth = photo_->QueryDepthImage(*(params->camera_index.get()));
+  else
+    imDepth = photo_->QueryDepthImage();
   if (!CopyDepthImage(imDepth)) {
     info->PostResult(QueryDepthImage::Results::Create(img,
         "Failed to QueryDepthImage."));
@@ -323,6 +348,18 @@ void DepthPhotoObject::OnQueryXDMRevision(
   const pxcCHAR* xdm_version = photo_->QueryXDMRevision();
   info->PostResult(QueryXDMRevision::Results::Create(
       reinterpret_cast<const char*>(xdm_version), std::string()));
+}
+
+void DepthPhotoObject::OnResetContainerImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!photo_) {
+    info->PostResult(CreateStringErrorResult("Invalid photo object"));
+    return;
+  }
+
+  photo_->ResetContainerImage();
+  info->PostResult(ResetContainerImage::Results::Create(
+      "Success", std::string()));
 }
 
 void DepthPhotoObject::OnSetContainerImage(
