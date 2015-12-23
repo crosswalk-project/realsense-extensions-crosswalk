@@ -18,8 +18,8 @@
         }],
         ['OS=="android"', {
           'dependencies': [
-            'enhanced_photography/android/enhanced_photography.gyp:*',
-            'scene_perception/android/scene_perception.gyp:*',
+            'android/enhanced_photography/enhanced_photography.gyp:*',
+            'android/scene_perception/scene_perception.gyp:*',
           ]
         }],
       ], # conditions
