@@ -826,53 +826,24 @@
           The <code><a>PhotoCapture</a></code> interface captures a depth photo
           from 3D camera.
         </p>
-        <dl title='interface PhotoCapture : EventTarget' class='idl'>
+        <p>
+          The <code>MediaStream</code> (described in [[!GETUSERMEDIA]]) passed
+          to the constructor must have at least one video track otherwise an
+          exception will be thrown.
+        </p>
+        <dl title='[Constructor(MediaStream stream)] interface PhotoCapture : EventTarget' class='idl'>
           <dt>
-            Promise&lt;void&gt; startPreview(optional PreviewConfiguration config)
+            Promise&lt;Image&gt; getDepthImage()
           </dt>
           <dd>
             <p>
-              The <code>startPreview()</code> method starts the cameras streaming
-              with configuration specified by <code>config</code>.
-              If no <code>config</code> is specified, it uses default configuration.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-            <dl class='parameters'>
-              <dt>optional PreviewConfiguration config</dt>
-              <dd>
-                The preview configuration.
-              </dd>
-            </dl>
-          </dd>
-          <dt>
-            Promise&lt;void&gt; stopPreview()
-          </dt>
-          <dd>
-            <p>
-              The <code>stopPreview()</code> method stops the cameras streaming.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-          </dd>
-          <dt>
-            Promise&lt;Image&gt; getPreviewImage()
-          </dt>
-          <dd>
-            <p>
-              The <code>getPreviewImage()</code> method gets the latest
-              available preview image.
+              The <code>getDepthImage()</code> method gets the latest
+              available depth image.
             </p>
             <p>
               This method returns a promise.
               The promise will be fulfilled with the latest available
-              preview image if there are no errors.
+              depth image if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
           </dd>
@@ -881,8 +852,8 @@
           </dt>
           <dd>
             <p>
-              The <code>getPreviewImage()</code> method creates photo instance
-              by importing content from preview images.
+              The <code>takePhoto()</code> method creates a photo instance
+              by importing content from preview color and depth images.
             </p>
             <p>
               This method returns a promise.
@@ -892,39 +863,62 @@
             </p>
           </dd>
           <dt>
+            readonly attribute MediaStream previewStream;
+          </dt>
+          <dd>
+            <p>
+              The <code>MediaStream</code> instance passed in constructor.
+            </p>
+          </dd>
+          <dt>
             attribute EventHandler onerror
           </dt>
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
-              for the <a><code>PreviewErrorEvent</code></a> that is dispatched
+              for the <a><code>CaptureErrorEvent</code></a> that is dispatched
               to <code><a>PhotoCapture</a></code> when an error happens
               in preview.
             </p>
           </dd>
           <dt>
-            attribute EventHandler onpreview
+            attribute EventHandler ondepthquality
           </dt>
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
-              for the <a><code>Event</code></a> that is dispatched
-              to <code><a>PhotoCapture</a></code> when a new preview
-              image is ready.
+              for the <a><code>DepthQualityEvent</code></a> that is dispatched
+              to <code><a>PhotoCapture</a></code> after checking the quality of
+              the depth map.
             </p>
           </dd>
         </dl>
         <section>
           <h3>
-            <code><a>PreviewErrorEvent</a></code> interface
+            <code><a>CaptureErrorEvent</a></code> interface
           </h3>
-          <dl class="idl" title="interface PreviewErrorEvent : Event">
+          <dl class="idl" title="interface CaptureErrorEvent : Event">
             <dt>
               readonly attribute DOMString message
             </dt>
             <dd>
               <p>
                 The error message.
+              </p>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h3>
+            <code><a>DepthQualityEvent</a></code> interface
+          </h3>
+          <dl class="idl" title="interface DepthQualityEvent : Event">
+            <dt>
+              readonly attribute DepthMapQuality quality
+            </dt>
+            <dd>
+              <p>
+                The depth map quality.
               </p>
             </dd>
           </dl>
@@ -2034,6 +2028,45 @@
           </dd>
         </dl>
       </section>
+    </section>
+    <section class='informative'>
+      <h2>
+        Examples
+      </h2>
+      <h3>
+        Taking a Depth Photo
+      </h3>
+      <pre class='example highlight'>
+var photoCapture;
+
+navigator.mediaDevices.getUserMedia({video: true}).then(gotMedia, failedToGetMedia);
+
+function gotMedia(stream) {
+  // Wire the media stream into a &lt;video&gt; element for preview.
+  var previewVideo = document.querySelector('#previewVideo');
+  previewVideo.srcObject = stream;
+  previewVideo.play();
+
+  // Construct a photo capture from the stream.
+  photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
+  photoCapture.onerror = function(e) {
+    console.log('Photo capture failure: ' + e.data.message);
+  };
+  photoCapture.ondepthquality = function(e) {
+    consoloe.log('Depth quality: ' + e.data.quality);
+  };
+}
+
+var takePhotoButton = document.querySelector('#takePhoto');
+takePhotoButton.onclick = function () {
+  photoCapture.takePhoto().then(gotPhoto, failedToGetPhoto);
+};
+
+function gotPhoto(photo) {
+  // Got a photo instance.
+  console.log('Got a photo');
+}
+      </pre>
     </section>
     <section class='appendix'>
       <h2>Acknowledgments</h2>

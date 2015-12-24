@@ -15,6 +15,7 @@
 #include "base/synchronization/lock.h"
 #include "base/threading/thread.h"
 #include "realsense/enhanced_photography/win/enhanced_photography_instance.h"
+#include "third_party/libpxc/include/pxcenhancedphoto.h"
 #include "third_party/libpxc/include/pxcphoto.h"
 #include "third_party/libpxc/include/pxcsensemanager.h"
 #include "xwalk/common/event_target.h"
@@ -35,39 +36,38 @@ class PhotoCaptureObject : public xwalk::common::EventTarget {
   void StopEvent(const std::string& type) override;
 
  private:
-  void OnStartPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnStopPreview(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnGetPreviewImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
-
-  // This method will capture a photo from preview and bind it with |photo_|
+  // Message handlers
+  void OnEnableDepthStream(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDisableDepthStream(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnGetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  void ReleaseMainResources();
-  void ReleasePreviewResources();
-
-  // Run on ep_preview_thread_
-  void OnEnhancedPhotoPreviewPipeline();
-  void CaptureOnPreviewThread(
+  // Run on pipeline_thread_
+  void RunPipeline();
+  void StopAndDestroyPipeline(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnStopAndDestroyPipeline(
-      scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoGetDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void DoTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  enum State {
-    IDLE,
-    PREVIEW,
-  };
-  State state_;
+  // Helpers
+  void DispatchErrorEvent(const std::string& message);
+  void ReleaseResources();
 
-  bool on_preview_;
+  bool on_depthquality_;
 
+  // Guard depth_enabled_
   base::Lock lock_;
-  base::Thread ep_preview_thread_;
+  bool depth_enabled_;
+
+  base::Thread pipeline_thread_;
   scoped_refptr<base::MessageLoopProxy> message_loop_;
 
   PXCSession* session_;
   PXCSenseManager* sense_manager_;
-  PXCPhoto* preview_photo_;
-  PXCImage* preview_image_;
+  PXCImage* depth_image_;
+  PXCEnhancedPhoto::PhotoUtils* photo_utils_;
+  PXCCapture* capture_;
+  PXCCapture::Device* capture_device_;
 
   EnhancedPhotographyInstance* instance_;
 

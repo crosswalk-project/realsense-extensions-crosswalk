@@ -5,15 +5,11 @@
 // PhotoCapture interface
 namespace photo_capture {
   dictionary ErrorEvent {
-    DOMString status;
+    DOMString error;
   };
 
-  dictionary PreviewConfiguration {
-    long? colorWidth;
-    long? colorHeight;
-    long? depthWidth;
-    long? depthHeight;
-    double? framerate;
+  dictionary DepthQualityEvent {
+    photo_utils.DepthMapQuality quality;
   };
 
   callback ImagePromise = void(depth_photo.Image image, DOMString error);
@@ -22,13 +18,13 @@ namespace photo_capture {
 
   interface Events {
     static void onerror();
-    static void onpreview();
+    static void ondepthquality();
   };
 
   interface Functions {
-    static void startPreview(optional PreviewConfiguration config, Promise promise);
-    static void stopPreview(Promise promise);
-    static void getPreviewImage(ImagePromise promise);
+    static void enableDepthStream(DOMString camera, Promise promise);
+    static void disableDepthStream(Promise promise);
+    static void getDepthImage(ImagePromise promise);
     static void takePhoto(PhotoPromise promise);
     
     [nodoc] static PhotoCapture photoCaptureConstructor(DOMString objectId);

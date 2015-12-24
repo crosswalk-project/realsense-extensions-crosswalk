@@ -8,196 +8,372 @@
 #include <string>
 
 #include "base/bind.h"
+#include "base/guid.h"
+#include "base/logging.h"
+#include "base/strings/sys_string_conversions.h"
 #include "realsense/enhanced_photography/win/common_utils.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
 
-// Default preview config.
-// FIXME(qjia7): Enumerate available device configuration and select one.
-static int kCaptureColorWidth = 640;
-static int kCaptureColorHeight = 480;
-static int kCaptureDepthWidth = 480;
-static int kCaptureDepthHeight = 360;
-static float kCaptureFramerate = 60.0;
+using realsense::jsapi::photo_utils::DepthMapQuality;
+
+#define PXC_SUCCEEDED(status) (((pxcStatus)(status)) >= PXC_STATUS_NO_ERROR)
+#define PXC_FAILED(status) (((pxcStatus)(status)) < PXC_STATUS_NO_ERROR)
+#define DISPATCH_ERROR_AND_CLEAR(e) \
+    DispatchErrorEvent(e); \
+    ReleaseResources();
 
 PhotoCaptureObject::PhotoCaptureObject(
     EnhancedPhotographyInstance* instance)
-        : state_(IDLE),
-          on_preview_(false),
-          ep_preview_thread_("PhotoCapturePreviewThread"),
+        : depth_enabled_(false),
+          on_depthquality_(false),
+          pipeline_thread_("PhotoCaptureThread"),
           message_loop_(base::MessageLoopProxy::current()),
           session_(nullptr),
           sense_manager_(nullptr),
-          preview_photo_(nullptr),
-          preview_image_(nullptr),
+          depth_image_(nullptr),
+          photo_utils_(nullptr),
           instance_(instance),
           binary_message_size_(0) {
-  handler_.Register("startPreview",
-                    base::Bind(&PhotoCaptureObject::OnStartPreview,
+  handler_.Register("enableDepthStream",
+                    base::Bind(&PhotoCaptureObject::OnEnableDepthStream,
                                base::Unretained(this)));
-  handler_.Register("stopPreview",
-                    base::Bind(&PhotoCaptureObject::OnStopPreview,
+  handler_.Register("disableDepthStream",
+                    base::Bind(&PhotoCaptureObject::OnDisableDepthStream,
                                base::Unretained(this)));
-  handler_.Register("getPreviewImage",
-                    base::Bind(&PhotoCaptureObject::OnGetPreviewImage,
+  handler_.Register("getDepthImage",
+                    base::Bind(&PhotoCaptureObject::OnGetDepthImage,
                                base::Unretained(this)));
   handler_.Register("takePhoto",
                     base::Bind(&PhotoCaptureObject::OnTakePhoto,
                                base::Unretained(this)));
-  session_ = PXCSession::CreateInstance();
 }
 
 PhotoCaptureObject::~PhotoCaptureObject() {
-  if (state_ != IDLE) {
-    OnStopPreview(nullptr);
-  } else {
-    ReleaseMainResources();
+  {
+    base::AutoLock lock(lock_);
+    if (!depth_enabled_) return;
   }
+  OnDisableDepthStream(nullptr);
 }
 
 void PhotoCaptureObject::StartEvent(const std::string& type) {
-  if (type == std::string("preview")) {
-    on_preview_ = true;
+  if (type == std::string("depthquality")) {
+    on_depthquality_ = true;
   }
 }
 
 void PhotoCaptureObject::StopEvent(const std::string& type) {
-  if (type == std::string("preview")) {
-    on_preview_ = false;
+  if (type == std::string("depthquality")) {
+    on_depthquality_ = false;
   }
 }
 
-void PhotoCaptureObject::OnStartPreview(
+void PhotoCaptureObject::OnEnableDepthStream(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  if (state_ == PREVIEW) {
-    info->PostResult(StartPreview::Results::Create(std::string("Success"),
-                                                   std::string()));
+  {
+    base::AutoLock lock(lock_);
+    if (depth_enabled_) return;
+  }
+
+  scoped_ptr<EnableDepthStream::Params> params(
+      EnableDepthStream::Params::Create(*info->arguments()));
+  if (!params) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+  std::string cameraName = params->camera;
+
+  session_ = PXCSession::CreateInstance();
+  if (!session_) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream")
     return;
   }
 
-  scoped_ptr<StartPreview::Params> params(
-      StartPreview::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        StartPreview::Results::Create(std::string(), "Malformed parameters"));
+  PXCSession::ImplDesc templat = {};
+  templat.group = PXCSession::IMPL_GROUP_SENSOR;
+  templat.subgroup = PXCSession::IMPL_SUBGROUP_VIDEO_CAPTURE;
+  PXCSession::ImplDesc desc;
+  int module_index = 0;
+  while (PXC_SUCCEEDED(session_->QueryImpl(&templat, module_index, &desc))) {
+    if (PXC_FAILED(session_->CreateImpl<PXCCapture>(&desc, &capture_)))
+      continue;
+
+    DVLOG(1) << "RSSDK capture module: " << desc.friendlyName;
+
+    for (int i = 0; i < capture_->QueryDeviceNum(); i++) {
+      PXCCapture::DeviceInfo device_info;
+      if (PXC_FAILED(capture_->QueryDeviceInfo(i, &device_info))) break;
+
+      if (cameraName == base::SysWideToUTF8(device_info.name)) {
+        capture_device_ = capture_->CreateDevice(device_info.didx);
+        DVLOG(1) << "Found capture device: "
+          << base::SysWideToUTF8(device_info.name) << " "
+          << base::SysWideToUTF8(device_info.did);
+        break;
+      }
+    }
+    if (capture_device_)
+      break;
+    module_index++;
+    capture_->Release();
+  }
+
+  if (!capture_device_) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
     return;
   }
+
+  int num_profiles = capture_device_->QueryStreamProfileSetNum(
+      PXCCapture::STREAM_TYPE_COLOR | PXCCapture::STREAM_TYPE_DEPTH);
+  DVLOG(1) << "Found " << num_profiles << " profiles.";
+  PXCCapture::Device::StreamProfileSet profile_set = {};
+  // Use the first profile by default.
+  // TODO(huningxin): select profile by depth stream config.
+  if (PXC_FAILED(capture_device_->QueryStreamProfileSet(
+    PXCCapture::STREAM_TYPE_COLOR | PXCCapture::STREAM_TYPE_DEPTH,
+    0, &profile_set))) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  DVLOG(1) << "Profile: "
+    << PXCImage::PixelFormatToString(profile_set.color.imageInfo.format)
+    << " (" << profile_set.color.imageInfo.width << "x"
+    << profile_set.color.imageInfo.height << ")"
+    << " @" << profile_set.color.frameRate.max << "fps "
+    << PXCImage::PixelFormatToString(profile_set.depth.imageInfo.format)
+    << " (" << profile_set.depth.imageInfo.width << "x"
+    << profile_set.color.imageInfo.height << ")"
+    << " @" << profile_set.depth.frameRate.max << "fps";
 
   sense_manager_ = session_->CreateSenseManager();
-
   if (!sense_manager_) {
-    info->PostResult(StartPreview::Results::Create(std::string(),
-        "Failed to create sense manager"));
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
     return;
   }
 
-  if (params->config) {
-    if (params->config->color_width)
-      kCaptureColorWidth = *(params->config->color_width.get());
-    if (params->config->color_height)
-      kCaptureColorHeight = *(params->config->color_height.get());
-    if (params->config->depth_width)
-      kCaptureDepthWidth = *(params->config->depth_width.get());
-    if (params->config->depth_height)
-      kCaptureDepthHeight = *(params->config->depth_height.get());
-    if (params->config->framerate)
-      kCaptureFramerate = *(params->config->framerate.get());
-  }
-
-  sense_manager_->EnableStream(PXCCapture::STREAM_TYPE_COLOR,
-                               kCaptureColorWidth,
-                               kCaptureColorHeight,
-                               kCaptureFramerate);
-  sense_manager_->EnableStream(PXCCapture::STREAM_TYPE_DEPTH,
-                               kCaptureDepthWidth,
-                               kCaptureDepthHeight,
-                               kCaptureFramerate);
-
-  if (sense_manager_->Init() < PXC_STATUS_NO_ERROR) {
-    ReleasePreviewResources();
-    info->PostResult(StartPreview::Results::Create(std::string(),
-        "Init Failed"));
+  PXCCaptureManager* capture_manager = sense_manager_->QueryCaptureManager();
+  if (!capture_manager) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
     return;
   }
+  capture_manager->FilterByStreamProfiles(&profile_set);
+
+  PXCVideoModule::DataDesc data_desc = {};
+  data_desc.streams.color.frameRate.min =
+      data_desc.streams.color.frameRate.max =
+          profile_set.color.frameRate.max;
+  data_desc.streams.color.sizeMin.height =
+      data_desc.streams.color.sizeMax.height =
+          profile_set.color.imageInfo.height;
+  data_desc.streams.color.sizeMin.width =
+      data_desc.streams.color.sizeMax.width =
+          profile_set.color.imageInfo.width;
+  data_desc.streams.color.options = profile_set.color.options;
+  data_desc.streams.depth.frameRate.min =
+      data_desc.streams.depth.frameRate.max =
+          profile_set.depth.frameRate.max;
+  data_desc.streams.depth.sizeMin.height =
+      data_desc.streams.depth.sizeMax.height =
+          profile_set.depth.imageInfo.height;
+  data_desc.streams.depth.sizeMin.width =
+      data_desc.streams.depth.sizeMax.width =
+          profile_set.depth.imageInfo.width;
+  data_desc.streams.depth.options = profile_set.depth.options;
+
+  if (PXC_FAILED(sense_manager_->EnableStreams(&data_desc))) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  if (PXC_FAILED(sense_manager_->Init())) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  PXCCapture::Device* capture_device = capture_manager->QueryDevice();
+  if (!capture_device) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  if (PXC_FAILED(capture_device->QueryStreamProfileSet(&profile_set))) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  PXCCapture::Device::StreamProfile color = profile_set.color;
+  PXCCapture::Device::StreamProfile depth = profile_set.depth;
+
+  if (!color.imageInfo.format || !depth.imageInfo.format) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
+
+  DVLOG(1) << "Set color stream profile: "
+      << "format " << color.imageInfo.format
+      << " (" << color.imageInfo.width << "x"
+      << color.imageInfo.height << ")"
+      << " @" << color.frameRate.max << "fps";
+
+  DVLOG(1) << "Set depth stream profile: "
+      << "format " << depth.imageInfo.format
+      << " (" << depth.imageInfo.width << "x"
+      << depth.imageInfo.height << ")"
+      << " @" << depth.frameRate.max << "fps";
 
   PXCImage::ImageInfo image_info;
   memset(&image_info, 0, sizeof(image_info));
-  image_info.width = kCaptureColorWidth;
-  image_info.height = kCaptureColorHeight;
-  image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
-  preview_image_ = sense_manager_->QuerySession()->CreateImage(&image_info);
+  image_info.width = depth.imageInfo.width;
+  image_info.height = depth.imageInfo.height;
+  image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
+  depth_image_ = session_->CreateImage(&image_info);
 
-  preview_photo_ = sense_manager_->QuerySession()->CreatePhoto();
+  photo_utils_ = PXCEnhancedPhoto::PhotoUtils::CreateInstance(session_);
+  if (!photo_utils_) {
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream");
+    return;
+  }
 
   {
     base::AutoLock lock(lock_);
-    state_ = PREVIEW;
+    depth_enabled_ = true;
   }
 
-  if (!ep_preview_thread_.IsRunning())
-    ep_preview_thread_.Start();
+  DCHECK(!pipeline_thread_.IsRunning());
 
+  pipeline_thread_.Start();
 
-  ep_preview_thread_.message_loop()->PostTask(
+  pipeline_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&PhotoCaptureObject::OnEnhancedPhotoPreviewPipeline,
+      base::Bind(&PhotoCaptureObject::RunPipeline,
                  base::Unretained(this)));
-
-  info->PostResult(StartPreview::Results::Create(std::string("success"),
-                                                 std::string()));
 }
 
-void PhotoCaptureObject::OnEnhancedPhotoPreviewPipeline() {
-  DCHECK_EQ(ep_preview_thread_.message_loop(), base::MessageLoop::current());
-  if (state_ == IDLE) return;
+void PhotoCaptureObject::OnDisableDepthStream(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  {
+    base::AutoLock lock(lock_);
+    if (!depth_enabled_) return;
+  }
+  pipeline_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&PhotoCaptureObject::StopAndDestroyPipeline,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+  pipeline_thread_.Stop();
+}
 
-  pxcStatus status = sense_manager_->AcquireFrame(true);
-  if (status < PXC_STATUS_NO_ERROR) {
-    ErrorEvent event;
-    event.status = "Fail to AcquireFrame. Stop preview.";
-    scoped_ptr<base::ListValue> eventData(new base::ListValue);
-    eventData->Append(event.ToValue().release());
-    DispatchEvent("error", eventData.Pass());
+void PhotoCaptureObject::OnGetDepthImage(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  {
+    base::AutoLock lock(lock_);
+    if (!depth_enabled_) {
+      Image depth_image;
+      info->PostResult(GetDepthImage::Results::Create(
+          depth_image, std::string("Failed to get depth image")));
+      return;
+    }
+  }
+
+  pipeline_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&PhotoCaptureObject::DoGetDepthImage,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+  return;
+}
+
+void PhotoCaptureObject::OnTakePhoto(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  {
+    base::AutoLock lock(lock_);
+    if (!depth_enabled_) {
+      jsapi::depth_photo::Photo photo;
+      info->PostResult(TakePhoto::Results::Create(photo,
+          "Failed to take photo"));
+      return;
+    }
+  }
+
+  pipeline_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&PhotoCaptureObject::DoTakePhoto,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+}
+
+void PhotoCaptureObject::RunPipeline() {
+  DCHECK_EQ(pipeline_thread_.message_loop(), base::MessageLoop::current());
+
+  {
+    base::AutoLock lock(lock_);
+    if (!depth_enabled_) return;
+  }
+
+  if (PXC_FAILED(sense_manager_->AcquireFrame(true))) {
     {
       base::AutoLock lock(lock_);
-      state_ = IDLE;
+      depth_enabled_ = false;
     }
-
-    ReleasePreviewResources();
+    DISPATCH_ERROR_AND_CLEAR("Failed to acquire frame.");
     return;
   }
 
   PXCCapture::Sample *sample = sense_manager_->QuerySample();
-  if (sample->color) {
-    if (on_preview_) {
-      preview_image_->CopyImage(sample->color);
-      DispatchEvent("preview");
+  if (sample->depth) {
+    depth_image_->CopyImage(sample->depth);
+    if (on_depthquality_) {
+      PXCEnhancedPhoto::PhotoUtils::DepthMapQuality quality =
+          photo_utils_->GetDepthQuality(sample->depth);
+      DepthMapQuality depth_quality(DepthMapQuality::DEPTH_MAP_QUALITY_NONE);
+      switch (quality) {
+        case PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::BAD: {
+          depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_BAD;
+          break;
+        }
+        case PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::FAIR: {
+          depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_FAIR;
+          break;
+        }
+        case PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::GOOD: {
+          depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_GOOD;
+          break;
+        }
+      }
+      DepthQualityEvent event;
+      event.quality = depth_quality;
+      scoped_ptr<base::ListValue> eventData(new base::ListValue);
+      eventData->Append(event.ToValue().release());
+      DispatchEvent("depthquality", eventData.Pass());
     }
   }
 
   // Go fetching the next samples
   sense_manager_->ReleaseFrame();
-  ep_preview_thread_.message_loop()->PostTask(
+  pipeline_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&PhotoCaptureObject::OnEnhancedPhotoPreviewPipeline,
+      base::Bind(&PhotoCaptureObject::RunPipeline,
                  base::Unretained(this)));
 }
 
-void PhotoCaptureObject::OnGetPreviewImage(
+void PhotoCaptureObject::DoGetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Image img;
-  if (state_ != PREVIEW) {
-    info->PostResult(GetPreviewImage::Results::Create(img,
-        "It's not in preview mode."));
+  jsapi::depth_photo::Image image;
+  if (!depth_image_) {
+    info->PostResult(GetDepthImage::Results::Create(
+        image, std::string("Failed to get depth image")));
     return;
   }
 
-  if (!CopyImageToBinaryMessage(preview_image_,
+  if (!CopyImageToBinaryMessage(depth_image_,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(GetPreviewImage::Results::Create(img,
-        "Failed to get preview image data."));
+    info->PostResult(QueryContainerImage::Results::Create(image,
+        "Failed to get depth image."));
     return;
   }
 
@@ -206,98 +382,71 @@ void PhotoCaptureObject::OnGetPreviewImage(
       reinterpret_cast<const char*>(binary_message_.get()),
       binary_message_size_));
   info->PostResult(result.Pass());
-  return;
 }
 
-void PhotoCaptureObject::OnTakePhoto(
+void PhotoCaptureObject::DoTakePhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
-  if (state_ != PREVIEW) {
+  if (PXC_FAILED(sense_manager_->AcquireFrame(true))) {
     info->PostResult(TakePhoto::Results::Create(photo,
-        "It's not in preview mode."));
-    return;
-  }
-
-  ep_preview_thread_.message_loop()->PostTask(
-      FROM_HERE,
-      base::Bind(&PhotoCaptureObject::CaptureOnPreviewThread,
-                 base::Unretained(this),
-                 base::Passed(&info)));
-}
-
-void PhotoCaptureObject::CaptureOnPreviewThread(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Photo photo;
-  pxcStatus status = sense_manager_->AcquireFrame(true);
-  if (status < PXC_STATUS_NO_ERROR) {
-    info->PostResult(TakePhoto::Results::Create(photo,
-        "Failed to AcquireFrame"));
+        "Failed to take photo"));
     return;
   }
 
   PXCCapture::Sample *sample = sense_manager_->QuerySample();
-  preview_photo_->ImportFromPreviewSample(sample);
   PXCPhoto* pxcphoto = session_->CreatePhoto();
-  pxcphoto->CopyPhoto(preview_photo_);
+  pxcphoto->ImportFromPreviewSample(sample);
   CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   sense_manager_->ReleaseFrame();
   info->PostResult(TakePhoto::Results::Create(photo, std::string()));
 }
 
-void PhotoCaptureObject::OnStopPreview(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  if (state_ == IDLE && info) {
-    info->PostResult(StopPreview::Results::Create(std::string(),
-        "Please startPreview() first"));
-    return;
-  }
-  ep_preview_thread_.message_loop()->PostTask(
-      FROM_HERE,
-      base::Bind(&PhotoCaptureObject::OnStopAndDestroyPipeline,
-                 base::Unretained(this),
-                 base::Passed(&info)));
-  ep_preview_thread_.Stop();
-}
-
-void PhotoCaptureObject::OnStopAndDestroyPipeline(
+void PhotoCaptureObject::StopAndDestroyPipeline(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
-  DCHECK_EQ(ep_preview_thread_.message_loop(), base::MessageLoop::current());
+  DCHECK_EQ(pipeline_thread_.message_loop(), base::MessageLoop::current());
 
   {
     base::AutoLock lock(lock_);
-    state_ = IDLE;
+    depth_enabled_ = false;
   }
-  if (info) {
-    ReleasePreviewResources();
-    info->PostResult(StopPreview::Results::Create(std::string("Success"),
-                                                  std::string()));
-  } else {
-    ReleasePreviewResources();
-    ReleaseMainResources();
-  }
+
+  ReleaseResources();
 }
 
-void PhotoCaptureObject::ReleasePreviewResources() {
-  if (preview_image_) {
-    preview_image_->Release();
-    preview_image_ = nullptr;
+void PhotoCaptureObject::ReleaseResources() {
+  if (depth_image_) {
+    depth_image_->Release();
+    depth_image_ = nullptr;
   }
-  if (preview_photo_) {
-    preview_photo_->Release();
-    preview_photo_ = nullptr;
+  if (capture_) {
+    capture_->Release();
+    capture_ = nullptr;
+  }
+  if (capture_device_) {
+    capture_device_->Release();
+    capture_device_ = nullptr;
   }
   if (sense_manager_) {
     sense_manager_->Close();
     sense_manager_->Release();
     sense_manager_ = nullptr;
   }
-}
-
-void PhotoCaptureObject::ReleaseMainResources() {
+  if (photo_utils_) {
+    photo_utils_->Release();
+    photo_utils_ = nullptr;
+  }
   if (session_) {
     session_->Release();
     session_ = nullptr;
   }
+}
+
+void PhotoCaptureObject::DispatchErrorEvent(const std::string& message) {
+  ErrorEvent event;
+  event.error = message;
+  scoped_ptr<base::ListValue> eventData(new base::ListValue);
+  eventData->Append(event.ToValue().release());
+  DispatchEvent("error", eventData.Pass());
 }
 
 }  // namespace enhanced_photography
