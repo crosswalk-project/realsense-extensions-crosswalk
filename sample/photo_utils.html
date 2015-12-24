@@ -1,0 +1,42 @@
+<html>
+<head>
+  <title>RealSense Enhanced Photography API Test</title>
+  <style>
+    canvas {
+      width: 600px;
+      height: 450px;
+      border: 1px solid #000000;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <button id='load' style='position: absolute; left: 15px; top: 10px; width: 100px; height: 25px'>Load</button>
+    <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 15px; top: 10px; width: 100px; opacity:0; height: 25px' />
+    <button id='save' style='position: absolute; left: 120px; top: 10px; width: 100px; height: 25px'>Save</button>
+  </div>
+  <div style='position: absolute; top: 50px;'>
+    <input type='radio' id='colorResize' name='RadioMethod'>ColorResize</input>
+    <input type='radio' id='commonFOV' name='RadioMethod'>CommomFOV</input>
+    <input type='radio' id='depthResize' name='RadioMethod'>Depth Resize</input>
+    <input type='radio' id='enhanceDepth' name='RadioMethod'>Depth Enhance</input>
+    <input type='radio' id='depthQuality' name='RadioMethod'>Depth Quality</input>
+    <input type='radio' id='photoCrop' name='RadioMethod'>Photo Crop</input>
+    <input type='radio' id='photoRotate' name='RadioMethod'>Photo Rotate</input>
+  </div>
+  <p style='position: absolute; left: 250px; top: 530px;'>Photo</p>
+  <p style='position: absolute; left: 900px; top: 530px;'>Saved Photo</p>
+  <div id='canvas_container'>
+    <canvas id='image' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
+    <canvas id='overlay' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
+  </div>
+
+  <p id='status' style='position: absolute; left: 10px; top: 560px;'></p>
+  <img id="imageDisplayArea" width="600" height="450" style='position: absolute; left: 625px; top: 90px;'>
+</body>
+<script src="libs/stats.min.js"></script>
+<script src="photo_utils.js"></script>
+<script type="text/javascript">
+    window.onload = main();
+</script>
+</html>
