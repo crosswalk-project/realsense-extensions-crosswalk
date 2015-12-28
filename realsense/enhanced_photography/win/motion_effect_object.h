@@ -33,8 +33,6 @@ class MotionEffectObject : public xwalk::common::BindingObject {
   void OnInitMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnApplyMotionEffect(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  bool CopyColorImageToBinaryMessage(PXCImage* image);
-
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto* ep_;

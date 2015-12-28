@@ -38,9 +38,6 @@ class EnhancedPhotographyObject : public xwalk::common::BindingObject {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromThreshold(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
-                              jsapi::depth_photo::Photo* photo);
-  bool CopyMaskImage(PXCImage* pxcimage);
   void ReleaseResources();
 
   PXCSession* session_;

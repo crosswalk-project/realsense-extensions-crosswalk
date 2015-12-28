@@ -8,9 +8,7 @@
 #include <string>
 
 #include "base/bind.h"
-#include "base/guid.h"
-#include "base/logging.h"
-#include "realsense/enhanced_photography/win/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -56,16 +54,6 @@ PhotoCaptureObject::~PhotoCaptureObject() {
   } else {
     ReleaseMainResources();
   }
-}
-
-void PhotoCaptureObject::CreateDepthPhotoObject(
-    PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-  DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
-  depthPhotoObject->GetPhoto()->CopyPhoto(pxcphoto);
-  scoped_ptr<BindingObject> obj(depthPhotoObject);
-  std::string object_id = base::GenerateGUID();
-  instance_->AddBindingObject(object_id, obj.Pass());
-  photo->object_id = object_id;
 }
 
 void PhotoCaptureObject::StartEvent(const std::string& type) {
@@ -205,7 +193,9 @@ void PhotoCaptureObject::OnGetPreviewImage(
     return;
   }
 
-  if (!CopyColorImage(preview_image_)) {
+  if (!CopyImageToBinaryMessage(preview_image_,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(GetPreviewImage::Results::Create(img,
         "Failed to get preview image data."));
     return;
@@ -249,10 +239,9 @@ void PhotoCaptureObject::CaptureOnPreviewThread(
   preview_photo_->ImportFromPreviewSample(sample);
   PXCPhoto* pxcphoto = session_->CreatePhoto();
   pxcphoto->CopyPhoto(preview_photo_);
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   sense_manager_->ReleaseFrame();
   info->PostResult(TakePhoto::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoCaptureObject::OnStopPreview(
@@ -286,46 +275,6 @@ void PhotoCaptureObject::OnStopAndDestroyPipeline(
     ReleasePreviewResources();
     ReleaseMainResources();
   }
-}
-
-bool PhotoCaptureObject::CopyColorImage(PXCImage* pxcimage) {
-  if (!pxcimage) return false;
-
-  PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
-  PXCImage::ImageData image_data;
-  if (pxcimage->AcquireAccess(PXCImage::ACCESS_READ,
-      PXCImage::PIXEL_FORMAT_RGB32, &image_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  // binary image message: call_id (i32), width (i32), height (i32),
-  // color (int8 buffer, size = width * height * 4)
-  size_t requset_size = 4 * 3 + image_info.width * image_info.height * 4;
-  if (binary_message_size_ != requset_size) {
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-  }
-
-  int* int_array = reinterpret_cast<int*>(binary_message_.get());
-  int_array[1] = image_info.width;
-  int_array[2] = image_info.height;
-
-  uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
-  uint8_t* uint8_data_array =
-      reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
-  int k = 0;
-  for (int y = 0; y < image_info.height; y++) {
-    for (int x = 0; x < image_info.width; x++) {
-      int i = x * 4 + image_data.pitches[0] * y;
-      uint8_data_array[k++] = rgb32[i + 2];
-      uint8_data_array[k++] = rgb32[i + 1];
-      uint8_data_array[k++] = rgb32[i];
-      uint8_data_array[k++] = rgb32[i + 3];
-    }
-  }
-
-  pxcimage->ReleaseAccess(&image_data);
-  return true;
 }
 
 void PhotoCaptureObject::ReleasePreviewResources() {

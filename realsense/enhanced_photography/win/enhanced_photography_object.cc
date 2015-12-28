@@ -8,8 +8,7 @@
 #include <string>
 
 #include "base/bind.h"
-#include "base/guid.h"
-#include "base/logging.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
@@ -40,16 +39,6 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
 
 EnhancedPhotographyObject::~EnhancedPhotographyObject() {
   ReleaseResources();
-}
-
-void EnhancedPhotographyObject::CreateDepthPhotoObject(
-    PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-  DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
-  depthPhotoObject->GetPhoto()->CopyPhoto(pxcphoto);
-  scoped_ptr<BindingObject> obj(depthPhotoObject);
-  std::string object_id = base::GenerateGUID();
-  instance_->AddBindingObject(object_id, obj.Pass());
-  photo->object_id = object_id;
 }
 
 void EnhancedPhotographyObject::OnMeasureDistance(
@@ -133,9 +122,8 @@ void EnhancedPhotographyObject::OnDepthRefocus(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(DepthRefocus::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
@@ -179,7 +167,9 @@ void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
                                               point);
   }
 
-  if (!CopyMaskImage(pxcimage)) {
+  if (!CopyImageToBinaryMessage(pxcimage,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
         "Failed to get image data."));
     return;
@@ -230,7 +220,9 @@ void EnhancedPhotographyObject::OnComputeMaskFromThreshold(
                                              params->threshold);
   }
 
-  if (!CopyMaskImage(pxcimage)) {
+  if (!CopyImageToBinaryMessage(pxcimage,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
       "Failed to get image data."));
     return;
@@ -243,65 +235,6 @@ void EnhancedPhotographyObject::OnComputeMaskFromThreshold(
   info->PostResult(result.Pass());
 
   pxcimage->Release();
-}
-
-bool EnhancedPhotographyObject::CopyMaskImage(PXCImage* mask) {
-  if (!mask) return false;
-
-  PXCImage::ImageInfo mask_info = mask->QueryInfo();
-  PXCImage::ImageData mask_data;
-  if (mask->AcquireAccess(PXCImage::ACCESS_READ,
-      mask_info.format, &mask_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  size_t requset_size;
-  int k = 0;
-  if (mask_info.format == PXCImage::PixelFormat::PIXEL_FORMAT_Y8) {
-    // binary image message: call_id (i32), width (i32), height (i32),
-    // mask data (int8 buffer, size = width * height)
-    requset_size = 4 * 3 + mask_info.width * mask_info.height;
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-
-    int* int_array = reinterpret_cast<int*>(binary_message_.get());
-    int_array[1] = mask_info.width;
-    int_array[2] = mask_info.height;
-
-    uint8_t* uint8_data_array = reinterpret_cast<uint8_t*>(
-        binary_message_.get() + 3 * sizeof(int));
-    for (int y = 0; y < mask_info.height; ++y) {
-      for (int x = 0; x < mask_info.width; ++x) {
-        uint8_t* depth8 = reinterpret_cast<uint8_t*>(
-            mask_data.planes[0] + mask_data.pitches[0] * y);
-        uint8_data_array[k++] = depth8[x];
-      }
-    }
-  } else if (mask_info.format ==
-      PXCImage::PixelFormat::PIXEL_FORMAT_DEPTH_F32) {
-    // binary image message: call_id (i32), width (i32), height (i32),
-    // mask data (float_t buffer, size = width * height *4)
-    requset_size = 3 * 4 + mask_info.width * mask_info.height * 4;
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-
-    int* int_array = reinterpret_cast<int*>(binary_message_.get());
-    int_array[1] = mask_info.width;
-    int_array[2] = mask_info.height;
-
-    float_t* float_data_array = reinterpret_cast<float_t*>(
-        binary_message_.get() + 3 * sizeof(int));
-    for (int y = 0; y < mask_info.height; ++y) {
-      for (int x = 0; x < mask_info.width; ++x) {
-        float_t* depth32 = reinterpret_cast<float_t*>(
-            mask_data.planes[0] + mask_data.pitches[0] * y);
-        float_data_array[k++] = depth32[x];
-      }
-    }
-  }
-
-  mask->ReleaseAccess(&mask_data);
-  return true;
 }
 
 void EnhancedPhotographyObject::ReleaseResources() {

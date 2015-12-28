@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "base/guid.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
@@ -82,9 +82,8 @@ void PhotoUtilsObject::OnColorResize(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(ColorResize::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnCommonFOV(
@@ -116,9 +115,8 @@ void PhotoUtilsObject::OnCommonFOV(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(CommonFOV::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnDepthResize(
@@ -165,9 +163,8 @@ void PhotoUtilsObject::OnDepthResize(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(DepthResize::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnEnhanceDepth(
@@ -206,9 +203,8 @@ void PhotoUtilsObject::OnEnhanceDepth(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(EnhanceDepth::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnGetDepthQuality(
@@ -286,9 +282,8 @@ void PhotoUtilsObject::OnPhotoCrop(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(PhotoCrop::Results::Create(photo, std::string()));
-  pxcphoto->Release();
 }
 
 void PhotoUtilsObject::OnPhotoRotate(
@@ -322,19 +317,8 @@ void PhotoUtilsObject::OnPhotoRotate(
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(PhotoRotate::Results::Create(photo, std::string()));
-  pxcphoto->Release();
-}
-
-void PhotoUtilsObject::CreateDepthPhotoObject(
-  PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-  DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
-  depthPhotoObject->GetPhoto()->CopyPhoto(pxcphoto);
-  scoped_ptr<xwalk::common::BindingObject> obj(depthPhotoObject);
-  std::string object_id = base::GenerateGUID();
-  instance_->AddBindingObject(object_id, obj.Pass());
-  photo->object_id = object_id;
 }
 
 }  // namespace enhanced_photography

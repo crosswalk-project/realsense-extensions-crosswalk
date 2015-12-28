@@ -32,12 +32,8 @@ class XDMUtilsObject : public xwalk::common::BindingObject {
   void OnLoadXDM(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSaveXDM(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
-                              jsapi::depth_photo::Photo* photo);
   void CreateFileWithBinaryValue(const base::BinaryValue& value,
                                  base::FilePath* file_path);
-  scoped_ptr<base::ListValue> CreateStringErrorResult(const std::string& error);
-  void GetBinaryValueFromArgs(base::ListValue* args, base::BinaryValue** value);
 
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;

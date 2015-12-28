@@ -42,9 +42,6 @@ class PhotoCaptureObject : public xwalk::common::EventTarget {
   // This method will capture a photo from preview and bind it with |photo_|
   void OnTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
-                              jsapi::depth_photo::Photo* photo);
-  bool CopyColorImage(PXCImage* pxcimage);
   void ReleaseMainResources();
   void ReleasePreviewResources();
 

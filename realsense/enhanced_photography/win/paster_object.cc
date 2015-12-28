@@ -4,8 +4,7 @@
 
 #include "realsense/enhanced_photography/win/paster_object.h"
 
-#include "base/guid.h"
-#include "realsense/enhanced_photography/win/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -59,7 +58,9 @@ void PasterObject::OnGetPlanesMap(
 
   DCHECK(paster_);
   PXCImage* mask = paster_->GetPlanesMap();
-  if (!CopyMaskImageToBinaryMessage(mask)) {
+  if (!CopyImageToBinaryMessage(mask,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(GetPlanesMap::Results::Create(image,
         "Failed to getPlanesMap."));
     return;
@@ -199,7 +200,7 @@ void PasterObject::OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info) {
     return;
   }
 
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(Paste::Results::Create(photo, std::string()));
 }
 
@@ -214,7 +215,9 @@ void PasterObject::OnPreviewSticker(
 
   DCHECK(paster_);
   PXCImage* mask = paster_->PreviewSticker();
-  if (!CopyMaskImageToBinaryMessage(mask)) {
+  if (!CopyImageToBinaryMessage(mask,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(PreviewSticker::Results::Create(image,
         "Failed to previewSticker."));
     return;
@@ -225,56 +228,6 @@ void PasterObject::OnPreviewSticker(
       reinterpret_cast<const char*>(binary_message_.get()),
       binary_message_size_));
   info->PostResult(result.Pass());
-}
-
-void PasterObject::CreateDepthPhotoObject(
-  PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-  DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
-  depthPhotoObject->SetPhoto(pxcphoto);
-  scoped_ptr<xwalk::common::BindingObject> obj(depthPhotoObject);
-  std::string object_id = base::GenerateGUID();
-  instance_->AddBindingObject(object_id, obj.Pass());
-  photo->object_id = object_id;
-}
-
-bool PasterObject::CopyMaskImageToBinaryMessage(PXCImage* mask) {
-  if (!mask) return false;
-
-  PXCImage::ImageInfo mask_info = mask->QueryInfo();
-  PXCImage::ImageData mask_data;
-  if (mask->AcquireAccess(PXCImage::ACCESS_READ,
-      mask_info.format, &mask_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  if (mask_info.format == PXCImage::PixelFormat::PIXEL_FORMAT_Y8) {
-    // binary image message: call_id (i32), width (i32), height (i32),
-    // mask data (int8 buffer, size = width * height)
-    size_t requset_size = 4 * 3 + mask_info.width * mask_info.height;
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-
-    int* int_array = reinterpret_cast<int*>(binary_message_.get());
-    int_array[1] = mask_info.width;
-    int_array[2] = mask_info.height;
-
-    uint8_t* uint8_data_array = reinterpret_cast<uint8_t*>(
-        binary_message_.get() + 3 * sizeof(int));
-    int k = 0;
-    for (int y = 0; y < mask_info.height; ++y) {
-      for (int x = 0; x < mask_info.width; ++x) {
-        uint8_t* depth8 = reinterpret_cast<uint8_t*>(
-            mask_data.planes[0] + mask_data.pitches[0] * y);
-        uint8_data_array[k++] = depth8[x];
-      }
-    }
-  } else {
-    DLOG(WARNING) << "Unsupported Image Format";
-    return false;
-  }
-
-  mask->ReleaseAccess(&mask_data);
-  return true;
 }
 
 }  // namespace enhanced_photography

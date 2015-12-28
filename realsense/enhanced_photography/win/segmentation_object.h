@@ -31,8 +31,6 @@ class SegmentationObject : public xwalk::common::BindingObject {
   void OnRefineMask(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnUndo(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  bool CopyMaskImageToBinaryMessage(PXCImage* mask);
-
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::Segmentation* segmentation_;

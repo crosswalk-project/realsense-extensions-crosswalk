@@ -4,6 +4,8 @@
 
 #include "realsense/enhanced_photography/win/motion_effect_object.h"
 
+#include "realsense/enhanced_photography/win/common_utils.h"
+
 namespace realsense {
 namespace enhanced_photography {
 
@@ -80,7 +82,9 @@ void MotionEffectObject::OnApplyMotionEffect(
     return;
   }
 
-  if (!CopyColorImageToBinaryMessage(pxcimage)) {
+  if (!CopyImageToBinaryMessage(pxcimage,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(ApplyMotionEffect::Results::Create(img,
         "Failed to get image data."));
     return;
@@ -93,44 +97,6 @@ void MotionEffectObject::OnApplyMotionEffect(
   info->PostResult(result.Pass());
 
   pxcimage->Release();
-}
-
-bool MotionEffectObject::CopyColorImageToBinaryMessage(PXCImage* pxcimage) {
-  if (!pxcimage) return false;
-
-  PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
-  PXCImage::ImageData image_data;
-  if (pxcimage->AcquireAccess(PXCImage::ACCESS_READ,
-      PXCImage::PIXEL_FORMAT_RGB32, &image_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  // binary image message: call_id (i32), width (i32), height (i32),
-  // color (int8 buffer, size = width * height * 4)
-  size_t requset_size = 4 * 3 + image_info.width * image_info.height * 4;
-  binary_message_.reset(new uint8[requset_size]);
-  binary_message_size_ = requset_size;
-
-  int* int_array = reinterpret_cast<int*>(binary_message_.get());
-  int_array[1] = image_info.width;
-  int_array[2] = image_info.height;
-
-  uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
-  uint8_t* uint8_data_array =
-      reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
-  int k = 0;
-  for (int y = 0; y < image_info.height; y++) {
-    for (int x = 0; x < image_info.width; x++) {
-      int i = x * 4 + image_data.pitches[0] * y;
-      uint8_data_array[k++] = rgb32[i + 2];
-      uint8_data_array[k++] = rgb32[i + 1];
-      uint8_data_array[k++] = rgb32[i];
-      uint8_data_array[k++] = rgb32[i + 3];
-    }
-  }
-
-  pxcimage->ReleaseAccess(&image_data);
-  return true;
 }
 
 }  // namespace enhanced_photography

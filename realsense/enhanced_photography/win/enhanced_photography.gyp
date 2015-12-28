@@ -25,6 +25,8 @@
       },
       'sources': [
         '../js/enhanced_photography_api.js',
+        'common_utils.cc',
+        'common_utils.h',
         'depth_photo.idl',
         'depth_photo_object.cc',
         'depth_photo_object.h',
