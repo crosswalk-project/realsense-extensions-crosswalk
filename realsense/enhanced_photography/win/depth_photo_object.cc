@@ -10,6 +10,7 @@
 #include "base/bind.h"
 #include "base/guid.h"
 #include "base/strings/sys_string_conversions.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -85,16 +86,6 @@ void DepthPhotoObject::DestroyPhoto() {
     session_->Release();
     session_ = nullptr;
   }
-}
-
-scoped_ptr<base::ListValue> DepthPhotoObject::CreateStringErrorResult(
-    const std::string& error) {
-  scoped_ptr<base::ListValue> create_results(new base::ListValue());
-  // The first value is useless since we only need the error field.
-  // So here use base::FundamentalValue type to save space
-  create_results->Append(new base::FundamentalValue(false));
-  create_results->Append(new base::StringValue(error));
-  return create_results.Pass();
 }
 
 void DepthPhotoObject::OnCheckSignature(
@@ -203,7 +194,9 @@ void DepthPhotoObject::OnQueryContainerImage(
   }
 
   PXCImage* imColor = photo_->QueryContainerImage();
-  if (!CopyColorImage(imColor)) {
+  if (!CopyImageToBinaryMessage(imColor,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(QueryContainerImage::Results::Create(img,
         "Failed to QueryContainerImage."));
     return;
@@ -237,7 +230,9 @@ void DepthPhotoObject::OnQueryColorImage(
     imColor = photo_->QueryColorImage(*(params->camera_index.get()));
   else
     imColor = photo_->QueryColorImage();
-  if (!CopyColorImage(imColor)) {
+  if (!CopyImageToBinaryMessage(imColor,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(QueryColorImage::Results::Create(img,
         "Failed to QueryColorImage."));
     return;
@@ -271,7 +266,9 @@ void DepthPhotoObject::OnQueryDepthImage(
     imDepth = photo_->QueryDepthImage(*(params->camera_index.get()));
   else
     imDepth = photo_->QueryDepthImage();
-  if (!CopyDepthImage(imDepth)) {
+  if (!CopyImageToBinaryMessage(imDepth,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(QueryDepthImage::Results::Create(img,
         "Failed to QueryDepthImage."));
     return;
@@ -323,7 +320,9 @@ void DepthPhotoObject::OnQueryRawDepthImage(
   }
 
   PXCImage* imDepth = photo_->QueryRawDepthImage();
-  if (!CopyDepthImage(imDepth)) {
+  if (!CopyImageToBinaryMessage(imDepth,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(QueryRawDepthImage::Results::Create(img,
         "Failed to QueryRawDepthImage."));
     return;
@@ -610,82 +609,6 @@ void DepthPhotoObject::OnClone(
   instance_->AddBindingObject(object_id, obj.Pass());
   photo.object_id = object_id;
   info->PostResult(Clone::Results::Create(photo, std::string()));
-}
-
-bool DepthPhotoObject::CopyColorImage(PXCImage* pxcimage) {
-  if (!pxcimage) return false;
-
-  PXCImage::ImageInfo image_info = pxcimage->QueryInfo();
-  PXCImage::ImageData image_data;
-  if (pxcimage->AcquireAccess(PXCImage::ACCESS_READ,
-      PXCImage::PIXEL_FORMAT_RGB32, &image_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  // binary image message: call_id (i32), width (i32), height (i32),
-  // color (int8 buffer, size = width * height * 4)
-  size_t requset_size = 4 * 3 + image_info.width * image_info.height * 4;
-  if (binary_message_size_ != requset_size) {
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-  }
-
-  int* int_array = reinterpret_cast<int*>(binary_message_.get());
-  int_array[1] = image_info.width;
-  int_array[2] = image_info.height;
-
-  uint8_t* rgb32 = reinterpret_cast<uint8_t*>(image_data.planes[0]);
-  uint8_t* uint8_data_array =
-      reinterpret_cast<uint8_t*>(binary_message_.get() + 3 * sizeof(int));
-  int k = 0;
-  for (int y = 0; y < image_info.height; y++) {
-    for (int x = 0; x < image_info.width; x++) {
-      int i = x * 4 + image_data.pitches[0] * y;
-      uint8_data_array[k++] = rgb32[i + 2];
-      uint8_data_array[k++] = rgb32[i + 1];
-      uint8_data_array[k++] = rgb32[i];
-      uint8_data_array[k++] = rgb32[i + 3];
-    }
-  }
-
-  pxcimage->ReleaseAccess(&image_data);
-  return true;
-}
-
-bool DepthPhotoObject::CopyDepthImage(PXCImage* depth) {
-  if (!depth) return false;
-
-  PXCImage::ImageInfo depth_info = depth->QueryInfo();
-  PXCImage::ImageData depth_data;
-  if (depth->AcquireAccess(PXCImage::ACCESS_READ,
-      PXCImage::PIXEL_FORMAT_DEPTH, &depth_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  // binary image message: call_id (i32), width (i32), height (i32),
-  // depth (int16 buffer, size = width * height * 2)
-  size_t requset_size = 4 * 3 + depth_info.width * depth_info.height * 2;
-  if (binary_message_size_ != requset_size) {
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-  }
-
-  int* int_array = reinterpret_cast<int*>(binary_message_.get());
-  int_array[1] = depth_info.width;
-  int_array[2] = depth_info.height;
-
-  uint16_t* uint16_data_array = reinterpret_cast<uint16_t*>(
-      binary_message_.get() + 3 * sizeof(int));
-  int k = 0;
-  for (int y = 0; y < depth_info.height; ++y) {
-    for (int x = 0; x < depth_info.width; ++x) {
-      uint16_t* depth16 = reinterpret_cast<uint16_t*>(
-          depth_data.planes[0] + depth_data.pitches[0] * y);
-      uint16_data_array[k++] = depth16[x];
-    }
-  }
-  depth->ReleaseAccess(&depth_data);
-  return true;
 }
 
 }  // namespace enhanced_photography

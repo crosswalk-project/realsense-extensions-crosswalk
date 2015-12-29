@@ -50,10 +50,6 @@ class DepthPhotoObject : public xwalk::common::BindingObject {
   void OnSetRawDepthImage(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnClone(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  bool CopyColorImage(PXCImage* pxcimage);
-  bool CopyDepthImage(PXCImage* pxcimage);
-  scoped_ptr<base::ListValue> CreateStringErrorResult(const std::string& error);
-
   PXCSession* session_;
   PXCPhoto* photo_;
   EnhancedPhotographyInstance* instance_;

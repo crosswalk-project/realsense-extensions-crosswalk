@@ -35,10 +35,6 @@ class PasterObject : public xwalk::common::BindingObject {
   void OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPreviewSticker(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
-  void CreateDepthPhotoObject(PXCPhoto* pxcphoto,
-                              jsapi::depth_photo::Photo* photo);
-  bool CopyMaskImageToBinaryMessage(PXCImage* mask);
-
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::Paster* paster_;

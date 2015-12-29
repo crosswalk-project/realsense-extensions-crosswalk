@@ -8,7 +8,7 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
-#include "base/guid.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
@@ -82,7 +82,7 @@ void XDMUtilsObject::OnLoadXDM(
     return;
   }
   jsapi::depth_photo::Photo photo;
-  CreateDepthPhotoObject(pxcphoto, &photo);
+  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   info->PostResult(LoadXDM::Results::Create(photo, std::string()));
 }
 
@@ -129,16 +129,6 @@ void XDMUtilsObject::OnSaveXDM(
   info->PostResult(result.Pass());
 }
 
-void XDMUtilsObject::CreateDepthPhotoObject(
-      PXCPhoto* pxcphoto, jsapi::depth_photo::Photo* photo) {
-      DepthPhotoObject* depthPhotoObject = new DepthPhotoObject(instance_);
-      depthPhotoObject->SetPhoto(pxcphoto);
-      scoped_ptr<xwalk::common::BindingObject> obj(depthPhotoObject);
-      std::string object_id = base::GenerateGUID();
-      instance_->AddBindingObject(object_id, obj.Pass());
-      photo->object_id = object_id;
-}
-
 void XDMUtilsObject::CreateFileWithBinaryValue(
     const base::BinaryValue& value, base::FilePath* file_path) {
   const char* data = value.GetBuffer();
@@ -148,26 +138,6 @@ void XDMUtilsObject::CreateFileWithBinaryValue(
   file.created();
   file.Write(0, data, static_cast<int>(value.GetSize()));
   file.Close();
-}
-
-scoped_ptr<base::ListValue> XDMUtilsObject::CreateStringErrorResult(
-    const std::string& error) {
-  scoped_ptr<base::ListValue> create_results(new base::ListValue());
-  create_results->Append(new base::StringValue(std::string()));
-  create_results->Append(new base::StringValue(error));
-  return create_results.Pass();
-}
-
-void XDMUtilsObject::GetBinaryValueFromArgs(
-    base::ListValue* args, base::BinaryValue** value) {
-  base::Value* buffer_value = NULL;
-
-  if (args->Get(0, &buffer_value) &&
-      !buffer_value->IsType(base::Value::TYPE_NULL)) {
-    if (buffer_value->IsType(base::Value::TYPE_BINARY)) {
-      *value = static_cast<base::BinaryValue*>(buffer_value);
-    }
-  }
 }
 
 }  // namespace enhanced_photography

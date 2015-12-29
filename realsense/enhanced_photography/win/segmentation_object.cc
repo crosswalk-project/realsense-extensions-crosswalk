@@ -5,9 +5,7 @@
 #include "realsense/enhanced_photography/win/segmentation_object.h"
 
 #include <vector>
-
-#include "base/guid.h"
-#include "realsense/enhanced_photography/win/depth_photo_object.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -103,7 +101,9 @@ void SegmentationObject::OnObjectSegment(
 
   PXCImage* pxc_mask_image = segmentation_->ObjectSegment(
       photo_, bounding_mask);
-  if (!CopyMaskImageToBinaryMessage(pxc_mask_image)) {
+  if (!CopyImageToBinaryMessage(pxc_mask_image,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(ObjectSegment::Results::Create(image,
         "Failed to get image data."));
     return;
@@ -130,7 +130,9 @@ void SegmentationObject::OnRedo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
   DCHECK(segmentation_);
   PXCImage* pxc_mask_image = segmentation_->Redo();
-  if (!CopyMaskImageToBinaryMessage(pxc_mask_image)) {
+  if (!CopyImageToBinaryMessage(pxc_mask_image,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(Redo::Results::Create(image,
         "Failed to get image data."));
     return;
@@ -194,7 +196,9 @@ void SegmentationObject::OnRefineMask(
 
   PXCImage* pxc_mask_image = segmentation_->RefineMask(
       &points[0], static_cast<pxcI32>(points.size()), isForeground);
-  if (!CopyMaskImageToBinaryMessage(pxc_mask_image)) {
+  if (!CopyImageToBinaryMessage(pxc_mask_image,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(RefineMask::Results::Create(image,
         "Failed to get image data."));
     return;
@@ -219,7 +223,9 @@ void SegmentationObject::OnUndo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
   DCHECK(segmentation_);
   PXCImage* pxc_mask_image = segmentation_->Undo();
-  if (!CopyMaskImageToBinaryMessage(pxc_mask_image)) {
+  if (!CopyImageToBinaryMessage(pxc_mask_image,
+                                binary_message_,
+                                &binary_message_size_)) {
     info->PostResult(Redo::Results::Create(image,
         "Failed to get image data."));
     return;
@@ -232,46 +238,6 @@ void SegmentationObject::OnUndo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   info->PostResult(result.Pass());
 
   pxc_mask_image->Release();
-}
-
-bool SegmentationObject::CopyMaskImageToBinaryMessage(PXCImage* mask) {
-  if (!mask) return false;
-
-  PXCImage::ImageInfo mask_info = mask->QueryInfo();
-  PXCImage::ImageData mask_data;
-  if (mask->AcquireAccess(PXCImage::ACCESS_READ,
-      mask_info.format, &mask_data) < PXC_STATUS_NO_ERROR) {
-    return false;
-  }
-
-  if (mask_info.format == PXCImage::PixelFormat::PIXEL_FORMAT_Y8) {
-    // binary image message: call_id (i32), width (i32), height (i32),
-    // mask data (int8 buffer, size = width * height)
-    size_t requset_size = 4 * 3 + mask_info.width * mask_info.height;
-    binary_message_.reset(new uint8[requset_size]);
-    binary_message_size_ = requset_size;
-
-    int* int_array = reinterpret_cast<int*>(binary_message_.get());
-    int_array[1] = mask_info.width;
-    int_array[2] = mask_info.height;
-
-    uint8_t* uint8_data_array = reinterpret_cast<uint8_t*>(
-        binary_message_.get() + 3 * sizeof(int));
-    int k = 0;
-    for (int y = 0; y < mask_info.height; ++y) {
-      for (int x = 0; x < mask_info.width; ++x) {
-        uint8_t* depth8 = reinterpret_cast<uint8_t*>(
-          mask_data.planes[0] + mask_data.pitches[0] * y);
-        uint8_data_array[k++] = depth8[x];
-      }
-    }
-  } else {
-    DLOG(WARNING) << "Unsupported Image Format";
-    return false;
-  }
-
-  mask->ReleaseAccess(&mask_data);
-  return true;
 }
 
 }  // namespace enhanced_photography
