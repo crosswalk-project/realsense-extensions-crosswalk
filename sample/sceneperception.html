@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>ScenePerception Test</title>
+    <title>RealSense Scene Perception Sample</title>
   </head>
   <style>
       canvas {
@@ -22,7 +22,7 @@
     <button id='startSP'>StartSP</button>
     <button id='stopSP'>StopSP</button>
     <button id='toggleReconstruction'>Toggle Reconstruction</button>
-    <button id='saveMesh'>SaveMesh</button>
+    <button id='saveMesh'>Save Mesh</button>
   </div>
   <div id='color_container' style='position: absolute; left: 10px; top: 90px;'>
     <canvas id='color' width='320' height='240'></canvas>
@@ -43,7 +43,7 @@
   <script src='libs/TrackballControls.js'></script>
   <script src="libs/stats.min.js"></script>
   <script src="sceneperception.js"></script>
-  <script type="text/javascript">
+  <script>
     window.onload = main();
   </script>
 </html>
