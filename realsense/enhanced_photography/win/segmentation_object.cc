@@ -197,7 +197,7 @@ void SegmentationObject::OnRefineMask(
   int offset = (1 + points_number * 2) * sizeof(int);
   const uint8_t* bool_array = reinterpret_cast<
       const uint8_t*>(data + offset);
-  bool isForeground = bool_array[0];
+  bool isForeground = bool_array[0] != 0;
 
   PXCImage* pxc_mask_image = segmentation_->RefineMask(
       &points[0], static_cast<pxcI32>(points.size()), isForeground);

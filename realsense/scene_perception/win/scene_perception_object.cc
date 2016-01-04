@@ -1508,7 +1508,7 @@ void ScenePerceptionObject::DoCheckReconstructionFlag(
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   info->PostResult(IsReconstructionEnabled::Results::Create(
-        static_cast<bool>(scene_perception_->IsSceneReconstructionEnabled()),
+        scene_perception_->IsSceneReconstructionEnabled() != 0,
         std::string()));
 }
 
