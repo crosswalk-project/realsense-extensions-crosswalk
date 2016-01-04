@@ -152,7 +152,7 @@ function depthRefocus(e) {
 }
 
 function depthEnhance() {
-  photoUtils.enhanceDepth(currentPhoto, 'low').then(
+  photoUtils.enhanceDepth(currentPhoto, 'high').then(
       function(photo) {
         savePhoto = photo;
         photo.queryDepthImage().then(
@@ -170,16 +170,20 @@ function depthEnhance() {
 }
 
 function depthUpscale() {
-  photoUtils.depthResize(currentPhoto, width).then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryDepthImage().then(
-            function(image) {
-              imageData = imageContext.createImageData(image.width, image.height);
-              statusElement.innerHTML = 'Finished depth upscaling.';
-              ConvertDepthToRGBUsingHistogram(
-                  image, [255, 255, 255], [0, 0, 0], imageData.data);
-              imageContext.putImageData(imageData, 0, 0);
+  currentPhoto.queryContainerImage().then(
+      function(curImage) {
+        photoUtils.depthResize(currentPhoto, curImage.width).then(
+            function(photo) {
+              savePhoto = photo;
+              photo.queryDepthImage().then(
+                  function(image) {
+                    imageData = imageContext.createImageData(image.width, image.height);
+                    statusElement.innerHTML = 'Finished depth upscaling.';
+                    ConvertDepthToRGBUsingHistogram(
+                        image, [255, 255, 255], [0, 0, 0], imageData.data);
+                    imageContext.putImageData(imageData, 0, 0);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
             },
             function(e) { statusElement.innerHTML = e; });
       },
