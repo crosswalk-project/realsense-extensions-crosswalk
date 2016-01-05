@@ -175,9 +175,11 @@ function main() {
       overlayContext.beginPath();
       if (e.button == 0) {
         isLeftButtonDown = true;
+        updateMarkupImage(x, y, true);
         overlayContext.strokeStyle = 'blue';
       } else {
         isRightButtonDown = true;
+        updateMarkupImage(x, y, false);
         overlayContext.strokeStyle = 'green';
       }
       overlayContext.lineWidth = 0.5;
@@ -186,6 +188,9 @@ function main() {
   }, false);
 
   overlayCanvas.addEventListener('mousemove', function(e) {
+    if (!hasImage || nextClick == FirstClick ||
+        (nextClick == TraceClicks && !isLeftButtonDown && !isRightButtonDown))
+      return;
     bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
     bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
     if (nextClick == SecondClick) {
@@ -247,7 +252,7 @@ function main() {
                 },
                 function(e) { statusElement.innerHTML = e; });
           },
-          function(e) { statusElement.innerHTML += e; });
+          function(e) { statusElement.innerHTML = e; });
     }
   }, false);
 

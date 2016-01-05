@@ -178,6 +178,11 @@ void SegmentationObject::OnRefineMask(
   const char* data = binary_value->GetBuffer();
   const int* int_array = reinterpret_cast<const int*>(data);
   int points_number = int_array[0];
+  if (points_number == 0) {
+    info->PostResult(RefineMask::Results::Create(image,
+        "An empty points set is passed to refineMask. Malformed parameters"));
+    return;
+  }
   std::vector<PXCPointI32> points;
   int k = 1;
   for (int i = 0; i < points_number; i++) {
