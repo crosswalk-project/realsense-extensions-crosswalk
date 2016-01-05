@@ -4,24 +4,30 @@
 
 import("//xwalk/common/xwalk_common.gni")
 
-xwalk_idlgen("depth_photo_idl") {
-  namespace = "realsense::jsapi"
-  sources = [ "depth_photo.idl" ]
-}
-
 xwalk_idlgen("enhanced_photography_idl") {
   namespace = "realsense::jsapi"
-  sources = [ "enhanced_photography.idl" ]
+  sources = [
+    "depth_photo.idl",
+    "enhanced_photography.idl",
+    "motion_effect.idl",
+    "paster.idl",
+    "photo_capture.idl",
+    "photo_utils.idl",
+    "segmentation.idl",
+    "xdm_utils.idl",
+  ]
 }
 
 xwalk_js2c("enhanced_photography_js") {
   sources = [
-    "enhanced_photography_api.js",
+    "../js/enhanced_photography_api.js",
   ]
 }
 
 shared_library("enhanced_photography") {
   sources = [
+    "common_utils.cc",
+    "common_utils.h",
     "depth_photo_object.cc",
     "depth_photo_object.h",
     "enhanced_photography_extension.cc",
@@ -29,19 +35,28 @@ shared_library("enhanced_photography") {
     "enhanced_photography_instance.cc",
     "enhanced_photography_instance.h",
     "enhanced_photography_object.cc",
-    "enhanced_photography_object.h"
+    "enhanced_photography_object.h",
+    "motion_effect_object.cc",
+    "motion_effect_object.h",
+    "paster_object.cc",
+    "paster_object.h",
+    "photo_capture_object.cc",
+    "photo_capture_object.h",
+    "photo_utils_object.cc",
+    "photo_utils_object.h",
+    "segmentation_object.cc",
+    "segmentation_object.h",
+    "xdm_utils_object.cc",
+    "xdm_utils_object.h",
   ]
   deps = [
-    ":depth_photo_idl",
     ":enhanced_photography_idl",
     ":enhanced_photography_js",
+    "//extensions/third_party/libpxc",
     "//xwalk/common:common_static",
   ]
-  configs += [
-    "//extensions/realsense/common:rssdk_config",
-  ]
   include_dirs = [
-    "../..",
+    "../../..",
     "$target_gen_dir",
   ]
 }

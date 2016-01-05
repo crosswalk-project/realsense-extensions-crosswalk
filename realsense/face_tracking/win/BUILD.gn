@@ -1,0 +1,35 @@
+# Copyright (c) 2016 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("face_tracking_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "face_tracking.idl" ]
+}
+
+xwalk_js2c("face_tracking_js") {
+  sources = [ "face_tracking_api.js" ]
+}
+
+shared_library("face") {
+  sources = [
+    "face_tracking_extension.cc",
+    "face_tracking_extension.h",
+    "face_tracking_instance.cc",
+    "face_tracking_instance.h",
+    "face_tracking_object.cc",
+    "face_tracking_object.h",
+  ]
+  deps = [
+    ":face_tracking_idl",
+    ":face_tracking_js",
+    "//extensions/third_party/libpxc",
+    "//xwalk/common:common_static",
+  ]
+  include_dirs = [
+    "../../..",
+    "$target_gen_dir",
+  ]
+}
