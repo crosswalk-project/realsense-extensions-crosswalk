@@ -23,9 +23,6 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
                                base::Unretained(this)));
-  handler_.Register("depthRefocus",
-                    base::Bind(&EnhancedPhotographyObject::OnDepthRefocus,
-                               base::Unretained(this)));
   handler_.Register("computeMaskFromCoordinate",
       base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromCoordinate,
                  base::Unretained(this)));
@@ -82,48 +79,6 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   measure_data.end_point.x = data.endPoint.coord.z;
   info->PostResult(MeasureDistance::Results::Create(
       measure_data, std::string()));
-}
-
-void EnhancedPhotographyObject::OnDepthRefocus(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Photo photo;
-  scoped_ptr<DepthRefocus::Params> params(
-      DepthRefocus::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        DepthRefocus::Results::Create(photo, "Malformed parameters"));
-    return;
-  }
-
-  std::string object_id = params->photo.object_id;
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      instance_->GetBindingObjectById(object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(DepthRefocus::Results::Create(photo,
-        "Invalid Photo object."));
-    return;
-  }
-
-  DCHECK(ep_);
-  PXCPointI32 focus;
-  focus.x = params->focus.x;
-  focus.y = params->focus.y;
-
-  PXCPhoto* pxcphoto;
-  if (params->aperture)
-    pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(),
-                                 focus,
-                                 *(params->aperture.get()));
-  else
-    pxcphoto = ep_->DepthRefocus(depthPhotoObject->GetPhoto(), focus);
-  if (!pxcphoto) {
-    info->PostResult(DepthRefocus::Results::Create(photo,
-        "Failed to operate DepthRefocus"));
-    return;
-  }
-
-  CreateDepthPhotoObject(instance_, pxcphoto, &photo);
-  info->PostResult(DepthRefocus::Results::Create(photo, std::string()));
 }
 
 void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(

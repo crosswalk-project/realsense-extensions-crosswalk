@@ -8,6 +8,7 @@ xwalk_idlgen("enhanced_photography_idl") {
   namespace = "realsense::jsapi"
   sources = [
     "depth_photo.idl",
+    "depth_refocus.idl",
     "enhanced_photography.idl",
     "motion_effect.idl",
     "paster.idl",
@@ -30,6 +31,8 @@ shared_library("enhanced_photography") {
     "common_utils.h",
     "depth_photo_object.cc",
     "depth_photo_object.h",
+    "depth_refocus_object.cc",
+    "depth_refocus_object.h",
     "enhanced_photography_extension.cc",
     "enhanced_photography_extension.h",
     "enhanced_photography_instance.cc",

@@ -20,7 +20,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var ep, paster, photoCapture, photoUtils, XDMUtils;
+var refocus, ep, paster, photoCapture, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
 var width = 1920, height = 1080;
 var canvasWidth = 400, canvasHeight = 300;
@@ -135,16 +135,21 @@ function depthRefocus(e) {
   overlayContext.clearRect(0, 0, width, height);
   drawCross(x, y);
 
-  ep.depthRefocus(currentPhoto, { x: x, y: y }, 50.0).then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryContainerImage().then(
-            function(image) {
-              imageData = imageContext.createImageData(image.width, image.height);
-              statusElement.innerHTML = 'Depth refocus success. Please select focus point again.';
-              overlayContext.clearRect(0, 0, width, height);
-              imageData.data.set(image.data);
-              imageContext.putImageData(imageData, 0, 0);
+  refocus.init(currentPhoto).then(
+      function(success) {
+        refocus.apply({ x: x, y: y }, 50.0).then(
+            function(photo) {
+              savePhoto = photo;
+              photo.queryContainerImage().then(
+                  function(image) {
+                    imageData = imageContext.createImageData(image.width, image.height);
+                    statusElement.innerHTML =
+                        'Depth refocus success. Please select focus point again.';
+                    overlayContext.clearRect(0, 0, width, height);
+                    imageData.data.set(image.data);
+                    imageContext.putImageData(imageData, 0, 0);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
             },
             function(e) { statusElement.innerHTML = e; });
       },
@@ -343,6 +348,7 @@ function popColor(e) {
 }
 
 function main() {
+  refocus = realsense.DepthEnabledPhotography.DepthRefocus;
   ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;

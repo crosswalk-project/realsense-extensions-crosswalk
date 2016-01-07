@@ -74,6 +74,56 @@
       </h2>
       <section>
         <h2>
+          <code><a>DepthRefocus</a></code>
+        </h2>
+        <p>
+          The <code><a>DepthRefocus</a></code> interface provides methods for
+          depth-enabled refocus algorithm.
+        </p>
+        <dl title='interface DepthRefocus' class='idl'>
+          <dt>
+            static Promise&lt;void&gt; init(Photo photo)
+          </dt>
+          <dd>
+            <p>
+              The <code>init()</code> method initializes the Depth Refocus function
+              with the photo that needs processing.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            static Promise&lt;Photo&gt; apply(Point focusPoint, optional float aperture)
+          </dt>
+          <dd>
+            <p>
+              The <code>apply()</code> method refocuses the image at input focusPoint
+              by using depth data to refocus.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the refocused photo instance if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Point focusPoint</dt>
+              <dd>
+                The selected point for refocusing.
+              </dd>
+              <dt>optional float aperture</dt>
+              <dd>
+                The size of the blurring area. If omitted, the default is 50.0F.
+                The value is in the range of 7.7 to 160, roughly equivalent to f/22 and f/1.1, respectively.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>EnhancedPhoto</a></code>
         </h2>
         <p>
@@ -136,35 +186,6 @@
               <dt>optional MaskParams params</dt>
               <dd>
                 The optional additional configuration parameters.
-              </dd>
-            </dl>
-          </dd>
-          <dt>
-            static Promise&lt;Photo&gt; depthRefocus(Photo photo, Point focus, optional float aperture)
-          </dt>
-          <dd>
-            <p>
-              The <code>depthRefocus()</code> method creates a refocused photo
-              image with the specified focusing point and blurring the rest area.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled with the refocused photo if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-            <dl class='parameters'>
-              <dt>Photo photo</dt>
-              <dd>
-                The photo instance.
-              </dd>
-              <dt>Point focus</dt>
-              <dd>
-                The point of the focusing point (with the color image).
-              </dd>
-              <dt>optional float aperture</dt>
-              <dd>
-                The size of the blurring area. If omitted, the default is 50.0F.
-                The value is in the range of 7.7 to 160, roughly equivalent to f/22 and f/1.1, respectively.
               </dd>
             </dl>
           </dd>

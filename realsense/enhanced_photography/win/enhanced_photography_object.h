@@ -33,7 +33,6 @@ class EnhancedPhotographyObject : public xwalk::common::BindingObject {
 
  private:
   void OnMeasureDistance(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnDepthRefocus(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromCoordinate(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnComputeMaskFromThreshold(scoped_ptr<XWalkExtensionFunctionInfo> info);

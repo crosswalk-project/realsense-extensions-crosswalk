@@ -34,11 +34,9 @@ namespace enhanced_photography {
 
   callback DistancePromise = void(MeasureData measureData, DOMString error);
   callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
-  callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
     static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
-    static void depthRefocus(depth_photo.Photo photo, Point focus, optional double aperture, PhotoPromise promise);
     static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, optional MaskParams params, MaskImagePromise promise);
     static void computeMaskFromThreshold(depth_photo.Photo photo, double threshold, optional MaskParams params, MaskImagePromise promise);
 
