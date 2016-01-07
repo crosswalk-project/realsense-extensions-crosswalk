@@ -260,8 +260,8 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
 
   // Enable face module in sense manager.
   PXCFaceModule* faceModule = NULL;
-  if (sense_manager_->EnableFace() < PXC_STATUS_NO_ERROR
-      || !(faceModule = sense_manager_->QueryFace())) {
+  faceModule = sense_manager_->QueryFace();
+  if (sense_manager_->EnableFace() < PXC_STATUS_NO_ERROR || !faceModule) {
     info->PostResult(
         Start::Results::Create(
             std::string(), "Failed to enable face module"));
@@ -305,8 +305,8 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
           ->SetDepthConfidenceThreshold(0);
     }
   }
-  detection_enabled_ = config->detection.isEnabled;
-  landmark_enabled_ = config->landmarks.isEnabled;
+  detection_enabled_ = config->detection.isEnabled != 0;
+  landmark_enabled_ = config->landmarks.isEnabled != 0;
   num_of_landmark_points_ = config->landmarks.numLandmarks;
   DLOG(INFO) << "Number of landmark points: " << num_of_landmark_points_;
 

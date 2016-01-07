@@ -152,7 +152,7 @@ void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
   const uint8_t* bool_array = reinterpret_cast<const uint8_t*>(data + offset);
   params.isCenter = bool_array[0];
-  bool has_effects = bool_array[1];
+  bool has_effects = bool_array[1] != 0;
   // This is for offset alignment (2 bytes plus 2 padding bytes)
   offset += 4;
 

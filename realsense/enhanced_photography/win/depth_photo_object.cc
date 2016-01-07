@@ -96,7 +96,7 @@ void DepthPhotoObject::OnCheckSignature(
   }
 
   pxcBool result = photo_->CheckSignature();
-  info->PostResult(CheckSignature::Results::Create(result, std::string()));
+  info->PostResult(CheckSignature::Results::Create(result != 0, std::string()));
 }
 
 void DepthPhotoObject::OnQueryCameraPerspectiveModel(
