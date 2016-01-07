@@ -607,6 +607,32 @@ function main() {
         function(e) { statusElement.innerHTML += e; });
   };
 
+  function saveFile(fs, fileName, blob) {
+    var fullName = fileName + '.jpg';
+    fs.root.getFile(fullName, {}, function(entry) {
+      // The file already exist.
+      fileName += '1';
+      saveFile(fs, fileName, blob);
+    },
+    function(e) {
+      // file doesn't exist. Create it.
+      fs.root.getFile(fullName, { create: true }, function(entry) {
+        entry.createWriter(function(writer) {
+          writer.onwriteend = function(e) {
+            statusElement.innerHTML =
+                'The photo has been saved to ' + fullName + ' successfully.';
+          };
+          writer.onerror = function(e) {
+            statusElement.innerHTML = 'Save failed.';
+          };
+          writer.write(blob);
+        },
+        function(e) { statusElement.innerHTML = e; });
+      },
+      function(e) { statusElement.innerHTML = e; });
+    });
+  }
+
   saveButton.onclick = function(e) {
     if (!savePhoto) {
       statusElement.innerHTML = 'There is no photo to save';
@@ -614,20 +640,11 @@ function main() {
     }
     XDMUtils.saveXDM(savePhoto).then(
         function(blob) {
-          var reader = new FileReader();
-          reader.onload = function(evt) {
-            var image = document.getElementById('imageDisplayArea');
-            image.src = evt.target.result;
-            // Currently, crosswalk has bugs to download (see XWALK-5220). So the following code
-            // doesn't work. Once download is enabled. The processed image will be
-            // downloaded into 'Downloads' folder.
-            var a = document.createElement('a');
-            a.href = evt.target.result;
-            a.download = true;
-            a.click();
-            statusElement.innerHTML = 'Save successfully';
-          };
-          reader.readAsDataURL(blob);
+          xwalk.experimental.native_file_system.requestNativeFileSystem('pictures',
+              function(fs) {
+                var fileName = '/pictures/savedPhoto';
+                saveFile(fs, fileName, blob);
+              });
         },
         function(e) { statusElement.innerHTML = e; });
   };
