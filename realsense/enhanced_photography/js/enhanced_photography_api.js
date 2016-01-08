@@ -122,6 +122,19 @@ DepthPhoto.prototype = new common.EventTargetPrototype();
 DepthPhoto.prototype.constructor = DepthPhoto;
 exports.Photo = DepthPhoto;
 
+var DepthRefocus = function(objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+  if (objectId == undefined)
+    internal.postMessage('depthRefocusConstructor', [this._id]);
+
+  this._addMethodWithPromise('init', wrapPhotoArgs);
+  this._addMethodWithPromise('apply', null, wrapPhotoReturns);
+};
+
+DepthRefocus.prototype = new common.EventTargetPrototype();
+DepthRefocus.prototype.constructor = DepthRefocus;
+exports.DepthRefocus = new DepthRefocus();
+
 var EnhancedPhotography = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
@@ -141,7 +154,6 @@ var EnhancedPhotography = function(objectId) {
   };
 
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
-  this._addMethodWithPromise('depthRefocus', wrapPhotoArgs, wrapPhotoReturns);
   this._addMethodWithPromise('computeMaskFromCoordinate', wrapPhotoArgs, wrapF32ImageReturns);
   this._addMethodWithPromise('computeMaskFromThreshold', wrapPhotoArgs, wrapF32ImageReturns);
 };
