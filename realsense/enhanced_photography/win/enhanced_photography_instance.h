@@ -41,6 +41,7 @@ class EnhancedPhotographyInstance : public Instance {
   void OnHandleSyncMessage(scoped_ptr<base::Value> msg);
   void OnEnhancedPhotographyConstructor(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDepthMaskConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthPhotoConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnDepthRefocusConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnMotionEffectConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);

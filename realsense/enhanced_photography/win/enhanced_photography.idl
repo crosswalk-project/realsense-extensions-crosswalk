@@ -20,25 +20,15 @@ namespace enhanced_photography {
     WorldPoint endPoint;
   };
 
-  dictionary MaskParams {
-    double frontObjectDepth;
-    double backObjectDepth;
-    double nearFallOffDepth;
-    double farFallOffDepth;
-  };
-
   dictionary Point {
     long x;
     long y;
   };
 
   callback DistancePromise = void(MeasureData measureData, DOMString error);
-  callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
 
   interface Functions {
     static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
-    static void computeMaskFromCoordinate(depth_photo.Photo photo, Point point, optional MaskParams params, MaskImagePromise promise);
-    static void computeMaskFromThreshold(depth_photo.Photo photo, double threshold, optional MaskParams params, MaskImagePromise promise);
 
     [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
   };

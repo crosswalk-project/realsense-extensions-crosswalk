@@ -9,6 +9,17 @@ const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
 const bytesPerY8Pixel = 1;
 
+function wrapF32ImageReturns(data) {
+  // 3 int32 (4 bytes) values.
+  var headerByteOffset = 3 * bytesPerInt32;
+  var int32Array = new Int32Array(data, 0, 3);
+  // int32Array[0] is the callback id.
+  var width = int32Array[1];
+  var height = int32Array[2];
+  var buffer = new Float32Array(data, headerByteOffset, width * height);
+  return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
+}
+
 function wrapPhotoArgs(data) {
   data[0] = { objectId: data[0].photoId };
   return data;
@@ -44,6 +55,20 @@ function InvalidPhotoException(message) {
   this.message = message;
   this.name = 'InvalidPhotoException';
 }
+
+var DepthMask = function(objectId) {
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
+  if (objectId == undefined)
+    internal.postMessage('depthMaskConstructor', [this._id]);
+
+  this._addMethodWithPromise('init', wrapPhotoArgs);
+  this._addMethodWithPromise('computeFromCoordinate', null, wrapF32ImageReturns);
+  this._addMethodWithPromise('computeFromThreshold', null, wrapF32ImageReturns);
+};
+
+DepthMask.prototype = new common.EventTargetPrototype();
+DepthMask.prototype.constructor = DepthMask;
+exports.DepthMask = new DepthMask();
 
 var DepthPhoto = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
@@ -142,20 +167,7 @@ var EnhancedPhotography = function(objectId) {
   if (objectId == undefined)
     internal.postMessage('enhancedPhotographyConstructor', [this._id]);
 
-  function wrapF32ImageReturns(data) {
-    // 3 int32 (4 bytes) values.
-    var headerByteOffset = 3 * bytesPerInt32;
-    var int32Array = new Int32Array(data, 0, 3);
-    // int32Array[0] is the callback id.
-    var width = int32Array[1];
-    var height = int32Array[2];
-    var buffer = new Float32Array(data, headerByteOffset, width * height);
-    return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
-  };
-
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
-  this._addMethodWithPromise('computeMaskFromCoordinate', wrapPhotoArgs, wrapF32ImageReturns);
-  this._addMethodWithPromise('computeMaskFromThreshold', wrapPhotoArgs, wrapF32ImageReturns);
 };
 
 EnhancedPhotography.prototype = new common.EventTargetPrototype();
