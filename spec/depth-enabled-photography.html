@@ -80,9 +80,9 @@
           The <code><a>DepthMask</a></code> interface provides methods for
           depth-enabled depth mask generator algorithm.
         </p>
-        <dl title='interface DepthMask' class='idl'>
+        <dl title='[Constructor()] interface DepthMask' class='idl'>
           <dt>
-            static Promise&lt;void&gt; init(Photo photo)
+            Promise&lt;void&gt; init(Photo photo)
           </dt>
           <dd>
             <p>
@@ -96,7 +96,7 @@
             </p>
           </dd>
           <dt>
-            static Promise&lt;Image&gt; computeFromCoordinate(Point coordinate, optional MaskParams maskParams)
+            Promise&lt;Image&gt; computeFromCoordinate(Point coordinate, optional MaskParams maskParams)
           </dt>
           <dd>
             <p>
@@ -121,7 +121,7 @@
             </dl>
           </dd>
           <dt>
-            static Promise&lt;Image&gt; computeFromThreshold(float depthThreshold, optional MaskParams maskParams)
+            Promise&lt;Image&gt; computeFromThreshold(float depthThreshold, optional MaskParams maskParams)
           </dt>
           <dd>
             <p>
@@ -154,9 +154,9 @@
           The <code><a>DepthRefocus</a></code> interface provides methods for
           depth-enabled refocus algorithm.
         </p>
-        <dl title='interface DepthRefocus' class='idl'>
+        <dl title='[Constructor()] interface DepthRefocus' class='idl'>
           <dt>
-            static Promise&lt;void&gt; init(Photo photo)
+            Promise&lt;void&gt; init(Photo photo)
           </dt>
           <dd>
             <p>
@@ -170,7 +170,7 @@
             </p>
           </dd>
           <dt>
-            static Promise&lt;Photo&gt; apply(Point focusPoint, optional float aperture)
+            Promise&lt;Photo&gt; apply(Point focusPoint, optional float aperture)
           </dt>
           <dd>
             <p>

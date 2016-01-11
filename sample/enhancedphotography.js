@@ -352,8 +352,8 @@ function popColor(e) {
 }
 
 function main() {
-  refocus = realsense.DepthEnabledPhotography.DepthRefocus;
-  depthMask = realsense.DepthEnabledPhotography.DepthMask;
+  refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
+  depthMask = new realsense.DepthEnabledPhotography.DepthMask();
   measurement = new realsense.DepthEnabledPhotography.Measurement();
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;

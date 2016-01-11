@@ -8,9 +8,9 @@ namespace depth_refocus{
   callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    static void init(depth_photo.Photo photo, Promise promise);
-    static void apply(depth_photo.Point focus, optional double aperture, PhotoPromise promise);
+    void init(depth_photo.Photo photo, Promise promise);
+    void apply(depth_photo.Point focus, optional double aperture, PhotoPromise promise);
 
-    [nodoc] static DepthRefocus depthRefocusConstructor(DOMString objectId);
+    [nodoc] DepthRefocus depthRefocusConstructor(DOMString objectId);
   };
 };

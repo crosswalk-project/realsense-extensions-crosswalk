@@ -68,7 +68,7 @@ var DepthMask = function(objectId) {
 
 DepthMask.prototype = new common.EventTargetPrototype();
 DepthMask.prototype.constructor = DepthMask;
-exports.DepthMask = new DepthMask();
+exports.DepthMask = DepthMask;
 
 var DepthPhoto = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
@@ -158,7 +158,7 @@ var DepthRefocus = function(objectId) {
 
 DepthRefocus.prototype = new common.EventTargetPrototype();
 DepthRefocus.prototype.constructor = DepthRefocus;
-exports.DepthRefocus = new DepthRefocus();
+exports.DepthRefocus = DepthRefocus;
 
 var Measurement = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
