@@ -36,7 +36,7 @@ install:
   # Copy REC repo from Travis' git.checkout step
   - cp -r otcshare/realsense-extensions-crosswalk src/extensions
   # Sync the project
-  - echo "solutions=[{'name':'src','url':'git@github.com:otcshare/crosswalk-extensions-sdk.git@origin/master','deps_file':'DEPS','managed':False,'custom_deps':{'extensions/realsense/android':'ssh://git@github.com/otcshare/realsense-extensions-crosswalk-android.git'},},]" > .gclient
+  - echo "solutions=[{'name':'src','url':'https://github.com/crosswalk-project/crosswalk-extensions-sdk.git@origin/master','deps_file':'DEPS','managed':False,'custom_deps':{'extensions/realsense/android':'ssh://git@github.com/otcshare/realsense-extensions-crosswalk-android.git'},},]" > .gclient
   - echo "target_os=['android']" >> .gclient
   - echo "{'GYP_DEFINES':'OS=android target_arch=ia32',}" > chromium.gyp_env
   - gclient sync
