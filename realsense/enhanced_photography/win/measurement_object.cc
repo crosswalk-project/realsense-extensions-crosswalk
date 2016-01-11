@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "realsense/enhanced_photography/win/enhanced_photography_object.h"
+#include "realsense/enhanced_photography/win/measurement_object.h"
 
 #include <string>
 
@@ -13,24 +13,33 @@
 namespace realsense {
 namespace enhanced_photography {
 
-EnhancedPhotographyObject::EnhancedPhotographyObject(
+MeasurementObject::MeasurementObject(
     EnhancedPhotographyInstance* instance)
         : session_(nullptr),
           ep_(nullptr),
           instance_(instance) {
   handler_.Register("measureDistance",
-                    base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
+                    base::Bind(&MeasurementObject::OnMeasureDistance,
+                               base::Unretained(this)));
+  handler_.Register("measureUADistance",
+                    base::Bind(&MeasurementObject::OnMeasureUADistance,
+                               base::Unretained(this)));
+  handler_.Register("queryUADataSize",
+                    base::Bind(&MeasurementObject::OnQueryUADataSize,
+                               base::Unretained(this)));
+  handler_.Register("queryUAData",
+                    base::Bind(&MeasurementObject::OnQueryUAData,
                                base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
   session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
 }
 
-EnhancedPhotographyObject::~EnhancedPhotographyObject() {
+MeasurementObject::~MeasurementObject() {
   ReleaseResources();
 }
 
-void EnhancedPhotographyObject::OnMeasureDistance(
+void MeasurementObject::OnMeasureDistance(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   MeasureData measure_data;
   scoped_ptr<MeasureDistance::Params> params(
@@ -73,7 +82,25 @@ void EnhancedPhotographyObject::OnMeasureDistance(
       measure_data, std::string()));
 }
 
-void EnhancedPhotographyObject::ReleaseResources() {
+void MeasurementObject::OnMeasureUADistance(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  NOTIMPLEMENTED();
+  info->PostResult(CreateStringErrorResult("not-implemented"));
+}
+
+void MeasurementObject::OnQueryUADataSize(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  NOTIMPLEMENTED();
+  info->PostResult(CreateStringErrorResult("not-implemented"));
+}
+
+void MeasurementObject::OnQueryUAData(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  NOTIMPLEMENTED();
+  info->PostResult(CreateStringErrorResult("not-implemented"));
+}
+
+void MeasurementObject::ReleaseResources() {
   if (ep_) {
     ep_->Release();
     ep_ = nullptr;
