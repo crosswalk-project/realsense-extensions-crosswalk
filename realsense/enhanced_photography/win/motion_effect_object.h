@@ -14,7 +14,6 @@
 #include "realsense/enhanced_photography/win/enhanced_photography_instance.h"
 #include "third_party/libpxc/include/pxcenhancedphoto.h"
 #include "third_party/libpxc/include/pxcimage.h"
-#include "third_party/libpxc/include/pxcphoto.h"
 #include "third_party/libpxc/include/pxcsession.h"
 
 namespace realsense {
@@ -25,8 +24,7 @@ using namespace jsapi::motion_effect; // NOLINT
 
 class MotionEffectObject : public xwalk::common::BindingObject {
  public:
-  explicit MotionEffectObject(EnhancedPhotographyInstance* instance,
-                              PXCPhoto* photo);
+  explicit MotionEffectObject(EnhancedPhotographyInstance* instance);
   ~MotionEffectObject() override;
 
  private:
@@ -36,7 +34,6 @@ class MotionEffectObject : public xwalk::common::BindingObject {
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto* ep_;
-  PXCPhoto* photo_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;

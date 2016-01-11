@@ -138,7 +138,7 @@ function main() {
         height: curPhotoHeight,
         data: markupImgHints
       };
-      segmentation.objectSegment(markupImage).then(
+      segmentation.objectSegment(currentPhoto, markupImage).then(
           function(maskImage) {
             currentPhoto.queryContainerImage().then(
                 function(colorImage) {
@@ -291,13 +291,7 @@ function main() {
           currentPhoto = photo;
           savePhoto = photo;
           if (!segmentation) {
-            try {
-              segmentation = new realsense.DepthEnabledPhotography.Segmentation(currentPhoto);
-            } catch (e) {
-              statusElement.innerHTML = e.message;
-              segmentation = null;
-              return;
-            }
+            segmentation = new realsense.DepthEnabledPhotography.Segmentation();
           }
 
           currentPhoto.queryContainerImage().then(
@@ -372,14 +366,8 @@ function main() {
                   currentPhoto = photo;
                   savePhoto = photo;
                   if (!segmentation) {
-                    try {
-                      segmentation =
-                          new realsense.DepthEnabledPhotography.Segmentation(currentPhoto);
-                    } catch (e) {
-                      statusElement.innerHTML = e.message;
-                      segmentation = null;
-                      return;
-                    }
+                    segmentation =
+                        new realsense.DepthEnabledPhotography.Segmentation();
                   }
 
                   currentPhoto.queryContainerImage().then(

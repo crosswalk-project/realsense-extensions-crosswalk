@@ -51,11 +51,6 @@ function wrapY8ImageReturns(data) {
   return { format: 'Y8', width: width, height: height, data: buffer };
 }
 
-function InvalidPhotoException(message) {
-  this.message = message;
-  this.name = 'InvalidPhotoException';
-}
-
 var DepthMask = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
   if (objectId == undefined)
@@ -177,44 +172,23 @@ Measurement.prototype = new common.EventTargetPrototype();
 Measurement.prototype.constructor = Measurement;
 exports.Measurement = Measurement;
 
-var MotionEffect = function(photo, objectId) {
+var MotionEffect = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (!(photo instanceof DepthPhoto))
-    throw new InvalidPhotoException('Invalid Photo object');
-  if (objectId == undefined) {
-    var result = internal.sendSyncMessage(
-        'motionEffectConstructor', [this._id, { objectId: photo.photoId }]);
-    if (!result)
-      throw new InvalidPhotoException('Invalid Photo object');
-  }
+  if (objectId == undefined)
+    internal.postMessage('motionEffectConstructor', [this._id]);
 
-  this._addMethodWithPromise('initMotionEffect');
-  this._addMethodWithPromise('applyMotionEffect', null, wrapRGB32ImageReturns);
-
-  Object.defineProperties(this, {
-    'photo': {
-      value: photo,
-      configurable: false,
-      writable: false,
-      enumerable: true,
-    },
-  });
+  this._addMethodWithPromise('init', wrapPhotoArgs);
+  this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns);
 };
 
 MotionEffect.prototype = new common.EventTargetPrototype();
 MotionEffect.prototype.constructor = MotionEffect;
 exports.MotionEffect = MotionEffect;
 
-var Paster = function(photo, objectId) {
+var Paster = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (!(photo instanceof DepthPhoto))
-    throw new InvalidPhotoException('Invalid Photo object');
-  if (objectId == undefined) {
-    var result = internal.sendSyncMessage(
-        'pasterConstructor', [this._id, { objectId: photo.photoId }]);
-    if (!result)
-      throw new InvalidPhotoException('Invalid Photo object');
-  }
+  if (objectId == undefined)
+    internal.postMessage('pasterConstructor', [this._id]);
 
   function wrapSetStickerArgsToArrayBuffer(args) {
     var sticker = args[0];
@@ -286,18 +260,10 @@ var Paster = function(photo, objectId) {
   };
 
   this._addMethodWithPromise('getPlanesMap', null, wrapY8ImageReturns);
+  this._addMethodWithPromise('setPhoto', wrapPhotoArgs);
   this._addBinaryMethodWithPromise('setSticker', wrapSetStickerArgsToArrayBuffer);
   this._addMethodWithPromise('paste', null, wrapPhotoReturns);
   this._addMethodWithPromise('previewSticker', null, wrapY8ImageReturns);
-
-  Object.defineProperties(this, {
-    'photo': {
-      value: photo,
-      configurable: false,
-      writable: false,
-      enumerable: true,
-    },
-  });
 };
 
 Paster.prototype = new common.EventTargetPrototype();
@@ -343,29 +309,39 @@ PhotoUtils.prototype = new common.EventTargetPrototype();
 PhotoUtils.prototype.constructor = PhotoUtils;
 exports.PhotoUtils = new PhotoUtils();
 
-var Segmentation = function(photo, objectId) {
+var Segmentation = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
 
-  if (!(photo instanceof DepthPhoto))
-    throw new InvalidPhotoException('Invalid Photo object');
+  if (objectId == undefined)
+    internal.postMessage('segmentationConstructor', [this._id]);
 
-  if (objectId == undefined) {
-    var result = internal.sendSyncMessage(
-        'segmentationConstructor', [this._id, { objectId: photo.photoId }]);
-    if (!result)
-      throw new InvalidPhotoException('Invalid Photo object');
-  }
-
-  function wrapY8ImageToArrayBuffer(args) {
-    var y8Image = args[0];
+  function wrapObjectSegmentArgsToArrayBuffer(args) {
+    var photoId = args[0].photoId;
+    var alignedPhotoIdLen = photoId.length + 4 - photoId.length % 4;
+    var y8Image = args[1];
     if (y8Image.format != 'Y8')
       return null;
-    var length = 2 * bytesPerInt32 + y8Image.width * y8Image.height * bytesPerY8Pixel;
+    // photoIdLen(int), photoId(string), image[imageWidth(int) imageHeight(int) imageData]
+    var length = bytesPerInt32 + alignedPhotoIdLen +
+        2 * bytesPerInt32 + y8Image.width * y8Image.height * bytesPerY8Pixel;
     var arrayBuffer = new ArrayBuffer(length);
-    var view = new Int32Array(arrayBuffer, 0, 2);
+    var offset = 0;
+    var view = new Int32Array(arrayBuffer, offset, 1);
+    view[0] = photoId.length;
+    offset += bytesPerInt32;
+
+    view = new Uint8Array(arrayBuffer, offset, photoId.length);
+    for (var i = 0; i < photoId.length; i++) {
+      view[i] = photoId.charCodeAt(i);
+    }
+    offset += alignedPhotoIdLen;
+
+    view = new Int32Array(arrayBuffer, offset, 2);
     view[0] = y8Image.width;
     view[1] = y8Image.height;
-    var view = new Uint8Array(arrayBuffer, 2 * bytesPerInt32);
+    offset += bytesPerInt32 * 2;
+
+    view = new Uint8Array(arrayBuffer, offset);
     for (var i = 0; i < y8Image.data.length; i++) {
       view[i] = y8Image.data[i];
     }
@@ -394,19 +370,12 @@ var Segmentation = function(photo, objectId) {
     return arrayBuffer;
   };
 
-  this._addBinaryMethodWithPromise('objectSegment', wrapY8ImageToArrayBuffer, wrapY8ImageReturns);
+  this._addBinaryMethodWithPromise('objectSegment',
+                                   wrapObjectSegmentArgsToArrayBuffer,
+                                   wrapY8ImageReturns);
   this._addMethodWithPromise('redo', null, wrapY8ImageReturns);
   this._addBinaryMethodWithPromise('refineMask', wrapRefineMaskToArrayBuffer, wrapY8ImageReturns);
   this._addMethodWithPromise('undo', null, wrapY8ImageReturns);
-
-  Object.defineProperties(this, {
-    'photo': {
-      value: photo,
-      configurable: false,
-      writable: false,
-      enumerable: true,
-    },
-  });
 };
 
 Segmentation.prototype = new common.EventTargetPrototype();

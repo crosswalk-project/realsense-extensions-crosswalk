@@ -5,17 +5,19 @@
 #include "realsense/enhanced_photography/win/paster_object.h"
 
 #include "realsense/enhanced_photography/win/common_utils.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
 
-PasterObject::PasterObject(EnhancedPhotographyInstance* instance,
-                           PXCPhoto* photo)
+PasterObject::PasterObject(EnhancedPhotographyInstance* instance)
     : instance_(instance),
-      photo_(photo),
       binary_message_size_(0) {
   handler_.Register("getPlanesMap",
       base::Bind(&PasterObject::OnGetPlanesMap,
+                 base::Unretained(this)));
+  handler_.Register("setPhoto",
+      base::Bind(&PasterObject::OnSetPhoto,
                  base::Unretained(this)));
   handler_.Register("setSticker",
       base::Bind(&PasterObject::OnSetSticker,
@@ -29,7 +31,6 @@ PasterObject::PasterObject(EnhancedPhotographyInstance* instance,
 
   session_ = PXCSession::CreateInstance();
   paster_ = PXCEnhancedPhoto::Paster::CreateInstance(session_);
-  paster_->SetPhoto(photo);
 }
 
 PasterObject::~PasterObject() {
@@ -50,11 +51,6 @@ PasterObject::~PasterObject() {
 void PasterObject::OnGetPlanesMap(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(GetPlanesMap::Results::Create(
-        image, "Invalid Paster object"));
-    return;
-  }
 
   DCHECK(paster_);
   PXCImage* mask = paster_->GetPlanesMap();
@@ -73,13 +69,36 @@ void PasterObject::OnGetPlanesMap(
   info->PostResult(result.Pass());
 }
 
-void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  if (!photo_) {
-    info->PostResult(SetSticker::Results::Create(
-        std::string(), "Invalid Paster object"));
+void PasterObject::OnSetPhoto(
+    scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
+  DCHECK(paster_);
+
+  scoped_ptr<SetPhoto::Params> params(
+      SetPhoto::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
     return;
   }
 
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(CreateStringErrorResult("Invalid Photo object."));
+    return;
+  }
+
+  pxcStatus sts = paster_->SetPhoto(depthPhotoObject->GetPhoto());
+  if (sts < PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateStringErrorResult("SetPhoto failed"));
+    return;
+  }
+
+  info->PostResult(
+      SetPhoto::Results::Create(std::string("Success"), std::string()));
+}
+
+void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   const base::Value* buffer_value = NULL;
   const base::BinaryValue* binary_value = NULL;
   if (info->arguments()->Get(0, &buffer_value) &&
@@ -187,11 +206,6 @@ void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
 void PasterObject::OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
-  if (!photo_) {
-    info->PostResult(Paste::Results::Create(
-        photo, "Invalid Paster object"));
-    return;
-  }
 
   DCHECK(paster_);
   PXCPhoto* pxcphoto = paster_->Paste();
@@ -207,11 +221,6 @@ void PasterObject::OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 void PasterObject::OnPreviewSticker(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(PreviewSticker::Results::Create(
-        image, "Invalid Paster object"));
-    return;
-  }
 
   DCHECK(paster_);
   PXCImage* mask = paster_->PreviewSticker();

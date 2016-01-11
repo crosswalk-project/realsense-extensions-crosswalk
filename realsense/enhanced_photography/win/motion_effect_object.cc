@@ -5,21 +5,20 @@
 #include "realsense/enhanced_photography/win/motion_effect_object.h"
 
 #include "realsense/enhanced_photography/win/common_utils.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
 
-MotionEffectObject::MotionEffectObject(EnhancedPhotographyInstance* instance,
-                                       PXCPhoto* photo)
+MotionEffectObject::MotionEffectObject(EnhancedPhotographyInstance* instance)
     : session_(nullptr),
       ep_(nullptr),
       instance_(instance),
-      photo_(photo),
       binary_message_size_(0) {
-  handler_.Register("initMotionEffect",
+  handler_.Register("init",
                     base::Bind(&MotionEffectObject::OnInitMotionEffect,
                                base::Unretained(this)));
-  handler_.Register("applyMotionEffect",
+  handler_.Register("apply",
                     base::Bind(&MotionEffectObject::OnApplyMotionEffect,
                                base::Unretained(this)));
 
@@ -41,10 +40,25 @@ MotionEffectObject::~MotionEffectObject() {
 void MotionEffectObject::OnInitMotionEffect(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
   DCHECK(ep_);
-  pxcStatus sts = ep_->InitMotionEffect(photo_);
+
+  scoped_ptr<InitMotionEffect::Params> params(
+      InitMotionEffect::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(CreateStringErrorResult("Invalid Photo object."));
+    return;
+  }
+
+  pxcStatus sts = ep_->InitMotionEffect(depthPhotoObject->GetPhoto());
   if (sts < PXC_STATUS_NO_ERROR) {
-    info->PostResult(InitMotionEffect::Results::Create(
-        std::string(), "InitMotionEffect failed"));
+    info->PostResult(CreateStringErrorResult("InitMotionEffect failed"));
     return;
   }
 

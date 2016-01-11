@@ -193,55 +193,23 @@ void EnhancedPhotographyInstance::OnDepthRefocusConstructor(
 void EnhancedPhotographyInstance::OnMotionEffectConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
-  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
   scoped_ptr<jsapi::motion_effect::MotionEffectConstructor::
       Params> params(jsapi::motion_effect::MotionEffectConstructor::
           Params::Create(*info->arguments()));
 
-  if (!params) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      store_.GetBindingObjectById(params->photo.object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  scoped_ptr<BindingObject> obj(
-      new MotionEffectObject(this, depthPhotoObject->GetPhoto()));
+  scoped_ptr<BindingObject> obj(new MotionEffectObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
-  result.reset(new base::FundamentalValue(true));
-  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnPasterConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
-  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
   scoped_ptr<jsapi::paster::PasterConstructor::
       Params> params(jsapi::paster::PasterConstructor::
           Params::Create(*info->arguments()));
 
-  if (!params) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      store_.GetBindingObjectById(params->photo.object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  scoped_ptr<BindingObject> obj(
-      new PasterObject(this, depthPhotoObject->GetPhoto()));
+  scoped_ptr<BindingObject> obj(new PasterObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
-  result.reset(new base::FundamentalValue(true));
-  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnPhotoCaptureConstructor(
@@ -269,28 +237,12 @@ void EnhancedPhotographyInstance::OnPhotoUtilsConstructor(
 void EnhancedPhotographyInstance::OnSegmentationConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
-  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
   scoped_ptr<jsapi::segmentation::SegmentationConstructor::
       Params> params(jsapi::segmentation::SegmentationConstructor::
           Params::Create(*info->arguments()));
 
-  if (!params) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      store_.GetBindingObjectById(params->photo.object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(result.Pass());
-    return;
-  }
-
-  scoped_ptr<BindingObject> obj(
-      new SegmentationObject(this, depthPhotoObject->GetPhoto()));
+  scoped_ptr<BindingObject> obj(new SegmentationObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
-  result.reset(new base::FundamentalValue(true));
-  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnXDMUtilsConstructor(

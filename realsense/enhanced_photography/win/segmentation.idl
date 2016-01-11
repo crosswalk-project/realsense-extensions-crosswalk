@@ -7,11 +7,11 @@ namespace segmentation {
   callback ImagePromise = void(depth_photo.Image image, DOMString error);
 
   interface Functions {
-    static void objectSegment(ArrayBuffer buffer, ImagePromise promise);
-    static void redo(ImagePromise promise);
-    static void refineMask(ArrayBuffer buffer, ImagePromise promise);
-    static void undo(ImagePromise promise);
+    void objectSegment(ArrayBuffer buffer, ImagePromise promise);
+    void redo(ImagePromise promise);
+    void refineMask(ArrayBuffer buffer, ImagePromise promise);
+    void undo(ImagePromise promise);
 
-    [nodoc] static Paster segmentationConstructor(DOMString objectId, depth_photo.Photo photo);
+    [nodoc] Segmentation segmentationConstructor(DOMString objectId);
   };
 };

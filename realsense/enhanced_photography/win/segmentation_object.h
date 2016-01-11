@@ -11,7 +11,6 @@
 #include "realsense/enhanced_photography/win/enhanced_photography_instance.h"
 #include "third_party/libpxc/include/pxcenhancedphoto.h"
 #include "third_party/libpxc/include/pxcsession.h"
-#include "third_party/libpxc/include/pxcphoto.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -21,8 +20,7 @@ using namespace jsapi::segmentation; // NOLINT
 
 class SegmentationObject : public xwalk::common::BindingObject {
  public:
-  explicit SegmentationObject(EnhancedPhotographyInstance* instance,
-                              PXCPhoto* photo);
+  explicit SegmentationObject(EnhancedPhotographyInstance* instance);
   ~SegmentationObject() override;
 
  private:
@@ -34,7 +32,6 @@ class SegmentationObject : public xwalk::common::BindingObject {
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::Segmentation* segmentation_;
-  PXCPhoto* photo_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;

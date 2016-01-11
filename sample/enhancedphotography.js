@@ -248,15 +248,20 @@ function doPasteOnPlane() {
     rotation: rotation,
     isCenter: true
   };
-  paster.setSticker(sticker, { x: coordX, y: coordY }, stickerData).then(
+
+  paster.setPhoto(currentPhoto).then(
       function(success) {
-        paster.paste().then(
-            function(photo) {
-              photo.queryContainerImage().then(
-                  function(image) {
-                    statusElement.innerHTML = 'Finished paste on plane.';
-                    imageData.data.set(image.data);
-                    imageContext.putImageData(imageData, 0, 0);
+        paster.setSticker(sticker, { x: coordX, y: coordY }, stickerData).then(
+            function(success) {
+              paster.paste().then(
+                  function(photo) {
+                    photo.queryContainerImage().then(
+                        function(image) {
+                          statusElement.innerHTML = 'Finished paste on plane.';
+                          imageData.data.set(image.data);
+                          imageContext.putImageData(imageData, 0, 0);
+                        },
+                        function(e) { statusElement.innerHTML = e; });
                   },
                   function(e) { statusElement.innerHTML = e; });
             },
@@ -488,13 +493,7 @@ function main() {
       }
 
       if (!paster) {
-        try {
-          paster = new realsense.DepthEnabledPhotography.Paster(currentPhoto);
-        } catch (e) {
-          statusElement.innerHTML = e.message;
-          paster = null;
-          return;
-        }
+        paster = new realsense.DepthEnabledPhotography.Paster();
       }
 
       if (!sticker) {
