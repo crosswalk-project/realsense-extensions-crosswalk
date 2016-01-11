@@ -1,0 +1,24 @@
+// Copyright (c) 2016 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// DepthMask interface
+namespace depth_mask {
+  dictionary MaskParams {
+    double frontObjectDepth;
+    double backObjectDepth;
+    double nearFallOffDepth;
+    double farFallOffDepth;
+  };
+
+  callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
+  callback Promise = void(DOMString success, DOMString error);
+
+  interface Functions {
+    static void init(depth_photo.Photo photo, Promise promise);
+    static void computeFromCoordinate(depth_photo.Point point, optional MaskParams params, MaskImagePromise promise);
+    static void computeFromThreshold(double threshold, optional MaskParams params, MaskImagePromise promise);
+
+    [nodoc] static DepthMask depthMaskConstructor(DOMString objectId);
+  };
+};

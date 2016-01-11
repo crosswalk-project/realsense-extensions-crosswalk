@@ -7,6 +7,7 @@ import("//xwalk/common/xwalk_common.gni")
 xwalk_idlgen("enhanced_photography_idl") {
   namespace = "realsense::jsapi"
   sources = [
+    "depth_mask.idl",
     "depth_photo.idl",
     "depth_refocus.idl",
     "enhanced_photography.idl",
@@ -29,6 +30,8 @@ shared_library("enhanced_photography") {
   sources = [
     "common_utils.cc",
     "common_utils.h",
+    "depth_mask_object.cc",
+    "depth_mask_object.cc",
     "depth_photo_object.cc",
     "depth_photo_object.h",
     "depth_refocus_object.cc",

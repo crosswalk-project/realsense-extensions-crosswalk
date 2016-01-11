@@ -4,7 +4,6 @@
 
 #include "realsense/enhanced_photography/win/enhanced_photography_object.h"
 
-#include <algorithm>
 #include <string>
 
 #include "base/bind.h"
@@ -18,17 +17,10 @@ EnhancedPhotographyObject::EnhancedPhotographyObject(
     EnhancedPhotographyInstance* instance)
         : session_(nullptr),
           ep_(nullptr),
-          instance_(instance),
-          binary_message_size_(0) {
+          instance_(instance) {
   handler_.Register("measureDistance",
                     base::Bind(&EnhancedPhotographyObject::OnMeasureDistance,
                                base::Unretained(this)));
-  handler_.Register("computeMaskFromCoordinate",
-      base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromCoordinate,
-                 base::Unretained(this)));
-  handler_.Register("computeMaskFromThreshold",
-      base::Bind(&EnhancedPhotographyObject::OnComputeMaskFromThreshold,
-                 base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
   session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
@@ -79,117 +71,6 @@ void EnhancedPhotographyObject::OnMeasureDistance(
   measure_data.end_point.x = data.endPoint.coord.z;
   info->PostResult(MeasureDistance::Results::Create(
       measure_data, std::string()));
-}
-
-void EnhancedPhotographyObject::OnComputeMaskFromCoordinate(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::MaskImage image;
-  scoped_ptr<ComputeMaskFromCoordinate::Params> params(
-      ComputeMaskFromCoordinate::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(ComputeMaskFromCoordinate::Results::Create(
-        image, "Malformed parameters"));
-    return;
-  }
-
-  std::string object_id = params->photo.object_id;
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      instance_->GetBindingObjectById(object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
-        "Invalid Photo object."));
-    return;
-  }
-
-  DCHECK(ep_);
-  PXCPointI32 point;
-  point.x = params->point.x;
-  point.y = params->point.y;
-
-  PXCImage* pxcimage;
-  if (params->params) {
-    PXCEnhancedPhoto::MaskParams mask_params;
-
-    mask_params.frontObjectDepth = params->params->front_object_depth;
-    mask_params.backOjectDepth = params->params->back_object_depth;
-    mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
-    mask_params.farFallOffDepth = params->params->far_fall_off_depth;
-    pxcimage = ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(),
-                                              point,
-                                              &mask_params);
-  } else {
-    pxcimage = ep_->ComputeMaskFromCoordinate(depthPhotoObject->GetPhoto(),
-                                              point);
-  }
-
-  if (!CopyImageToBinaryMessage(pxcimage,
-                                binary_message_,
-                                &binary_message_size_)) {
-    info->PostResult(ComputeMaskFromCoordinate::Results::Create(image,
-        "Failed to get image data."));
-    return;
-  }
-
-  scoped_ptr<base::ListValue> result(new base::ListValue());
-  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-      reinterpret_cast<const char*>(binary_message_.get()),
-      binary_message_size_));
-  info->PostResult(result.Pass());
-
-  pxcimage->Release();
-}
-
-void EnhancedPhotographyObject::OnComputeMaskFromThreshold(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::MaskImage image;
-  scoped_ptr<ComputeMaskFromThreshold::Params> params(
-      ComputeMaskFromThreshold::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(ComputeMaskFromThreshold::Results::Create(
-        image, "Malformed parameters"));
-    return;
-  }
-
-  std::string object_id = params->photo.object_id;
-  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
-      instance_->GetBindingObjectById(object_id));
-  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
-        "Invalid Photo object."));
-    return;
-  }
-
-  DCHECK(ep_);
-  PXCImage* pxcimage;
-  if (params->params) {
-    PXCEnhancedPhoto::MaskParams mask_params;
-    mask_params.frontObjectDepth = params->params->front_object_depth;
-    mask_params.backOjectDepth = params->params->back_object_depth;
-    mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
-    mask_params.farFallOffDepth = params->params->far_fall_off_depth;
-    pxcimage = ep_->ComputeMaskFromThreshold(depthPhotoObject->GetPhoto(),
-                                             params->threshold,
-                                             &mask_params);
-  } else {
-    pxcimage = ep_->ComputeMaskFromThreshold(depthPhotoObject->GetPhoto(),
-                                             params->threshold);
-  }
-
-  if (!CopyImageToBinaryMessage(pxcimage,
-                                binary_message_,
-                                &binary_message_size_)) {
-    info->PostResult(ComputeMaskFromThreshold::Results::Create(image,
-      "Failed to get image data."));
-    return;
-  }
-
-  scoped_ptr<base::ListValue> result(new base::ListValue());
-  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-      reinterpret_cast<const char*>(binary_message_.get()),
-      binary_message_size_));
-  info->PostResult(result.Pass());
-
-  pxcimage->Release();
 }
 
 void EnhancedPhotographyObject::ReleaseResources() {

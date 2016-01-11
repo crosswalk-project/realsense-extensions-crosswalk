@@ -74,6 +74,80 @@
       </h2>
       <section>
         <h2>
+          <code><a>DepthMask</a></code>
+        </h2>
+        <p>
+          The <code><a>DepthMask</a></code> interface provides methods for
+          depth-enabled depth mask generator algorithm.
+        </p>
+        <dl title='interface DepthMask' class='idl'>
+          <dt>
+            static Promise&lt;void&gt; init(Photo photo)
+          </dt>
+          <dd>
+            <p>
+              The <code>init()</code> method initializes the Depth Mask function
+              with the photo that needs processing.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            static Promise&lt;Image&gt; computeFromCoordinate(Point coordinate, optional MaskParams maskParams)
+          </dt>
+          <dd>
+            <p>
+              The <code>computeFromCoordinate()</code> method creates a mask directly from
+              a depth coordinate.
+              The mask image is in <code>DEPTH_F32</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Point coordinate</dt>
+              <dd>
+                Input (x, y) coordinates on the depth map.
+              </dd>
+              <dt>optional MaskParams maskParams</dt>
+              <dd>
+                The optional additional configuration parameters.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            static Promise&lt;Image&gt; computeFromThreshold(float depthThreshold, optional MaskParams maskParams)
+          </dt>
+          <dd>
+            <p>
+              The <code>computeFromThreshold()</code> method creates a mask from depthThreshold.
+              The mask image is in <code>DEPTH_F32</code> pixel format.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>float depthThreshold</dt>
+              <dd>
+                The depth threshold value.
+              </dd>
+              <dt>optional MaskParams maskParams</dt>
+              <dd>
+                The optional additional configuration parameters.
+              </dd>
+            </dl>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>DepthRefocus</a></code>
         </h2>
         <p>
@@ -131,64 +205,6 @@
           enhanced photography features.
         </p>
         <dl title='interface EnhancedPhoto' class='idl'>
-          <dt>
-            static Promise&lt;Image&gt; computeMaskFromCoordinate(Photo photo, Point point, optional MaskParams params)
-          </dt>
-          <dd>
-            <p>
-              The <code>computeMaskFromCoordinate()</code> method creates a mask
-              image corresponding to the point in the color image.
-              The mask image is in <code>DEPTH_F32</code> pixel format.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled with the mask image if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-            <dl class='parameters'>
-              <dt>Photo photo</dt>
-              <dd>
-                The photo instance.
-              </dd>
-              <dt>Point point</dt>
-              <dd>
-                The point coordinates in the color image.
-              </dd>
-              <dt>optional MaskParams params</dt>
-              <dd>
-                The optional additional configuration parameters.
-              </dd>
-            </dl>
-          </dd>
-          <dt>
-            static Promise&lt;Image&gt; computeMaskFromThreshold(Photo photo, float threshold, optional MaskParams params)
-          </dt>
-          <dd>
-            <p>
-              The <code>computeMaskFromThreshold()</code> method creates a mask
-              image corresponding to the depth threshold value.
-              The mask image is in <code>DEPTH_F32</code> pixel format.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled with the mask image if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-            <dl class='parameters'>
-              <dt>Photo photo</dt>
-              <dd>
-                The photo instance.
-              </dd>
-              <dt>float threshold</dt>
-              <dd>
-                The depth threshold value.
-              </dd>
-              <dt>optional MaskParams params</dt>
-              <dd>
-                The optional additional configuration parameters.
-              </dd>
-            </dl>
-          </dd>
           <dt>
             static Promise&lt;MeasureData&gt; measureDistance(Photo photo, Point start, Point end)
           </dt>
