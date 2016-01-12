@@ -45,7 +45,4 @@ tags
 Thumbs.db
 /crosswalk-extensions-sdk
 /out*
-/build/rssdk/android/intel_realsense_android.zip
-/build/rssdk/android/intel_realsense_android.zip.stamp
-/build/rssdk/android/intel_realsense_sdk/
 /third_party/libpxc
