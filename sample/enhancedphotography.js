@@ -20,7 +20,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var previewContext, previewData, imageContext, imageData;
 var overlayContext;
-var refocus, depthMask, ep, paster, photoCapture, photoUtils, XDMUtils;
+var refocus, depthMask, measurement, paster, photoCapture, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
 var width = 1920, height = 1080;
 var canvasWidth = 400, canvasHeight = 300;
@@ -103,7 +103,7 @@ function measureDistance(e) {
     overlayContext.stroke();
     overlayContext.closePath();
     statusElement.innerHTML = 'Status Info : Measure: ';
-    ep.measureDistance(currentPhoto, {x: startX, y: startY}, {x: x, y: y}).then(
+    measurement.measureDistance(currentPhoto, { x: startX, y: startY }, { x: x, y: y }).then(
         function(d) {
           statusElement.innerHTML +=
               'Distance between(' + startX + ',' + startY + ') - (' + x + ',' + y + ') = ' +
@@ -352,9 +352,9 @@ function popColor(e) {
 }
 
 function main() {
-  refocus = realsense.DepthEnabledPhotography.DepthRefocus;
-  depthMask = realsense.DepthEnabledPhotography.DepthMask;
-  ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
+  depthMask = new realsense.DepthEnabledPhotography.DepthMask();
+  measurement = new realsense.DepthEnabledPhotography.Measurement();
   photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;

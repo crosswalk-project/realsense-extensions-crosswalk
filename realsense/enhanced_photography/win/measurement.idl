@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// EnhancedPhotography API
-namespace enhanced_photography {
+// Measurement API
+namespace measurement {
   dictionary WorldPoint {
     double x;
     double y;
@@ -20,16 +20,15 @@ namespace enhanced_photography {
     WorldPoint endPoint;
   };
 
-  dictionary Point {
-    long x;
-    long y;
-  };
-
   callback DistancePromise = void(MeasureData measureData, DOMString error);
+  callback IntPromise = void(long size, DOMString error);
 
   interface Functions {
-    static void measureDistance(depth_photo.Photo photo, Point start, Point end, DistancePromise promise);
+    void measureDistance(depth_photo.Photo photo, depth_photo.Point start, depth_photo.Point end, DistancePromise promise);
+    void measureUADistance(depth_photo.Photo photo, depth_photo.Point start, depth_photo.Point end, DistancePromise promise);
+    void queryUADataSize(IntPromise promise);
+    void queryUAData(DistancePromise promise);
 
-    [nodoc] static EnhancedPhotography enhancedPhotographyConstructor(DOMString objectId);
+    [nodoc] Measurement measurementConstructor(DOMString objectId);
   };
 };

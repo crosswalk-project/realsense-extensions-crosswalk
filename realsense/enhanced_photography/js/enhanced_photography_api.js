@@ -68,7 +68,7 @@ var DepthMask = function(objectId) {
 
 DepthMask.prototype = new common.EventTargetPrototype();
 DepthMask.prototype.constructor = DepthMask;
-exports.DepthMask = new DepthMask();
+exports.DepthMask = DepthMask;
 
 var DepthPhoto = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
@@ -158,22 +158,24 @@ var DepthRefocus = function(objectId) {
 
 DepthRefocus.prototype = new common.EventTargetPrototype();
 DepthRefocus.prototype.constructor = DepthRefocus;
-exports.DepthRefocus = new DepthRefocus();
+exports.DepthRefocus = DepthRefocus;
 
-var EnhancedPhotography = function(objectId) {
+var Measurement = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
 
   if (objectId == undefined)
-    internal.postMessage('enhancedPhotographyConstructor', [this._id]);
+    internal.postMessage('measurementConstructor', [this._id]);
 
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
+  this._addMethodWithPromise('measureUADistance', wrapPhotoArgs);
+  this._addMethodWithPromise('queryUADataSize');
+  this._addMethodWithPromise('queryUAData');
 };
 
-EnhancedPhotography.prototype = new common.EventTargetPrototype();
-EnhancedPhotography.prototype.constructor = EnhancedPhotography;
-
-exports.EnhancedPhoto = new EnhancedPhotography();
+Measurement.prototype = new common.EventTargetPrototype();
+Measurement.prototype.constructor = Measurement;
+exports.Measurement = Measurement;
 
 var MotionEffect = function(photo, objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());

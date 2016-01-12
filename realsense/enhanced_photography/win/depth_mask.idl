@@ -15,10 +15,10 @@ namespace depth_mask {
   callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    static void init(depth_photo.Photo photo, Promise promise);
-    static void computeFromCoordinate(depth_photo.Point point, optional MaskParams params, MaskImagePromise promise);
-    static void computeFromThreshold(double threshold, optional MaskParams params, MaskImagePromise promise);
+    void init(depth_photo.Photo photo, Promise promise);
+    void computeFromCoordinate(depth_photo.Point point, optional MaskParams params, MaskImagePromise promise);
+    void computeFromThreshold(double threshold, optional MaskParams params, MaskImagePromise promise);
 
-    [nodoc] static DepthMask depthMaskConstructor(DOMString objectId);
+    [nodoc] DepthMask depthMaskConstructor(DOMString objectId);
   };
 };

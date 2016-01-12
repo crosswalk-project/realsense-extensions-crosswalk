@@ -24,7 +24,7 @@ namespace paster {
 
   interface Functions {
     static void getPlanesMap(ImagePromise promise);
-    static void setSticker(depth_photo.Image sticker, enhanced_photography.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
+    static void setSticker(depth_photo.Image sticker, depth_photo.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
     static void paste(PhotoPromise promise);
     static void previewSticker(ImagePromise promise);
 

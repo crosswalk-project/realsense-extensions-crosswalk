@@ -80,9 +80,9 @@
           The <code><a>DepthMask</a></code> interface provides methods for
           depth-enabled depth mask generator algorithm.
         </p>
-        <dl title='interface DepthMask' class='idl'>
+        <dl title='[Constructor()] interface DepthMask' class='idl'>
           <dt>
-            static Promise&lt;void&gt; init(Photo photo)
+            Promise&lt;void&gt; init(Photo photo)
           </dt>
           <dd>
             <p>
@@ -96,7 +96,7 @@
             </p>
           </dd>
           <dt>
-            static Promise&lt;Image&gt; computeFromCoordinate(Point coordinate, optional MaskParams maskParams)
+            Promise&lt;Image&gt; computeFromCoordinate(Point coordinate, optional MaskParams maskParams)
           </dt>
           <dd>
             <p>
@@ -121,7 +121,7 @@
             </dl>
           </dd>
           <dt>
-            static Promise&lt;Image&gt; computeFromThreshold(float depthThreshold, optional MaskParams maskParams)
+            Promise&lt;Image&gt; computeFromThreshold(float depthThreshold, optional MaskParams maskParams)
           </dt>
           <dd>
             <p>
@@ -154,9 +154,9 @@
           The <code><a>DepthRefocus</a></code> interface provides methods for
           depth-enabled refocus algorithm.
         </p>
-        <dl title='interface DepthRefocus' class='idl'>
+        <dl title='[Constructor()] interface DepthRefocus' class='idl'>
           <dt>
-            static Promise&lt;void&gt; init(Photo photo)
+            Promise&lt;void&gt; init(Photo photo)
           </dt>
           <dd>
             <p>
@@ -170,7 +170,7 @@
             </p>
           </dd>
           <dt>
-            static Promise&lt;Photo&gt; apply(Point focusPoint, optional float aperture)
+            Promise&lt;Photo&gt; apply(Point focusPoint, optional float aperture)
           </dt>
           <dd>
             <p>
@@ -191,45 +191,6 @@
               <dd>
                 The size of the blurring area. If omitted, the default is 50.0F.
                 The value is in the range of 7.7 to 160, roughly equivalent to f/22 and f/1.1, respectively.
-              </dd>
-            </dl>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
-          <code><a>EnhancedPhoto</a></code>
-        </h2>
-        <p>
-          The <code><a>EnhancedPhoto</a></code> interface provides methods for
-          enhanced photography features.
-        </p>
-        <dl title='interface EnhancedPhoto' class='idl'>
-          <dt>
-            static Promise&lt;MeasureData&gt; measureDistance(Photo photo, Point start, Point end)
-          </dt>
-          <dd>
-            <p>
-              The <code>measureDistance()</code> method measures the distance
-              between the starting and ending points of the specified photo image.
-            </p>
-            <p>
-              This method returns a promise.
-              The promise will be fulfilled with the measure data if there are no errors.
-              The promise will be rejected if there is a failure.
-            </p>
-            <dl class='parameters'>
-              <dt>Photo photo</dt>
-              <dd>
-                The photo instance.
-              </dd>
-              <dt>Point start</dt>
-              <dd>
-                The starting point of the measurement.
-              </dd>
-              <dt>Point end</dt>
-              <dd>
-                The ending point of the measurement.
               </dd>
             </dl>
           </dd>
@@ -273,6 +234,100 @@
           <dd>
             <p>
               The image buffer.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Measurement</a></code>
+        </h2>
+        <p>
+          The <code><a>Measurement</a></code> interface provides methods for
+          depth-enabled measurement algorithm.
+        </p>
+        <dl title='[Constructor()] interface Measurement' class='idl'>
+          <dt>
+            Promise&lt;MeasureData&gt; measureDistance(Photo photo, Point start, Point end)
+          </dt>
+          <dd>
+            <p>
+              The <code>measureDistance()</code> method measures the distance
+              between the starting and ending points in mm.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the measure data if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>Point start</dt>
+              <dd>
+                The starting point of the measurement.
+              </dd>
+              <dt>Point end</dt>
+              <dd>
+                The ending point of the measurement.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;MeasureData&gt; measureUADistance(Photo photo, Point start, Point end)
+          </dt>
+          <dd>
+            <p>
+              The <code>measureUADistance()</code> method measures the distance
+              between the starting and ending points in mm by using an experimental algorithm for a User Assisted(UA) measure.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the measure data if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo instance.
+              </dd>
+              <dt>Point start</dt>
+              <dd>
+                The starting point of the measurement.
+              </dd>
+              <dt>Point end</dt>
+              <dd>
+                The ending point of the measurement.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
+            Promise&lt;int&gt; queryUADataSize()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryUADataSize()</code> method returns the size of the MeasureData possibilities.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the size of the MeasureData if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;sequence&lt;MeasureData&gt;&gt; queryUAData()
+          </dt>
+          <dd>
+            <p>
+              The <code>queryUAData()</code> method returns an array of the MeasureData possibilites.
+              The size of the array is equal to the value returned by the queryUADataSize().
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with an array of the MeasureData if there are no errors.
+              The promise will be rejected if there is a failure.
             </p>
           </dd>
         </dl>
