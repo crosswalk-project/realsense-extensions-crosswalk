@@ -20,9 +20,9 @@ namespace motion_effect {
   callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    static void initMotionEffect(Promise promise);
-    static void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
+    void initMotionEffect(depth_photo.Photo photo, Promise promise);
+    void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
 
-    [nodoc] static MotionEffect motionEffectConstructor(DOMString objectId, depth_photo.Photo photo);
+    [nodoc] MotionEffect motionEffectConstructor(DOMString objectId);
   };
 };

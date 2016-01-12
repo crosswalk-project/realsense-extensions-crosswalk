@@ -23,11 +23,12 @@ namespace paster {
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
-    static void getPlanesMap(ImagePromise promise);
-    static void setSticker(depth_photo.Image sticker, depth_photo.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
-    static void paste(PhotoPromise promise);
-    static void previewSticker(ImagePromise promise);
+    void getPlanesMap(ImagePromise promise);
+    void setPhoto(depth_photo.Photo photo, Promise promise);
+    void setSticker(depth_photo.Image sticker, depth_photo.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
+    void paste(PhotoPromise promise);
+    void previewSticker(ImagePromise promise);
 
-    [nodoc] static Paster pasterConstructor(DOMString objectId, depth_photo.Photo photo);
+    [nodoc] Paster pasterConstructor(DOMString objectId);
   };
 };

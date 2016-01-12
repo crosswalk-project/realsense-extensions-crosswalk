@@ -15,7 +15,6 @@
 #include "third_party/libpxc/include/pxcenhancedphoto.h"
 #include "third_party/libpxc/include/pxcimage.h"
 #include "third_party/libpxc/include/pxcsession.h"
-#include "third_party/libpxc/include/pxcphoto.h"
 
 namespace realsense {
 namespace enhanced_photography {
@@ -25,12 +24,12 @@ using namespace jsapi::paster; // NOLINT
 
 class PasterObject : public xwalk::common::BindingObject {
  public:
-  explicit PasterObject(EnhancedPhotographyInstance* instance,
-                        PXCPhoto* photo);
+  explicit PasterObject(EnhancedPhotographyInstance* instance);
   ~PasterObject() override;
 
  private:
   void OnGetPlanesMap(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnSetPhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnPreviewSticker(scoped_ptr<XWalkExtensionFunctionInfo> info);
@@ -38,7 +37,6 @@ class PasterObject : public xwalk::common::BindingObject {
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::Paster* paster_;
-  PXCPhoto* photo_;
   std::vector<PXCImage::ImageData> sticker_data_set_;
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;

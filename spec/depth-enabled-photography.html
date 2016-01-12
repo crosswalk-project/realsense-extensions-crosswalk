@@ -340,38 +340,33 @@
           The <code><a>MotionEffect</a></code> interface provides methods for
           6DoF parallax feature.
         </p>
-        <p>
-          The <code>Photo</code> passed to the constructor MUST be valid.
-          Otherwise an <code>InvalidPhotoException</code> will be thrown.
-        </p>
-        <dl title='[Constructor(Photo photo)] interface MotionEffect' class='idl'>
+        <dl title='[Constructor()] interface MotionEffect' class='idl'>
           <dt>
-            readonly attribute Photo photo
+            Promise&lt;void&gt; init(Photo photo)
           </dt>
           <dd>
             <p>
-              The photo instance passed in constructor.
-            </p>
-          </dd>
-          <dt>
-            Promise&lt;void&gt; initMotionEffect()
-          </dt>
-          <dd>
-            <p>
-              The <code>initMotionEffect()</code> method initializes the 6DoF parallax feature.
+              The <code>init()</code> method initializes the 6DoF parallax function
+              with the photo that needs processing.
             </p>
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo to be processed [color + depth].
+              </dd>
+            </dl>
           </dd>
           <dt>
-            Promise&lt;Image&gt; applyMotionEffect(Motion motion, Rotation rotation, double zoom)
+            Promise&lt;Image&gt; apply(Motion motion, Rotation rotation, double zoom)
           </dt>
           <dd>
             <p>
-              The <code>applyMotionEffect()</code> method applies the 6DoF
+              The <code>apply()</code> method applies the 6DoF
               parallax effect, which is the difference in the apparent position
               of an object when it is viewed from two different positions or viewpoints.
             </p>
@@ -407,19 +402,7 @@
           The <code><a>Paster</a></code> interface provides methods to perform
           sticker image pasting to a photo instance.
         </p>
-        <p>
-          The <code>Photo</code> passed to the constructor MUST be valid.
-          Otherwise an <code>InvalidPhotoException</code> will be thrown.
-        </p>
-        <dl title='[Constructor(Photo photo)] interface Paster' class='idl'>
-          <dt>
-            readonly attribute Photo photo
-          </dt>
-          <dd>
-            <p>
-              The photo instance passed in constructor.
-            </p>
-          </dd>
+        <dl title='[Constructor()] interface Paster' class='idl'>
           <dt>
             Promise&lt;Image&gt; getPlanesMap()
           </dt>
@@ -435,6 +418,25 @@
               The promise will be fulfilled with the image instance with detected planes if there are no errors.
               The promise will be rejected if there is a failure.
             </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; setPhoto(Photo photo)
+          </dt>
+          <dd>
+            <p>
+              The <code>setPhoto()</code> method sets the photo that needs to be processed.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The photo to be processed [color + depth].
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setSticker(Image sticker, Point coordinates, StickerData params, optional PasteEffects effects)
@@ -1122,21 +1124,9 @@
           The <code><a>Segmentation</a></code> interface provides methods to
           perform depth-based object segmentation and refinement.
         </p>
-        <p>
-          The <code>Photo</code> passed to the constructor MUST be valid.
-          Otherwise an <code>InvalidPhotoException</code> will be thrown.
-        </p>
-        <dl title='[Constructor(Photo photo)] interface Segmentation' class='idl'>
+        <dl title='[Constructor()] interface Segmentation' class='idl'>
           <dt>
-            readonly attribute Photo photo
-          </dt>
-          <dd>
-            <p>
-              The photo instance passed in constructor.
-            </p>
-          </dd>
-          <dt>
-            Promise&lt;Image&gt; objectSegment(Image boundingMask)
+            Promise&lt;Image&gt; objectSegment(Photo photo, Image boundingMask)
           </dt>
           <dd>
             <p>
@@ -1151,6 +1141,10 @@
               The promise will be rejected if there is a failure.
             </p>
             <dl class='parameters'>
+              <dt>Photo photo</dt>
+              <dd>
+                The input color and depth photo.
+              </dd>
               <dt>Image boundingMask</dt>
               <dd>
                 The bounding mask.
@@ -2038,18 +2032,6 @@
               The 8-bit gray format.
             </p>
           </dd>
-        </dl>
-      </section>
-    </section>
-    <section>
-      <h2>
-        Exceptions
-      </h2>
-      <section>
-        <h2>
-          <code><a>InvalidPhotoException</a></code>
-        </h2>
-        <dl id="exception-basic" class="idl" title="exception InvalidPhotoException">
         </dl>
       </section>
     </section>

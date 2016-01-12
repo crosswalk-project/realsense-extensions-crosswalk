@@ -4,16 +4,17 @@
 
 #include "realsense/enhanced_photography/win/segmentation_object.h"
 
+#include <string>
 #include <vector>
+
 #include "realsense/enhanced_photography/win/common_utils.h"
+#include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
 namespace enhanced_photography {
 
-SegmentationObject::SegmentationObject(EnhancedPhotographyInstance* instance,
-                                       PXCPhoto* photo)
+SegmentationObject::SegmentationObject(EnhancedPhotographyInstance* instance)
     : instance_(instance),
-      photo_(photo),
       binary_message_size_(0) {
   handler_.Register("objectSegment",
       base::Bind(&SegmentationObject::OnObjectSegment,
@@ -46,11 +47,6 @@ SegmentationObject::~SegmentationObject() {
 void SegmentationObject::OnObjectSegment(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(ObjectSegment::Results::Create(
-        image, "Invalid Segmentation object"));
-    return;
-  }
 
   const base::Value* image_value = NULL;
   const base::BinaryValue* binary_value = NULL;
@@ -71,10 +67,27 @@ void SegmentationObject::OnObjectSegment(
 
   DCHECK(segmentation_);
   const char* data = binary_value->GetBuffer();
+  int offset = 0;
   const int* int_array = reinterpret_cast<const int*>(data);
+  int object_id_len = int_array[0];
+  int aligned_object_id_len = object_id_len + 4 - object_id_len % 4;
+  offset += sizeof(int);
+
+  std::string object_id(data + offset, object_id_len);
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(CreateStringErrorResult("Invalid Photo object."));
+    return;
+  }
+
+  offset += aligned_object_id_len;
+  int_array = reinterpret_cast<const int*>(data + offset);
   int width = int_array[0];
   int height = int_array[1];
-  const char* image_data_buffer = data + 2 * sizeof(int);
+  offset += 2 * sizeof(int);
+
+  const char* image_data_buffer = data + offset;
 
   PXCImage::ImageInfo img_info;
   PXCImage::ImageData img_data;
@@ -100,7 +113,7 @@ void SegmentationObject::OnObjectSegment(
   PXCImage* bounding_mask = session_->CreateImage(&img_info, &img_data);
 
   PXCImage* pxc_mask_image = segmentation_->ObjectSegment(
-      photo_, bounding_mask);
+      depthPhotoObject->GetPhoto(), bounding_mask);
   if (!CopyImageToBinaryMessage(pxc_mask_image,
                                 binary_message_,
                                 &binary_message_size_)) {
@@ -122,11 +135,6 @@ void SegmentationObject::OnObjectSegment(
 
 void SegmentationObject::OnRedo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(Redo::Results::Create(
-        image, "Invalid Segmentation object"));
-    return;
-  }
 
   DCHECK(segmentation_);
   PXCImage* pxc_mask_image = segmentation_->Redo();
@@ -150,11 +158,6 @@ void SegmentationObject::OnRedo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
 void SegmentationObject::OnRefineMask(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(RefineMask::Results::Create(
-        image, "Invalid Segmentation object"));
-    return;
-  }
 
   const base::Value* image_value = NULL;
   const base::BinaryValue* binary_value = NULL;
@@ -220,11 +223,6 @@ void SegmentationObject::OnRefineMask(
 
 void SegmentationObject::OnUndo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image image;
-  if (!photo_) {
-    info->PostResult(Undo::Results::Create(
-      image, "Invalid Segmentation object"));
-    return;
-  }
 
   DCHECK(segmentation_);
   PXCImage* pxc_mask_image = segmentation_->Undo();

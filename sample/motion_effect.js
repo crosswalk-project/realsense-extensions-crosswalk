@@ -56,9 +56,9 @@ function doMothionEffect() {
   if (!hasImage || !isInitialized || !motionEffect)
     return;
 
-  motionEffect.applyMotionEffect({ horizontal: right, vertical: up, distance: forward },
-                                 { pitch: pitch, yaw: yaw, roll: roll },
-                                 zoom).then(
+  motionEffect.apply({ horizontal: right, vertical: up, distance: forward },
+                     { pitch: pitch, yaw: yaw, roll: roll },
+                     zoom).then(
       function(image) {
         statusElement.innerHTML = 'Finished MotionEffects';
         imageData.data.set(image.data);
@@ -118,15 +118,9 @@ function main() {
                 hasImage = true;
 
                 if (!motionEffect) {
-                  try {
-                    motionEffect = new realsense.DepthEnabledPhotography.MotionEffect(photo);
-                  } catch (e) {
-                    statusElement.innerHTML = e.message;
-                    motionEffect = null;
-                    return;
-                  }
+                  motionEffect = new realsense.DepthEnabledPhotography.MotionEffect();
                 }
-                motionEffect.initMotionEffect().then(
+                motionEffect.init(photo).then(
                     function() {
                       isInitialized = true;
                       doMothionEffect();
@@ -154,16 +148,10 @@ function main() {
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
                         if (!motionEffect) {
-                          try {
-                            motionEffect =
-                                new realsense.DepthEnabledPhotography.MotionEffect(photo);
-                          } catch (e) {
-                            statusElement.innerHTML = e.message;
-                            motionEffect = null;
-                            return;
-                          }
+                          motionEffect =
+                              new realsense.DepthEnabledPhotography.MotionEffect();
                         }
-                        motionEffect.initMotionEffect().then(
+                        motionEffect.init(photo).then(
                             function() {
                               isInitialized = true;
                               doMothionEffect();
