@@ -44,7 +44,7 @@ void MotionEffectObject::OnInitMotionEffect(
   scoped_ptr<InitMotionEffect::Params> params(
       InitMotionEffect::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateStringErrorResult("Malformed parameters"));
+    info->PostResult(CreateErrorResult(STATUS_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -52,18 +52,17 @@ void MotionEffectObject::OnInitMotionEffect(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateStringErrorResult("Invalid Photo object."));
+    info->PostResult(CreateErrorResult(STATUS_PHOTO_INVALID));
     return;
   }
 
   pxcStatus sts = ep_->InitMotionEffect(depthPhotoObject->GetPhoto());
   if (sts < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateStringErrorResult("InitMotionEffect failed"));
+    info->PostResult(CreateErrorResult(STATUS_EXEC_FAILED));
     return;
   }
 
-  info->PostResult(
-      InitMotionEffect::Results::Create(std::string("Success"), std::string()));
+  info->PostResult(CreateSuccessResult());
 }
 
 void MotionEffectObject::OnApplyMotionEffect(
@@ -72,8 +71,7 @@ void MotionEffectObject::OnApplyMotionEffect(
   scoped_ptr<ApplyMotionEffect::Params> params(
       ApplyMotionEffect::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(
-        ApplyMotionEffect::Results::Create(img, "Malformed parameters"));
+    info->PostResult(CreateErrorResult(STATUS_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -91,16 +89,14 @@ void MotionEffectObject::OnApplyMotionEffect(
   PXCImage* pxcimage = ep_->ApplyMotionEffect(motion, rotation, params->zoom);
 
   if (!pxcimage) {
-    info->PostResult(ApplyMotionEffect::Results::Create(img,
-        "Failed to operate ApplyMotionEffect"));
+    info->PostResult(CreateErrorResult(STATUS_EXEC_FAILED));
     return;
   }
 
   if (!CopyImageToBinaryMessage(pxcimage,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(ApplyMotionEffect::Results::Create(img,
-        "Failed to get image data."));
+    info->PostResult(CreateErrorResult(STATUS_EXEC_FAILED));
     return;
   }
 

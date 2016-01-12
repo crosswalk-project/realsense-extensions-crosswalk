@@ -59,7 +59,7 @@ function doMothionEffect() {
         imageData.data.set(image.data);
         imageContext.putImageData(imageData, 0, 0);
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function main() {
@@ -91,7 +91,7 @@ function main() {
                               isInitialized = true;
                               doMothionEffect();
                             },
-                            function(e) { statusElement.innerHTML = e });
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
                       function(e) { statusElement.innerHTML = e; });
                 },

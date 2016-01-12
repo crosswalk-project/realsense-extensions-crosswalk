@@ -9,6 +9,10 @@ const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
 const bytesPerY8Pixel = 1;
 
+function wrapErrorResult(errorCode) {
+  return new DEPError(errorCode);
+}
+
 function wrapF32ImageReturns(data) {
   // 3 int32 (4 bytes) values.
   var headerByteOffset = 3 * bytesPerInt32;
@@ -155,6 +159,42 @@ DepthRefocus.prototype = new common.EventTargetPrototype();
 DepthRefocus.prototype.constructor = DepthRefocus;
 exports.DepthRefocus = DepthRefocus;
 
+var DEPError = function(errorCode) {
+  var errorMap = {
+    '1': { 'error': 'feature-unsupported',
+      'message': 'The requested feature is not available or not implemented.' },
+    '2': { 'error': 'param-unsupported', 'message': 'There are invalid/unsupported parameters.' },
+    '3': { 'error': 'invalid-photo', 'message': 'The Photo object is invalid.' },
+    '4': { 'error': 'exec-failed', 'message': 'The operation failed to execute.' }
+  };
+
+  function getError(err) {
+    return errorMap[err].error;
+  };
+
+  function getMessage(err) {
+    return errorMap[err].message;
+  };
+
+  Object.defineProperties(this, {
+    'error': {
+      value: getError(errorCode),
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+  });
+
+  Object.defineProperties(this, {
+    'message': {
+      value: getMessage(errorCode),
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+  });
+};
+
 var Measurement = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
@@ -177,8 +217,8 @@ var MotionEffect = function(objectId) {
   if (objectId == undefined)
     internal.postMessage('motionEffectConstructor', [this._id]);
 
-  this._addMethodWithPromise('init', wrapPhotoArgs);
-  this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('init', wrapPhotoArgs, null, wrapErrorResult);
+  this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns, wrapErrorResult);
 };
 
 MotionEffect.prototype = new common.EventTargetPrototype();
