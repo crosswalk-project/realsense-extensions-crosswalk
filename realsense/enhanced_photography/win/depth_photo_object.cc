@@ -344,7 +344,7 @@ void DepthPhotoObject::OnQueryXDMRevision(
 
   const pxcCHAR* xdm_version = photo_->QueryXDMRevision();
   info->PostResult(QueryXDMRevision::Results::Create(
-      reinterpret_cast<const char*>(xdm_version), std::string()));
+      base::SysWideToUTF8(xdm_version), std::string()));
 }
 
 void DepthPhotoObject::OnResetContainerImage(
