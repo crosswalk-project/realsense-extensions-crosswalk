@@ -356,26 +356,31 @@
             unsigned long meshId
           </dt>
           <dd>
+            Unique ID to identify each BlockMesh object.
           </dd>
           <dt>
             unsigned long vertexStartIndex
           </dt>
           <dd>
+            Starting index of the vertex inside vertex buffer.
           </dd>
           <dt>
             unsigned long numVertices
           </dt>
           <dd>
+            Total number of vertices inside this BlockMesh object.
           </dd>
           <dt>
             unsigned long faceStartIndex
           </dt>
           <dd>
+            Starting index of the face list in a MeshFaces buffer.
           </dd>
           <dt>
             unsigned long numFaces
           </dt>
           <dd>
+            Number of faces forming the mesh inside this BlockMesh object.
           </dd>
         </dl>
       </section>
@@ -388,11 +393,13 @@
             unsigned long width
           </dt>
           <dd>
+            Width of the capture size in pixels.
           </dd>
           <dt>
             unsigned long height
           </dt>
           <dd>
+            Height of the capture size in pixels.
           </dd>
         </dl>
       </section>
@@ -405,21 +412,25 @@
             PixelFormat format
           </dt>
           <dd>
+            Describe the image sample pixel format.
           </dd>
           <dt>
             unsigned long width
           </dt>
           <dd>
+            Width of the image in pixels.
           </dd>
           <dt>
             unsigned long height
           </dt>
           <dd>
+            Height of the image in pixels.
           </dd>
           <dt>
             ArrayBuffer data
           </dt>
           <dd>
+            Represents the image data.
           </dd>
         </dl>
       </section>
@@ -432,36 +443,52 @@
             boolean? useOpenCVCoordinateSystem;
           </dt>
           <dd>
+          Indicates whether to use OpenCV coordinate system or not. Default value is <code>false</code>.
           </dd>
           <dt>
             VoxelResolution? voxelResolution;
           </dt>
           <dd>
+            The initial voxel resolution.
           </dd>
           <dt>
             sequence&lt;float&gt;? initialCameraPose;
           </dt>
           <dd>
+            This is a sequence of 12 float that stores the camera pose, which user wishes to set in row-major order. Camera pose is specified in a 3 by 4 matrix:<br/>
+<p><code>
+            [R | T] = [Rotation Matrix | Translation Vector]<br/>
+            where R = [ r11 r12 r13 ]<br/>
+                      [ r21 r22 r23 ]<br/>
+                      [ r31 r32 r33 ]<br/>
+                  T = [ tx  ty  tz  ]<br/>
+</code></p>
+            Camera pose sequense layout should be: <code>[r11 r12 r13 tx r21 r22 r23 ty r31 r32 r33 tz]</code><br/>
+            Translation vector is in meters.
           </dd>
           <dt>
             MeshingThresholds? meshingThresholds;
           </dt>
           <dd>
+            The meshing threshold of scene perception.
           </dd>
           <dt>
             CaptureSize? colorCaptureSize;
           </dt>
           <dd>
+            Indicates the color image capture size in pixel, default is 320 x 240.
           </dd>
           <dt>
             CaptureSize? depthCaptureSize;
           </dt>
           <dd>
+            Indicates the depth image capture size in pixel, default value is 320 x 240.
           </dd>
           <dt>
             unsigned long? captureFramerate;
           </dt>
           <dd>
+            Indicates the capture frame rate, default value is 60fps.
           </dd>
         </dl>
       </section>
@@ -493,31 +520,37 @@
             sequence&lt;BlockMesh&gt; blockMeshes
           </dt>
           <dd>
+            Sequence of BlockMesh objects.
           </dd>
           <dt>
             unsigned long numberOfVertices;
           </dt>
           <dd>
+            Represents number of vertices present in the MeshData buffer.
           </dd>
           <dt>
             Float32Array vertices;
           </dt>
           <dd>
+          Represents an array of float points with length 4*<a>numberOfVertices</a>. Each vertex consists of 4 float points: (x, y, z) coordinates in meter unit + a confidence value. This confidence value is in the range [0, 1] indicating how confident scene perception is about the presence of the vertex.
           </dd>
           <dt>
             Uint8Array colors;
           </dt>
           <dd>
+            Represents the array of colors with length 3*<a>numberOfVertices</a>. There are three color channels(RGB) per vertex.
           </dd>
           <dt>
             unsigned long numberOfFaces;
           </dt>
           <dd>
+            Represent the number of faces in the buffer.
           </dd>
           <dt>
             Int32Array faces;
           </dt>
           <dd>
+          Represents an array of faces forming the mesh (3 indices per triangle) valid range is from [0, 3*<a>numberOfFaces</a>].
           </dd>
         </dl>
       </section>
@@ -530,11 +563,13 @@
             float max
           </dt>
           <dd>
+            Represents the maximum threshold of meshing. If the maximum change in a block exceeds this value, then the block will be re-meshed. Setting this value to zero will retrieve all blocks.
           </dd>
           <dt>
             float avg
           </dt>
           <dd>
+            Represents the average threshold of meshing. If the average change in a block exceeds this value, then the block will be re-mashed. Setting this value to zero will retrieve all blocks.
           </dd>
         </dl>
       </section>
@@ -547,36 +582,43 @@
             boolean countOfBlockMeshesRequired;
           </dt>
           <dd>
+            If set, on successful call this function will set number of block meshes available for meshing.
           </dd>
           <dt>
             boolean blockMeshesRequired;
           </dt>
           <dd>
+            Can only be set to true if <code>countOfBlockMeshesRequired</code> is set to true otherwise this value will be ignored. If set to true, on successfull call to this function it will update block meshes array.
           </dd>
           <dt>
-            boolean countOfVeticesRequired;
+            boolean countOfVerticesRequired;
           </dt>
           <dd>
+            If set, on successful call to this function it will set number of vertices available for meshing.
           </dd>
           <dt>
             boolean verticesRequired;
           </dt>
           <dd>
+            Can only be set if <code>countOfVerticesRequired</code> is set to true otherwise the value is ignored. If set, on successful call to this function it will update vertices array.
           </dd>
           <dt>
             boolean countOfFacesRequired;
           </dt>
           <dd>
+            If set, on successful call to this function it will set number of faces available for meshing.
           </dd>
           <dt>
             boolean facesRequired;
           </dt>
           <dd>
+          Can only be set if <code>countOfFacesRequired</code> is set to true otherwise the value is ignored. If set, on successful call to this function it will update faces array.
           </dd>
           <dt>
             boolean colorsRequired;
           </dt>
           <dd>
+            If set and MeshData was created with color, on success function will fill in colors array.
           </dd>
         </dl>
       </section>
@@ -589,11 +631,13 @@
             boolean? fillHoles;
           </dt>
           <dd>
+            Indicates whether to fill holes in mesh blocks or not. If set, it will fill missing details in each mesh block that are visible from scene perception's camera current pose and completely surrounded by closed surface(holes) by smooth linear interpolation of adjacent mesh data.
           </dd>
           <dt>
             MeshingUpdateInfo? updateInfo;
           </dt>
           <dd>
+            Argument to indicate which mesh data you wish to use.
           </dd>
         </dl>
       </section>
@@ -601,21 +645,27 @@
         <h2>
           <code><a>Normals</a></code>
         </h2>
+        <dd>
+          Represents normal vector data.
+        </dd>
         <dl title='dictionary Normals' class='idl'>
           <dt>
             unsigned long width
           </dt>
           <dd>
+            Width of the normal vector.
           </dd>
           <dt>
             unsigned long height
           </dt>
           <dd>
+            Height of the normal vector.
           </dd>
           <dt>
             Float32Array data
           </dt>
           <dd>
+            Sequence of the normal vector. Each normal object consists of 3 float value (x, y, z).
           </dd>
         </dl>
       </section>
@@ -648,16 +698,21 @@
         <h2>
           <code><a>Sample</a></code>
         </h2>
+        <dd>
+          The capture sample that contains multiple streams.
+        </dd>
         <dl title='dictionary Sample' class='idl'>
           <dt>
             Image color
           </dt>
           <dd>
+            Color image of the sample.
           </dd>
           <dt>
             Image depth
           </dt>
           <dd>
+            Depth image of the sample.
           </dd>
         </dl>
       </section>
@@ -670,19 +725,19 @@
             boolean? fillMeshHoles;
           </dt>
           <dd>
-            If true, fill the mesh holes.
+            Flag which indicates whether to fill holes in saved mesh.
           </dd>
           <dt>
             boolean? saveMeshColor;
           </dt>
           <dd>
-            If true, save the mesh color data.
+            Flag which indicates whether you wish to save mesh color.
           </dd>
           <dt>
             MeshingResolution? meshResolution;
           </dt>
           <dd>
-            Specify the mesh resolution.
+            Indicates resolution for mesh to be saved.
           </dd>
         </dl>
       </section>
@@ -722,21 +777,27 @@
         <h2>
           <code><a>Vertices</a></code>
         </h2>
+        <dd>
+          Represents vertices data.
+        </dd>
         <dl title='dictionary Vertices' class='idl'>
           <dt>
             unsigned long width
           </dt>
           <dd>
+            Width of the vertices buffer.
           </dd>
           <dt>
             unsigned long height
           </dt>
           <dd>
+            Height of the vertices buffer.
           </dd>
           <dt>
             Float32Array data
           </dt>
           <dd>
+            Raw data of a sequence of vertices. Each vertex consists of 3 float values (x, y, z).
           </dd>
         </dl>
       </section>
