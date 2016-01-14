@@ -31,7 +31,7 @@ shared_library("enhanced_photography") {
     "common_utils.cc",
     "common_utils.h",
     "depth_mask_object.cc",
-    "depth_mask_object.cc",
+    "depth_mask_object.h",
     "depth_photo_object.cc",
     "depth_photo_object.h",
     "depth_refocus_object.cc",
