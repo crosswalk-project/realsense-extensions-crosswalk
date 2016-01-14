@@ -51,6 +51,17 @@ function wrapY8ImageReturns(data) {
   return { format: 'Y8', width: width, height: height, data: buffer };
 }
 
+function wrapDepthImageReturns(data) {
+  var int32Array = new Int32Array(data, 0, 3);
+  // int32Array[0] is the callback id.
+  var width = int32Array[1];
+  var height = int32Array[2];
+  // 3 int32 (4 bytes) values.
+  var headerByteOffset = 3 * bytesPerInt32;
+  var buffer = new Uint16Array(data, headerByteOffset, width * height);
+  return { format: 'DEPTH', width: width, height: height, data: buffer };
+}
+
 var DepthMask = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
   if (objectId == undefined)
@@ -99,17 +110,6 @@ var DepthPhoto = function(objectId) {
       view[i] = args[0].data[i];
     }
     return arrayBuffer;
-  };
-
-  function wrapDepthImageReturns(data) {
-    var int32Array = new Int32Array(data, 0, 3);
-    // int32Array[0] is the callback id.
-    var width = int32Array[1];
-    var height = int32Array[2];
-    // 3 int32 (4 bytes) values.
-    var headerByteOffset = 3 * bytesPerInt32;
-    var buffer = new Uint16Array(data, headerByteOffset, width * height);
-    return { format: 'DEPTH', width: width, height: height, data: buffer };
   };
 
   this._addMethodWithPromise('checkSignature');
@@ -270,25 +270,55 @@ Paster.prototype = new common.EventTargetPrototype();
 Paster.prototype.constructor = Paster;
 exports.Paster = Paster;
 
-var PhotoCapture = function() {
-  common.BindingObject.call(this, common.getUniqueId());
+var PhotoCapture = function(previewStream, objectId) {
+  if (!((previewStream instanceof webkitMediaStream) ||
+      (previewStream instanceof MediaStream)))
+    throw 'Argument is not a MediaStream instance';
+
+  common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
   common.EventTarget.call(this);
 
-  internal.postMessage('photoCaptureConstructor', [this._id]);
+  var videoTracks = previewStream.getVideoTracks();
+  if (videoTracks.length == 0)
+    throw 'no valid video track';
+  var videoTrack = videoTracks[0];
+  if (videoTrack.readyState == 'ended')
+    throw 'vdieo track is ended';
 
-  this._addMethodWithPromise('startPreview');
-  this._addMethodWithPromise('stopPreview');
-  this._addMethodWithPromise('getPreviewImage', null, wrapRGB32ImageReturns);
+  var videoElement = document.createElement('video');
+  videoElement.autoplay = true;
+  videoElement.srcObject = previewStream;
+
+  var that = this;
+  videoTrack.onended = function() {
+    that._postMessage('disableDepthStream', []);
+  };
+  videoElement.onplay = function() {
+    that._postMessage('enableDepthStream', [videoTrack.label]);
+  };
+
+  Object.defineProperties(this, {
+    'previewStream': {
+      value: previewStream,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    }
+  });
+
+  this._addMethodWithPromise('getDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
 
   this._addEvent('error');
-  this._addEvent('preview');
+  this._addEvent('depthquality');
+
+  internal.postMessage('photoCaptureConstructor', [this._id]);
 };
 
 PhotoCapture.prototype = new common.EventTargetPrototype();
 PhotoCapture.prototype.constructor = PhotoCapture;
 
-exports.PhotoCapture = new PhotoCapture();
+exports.PhotoCapture = PhotoCapture;
 
 var PhotoUtils = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());

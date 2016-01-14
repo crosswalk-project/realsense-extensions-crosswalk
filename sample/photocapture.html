@@ -1,0 +1,80 @@
+<html>
+  <head>
+    <title>RealSense Photo Capture API Sample</title>
+    <style>
+      video {
+        max-width: 100%;
+        height: auto;
+        text-align: center;
+      }
+      canvas {
+        max-width: 100%;
+        height: auto;
+        text-align: center;
+      }
+      .center {
+        text-align:center; 
+        margin-left:auto; 
+        margin-right:auto;
+      }
+      td { 
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <table class="center">
+      <tr>
+        <td>
+          <p id="camera" style="font-weight: bold;"></p>
+        </td>
+        <td>
+          <div>
+            <label>Resolution: </label>
+            <select id="resolution">
+              <option value="qvga">QVGA@60FPS</option>
+              <option value="vga">VGA@60FPS</option>
+              <option value="hd">HD@30FPS</option>
+              <option value="fhd">Full HD@30FPS</option>
+            </select>
+          </div>
+        </td>
+        <td>
+          <button id="takephoto">Take Photo</button>
+        </td>
+      </tr>
+    </table>
+    <div class="center" id="viewer">
+      <video id="preview" autoplay></video>
+      <canvas id="depth" width="640" height="480"></canvas>
+    </div>
+    <div>
+      <table class="center">
+        <tr>
+          <td style="padding-right: 0px;">
+            <p>Depth Quality: </p>
+          </td>
+          <td style="padding-left: 0px; min-width: 50px;">
+            <p id="quality" style="font-weight: bold;"></p>
+          </td>
+          <td>
+            <input type="checkbox" id="depthmap">
+            <label for="depthmap">Depth Map</label>
+          </td>
+          <td style="padding-left: 0px;">
+            <p id="depthResolution"></p>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <p>Status: <span id="status"></span></p>
+    </div>
+  </body>
+  <script src="libs/adapter.js"></script>
+  <script src="libs/stats.min.js"></script>
+  <script src="photocapture.js"></script>
+  <script type="text/javascript">
+    window.onload = main();
+  </script>
+</html>
