@@ -35,12 +35,12 @@ build_script:
 - cmd: >-
     cd c:\projects\realsense-extensions-crosswalk\src
 
-    python gyp_all
+    gn gen out\Release_x64_gn --args="is_debug=false"
 
-    ninja -C out\Release_x64 all
+    ninja -C out\Release_x64_gn :all_extensions
 after_build:
 - cmd: >-
-    cd c:\projects\realsense-extensions-crosswalk\src\out\Release_x64
+    cd c:\projects\realsense-extensions-crosswalk\src\out\Release_x64_gn
 
     7z a rec.zip *.dll -x!dbghelp.dll
 
