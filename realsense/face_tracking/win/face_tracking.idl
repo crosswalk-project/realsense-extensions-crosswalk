@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FaceTracking API
+// FaceTracking
 namespace face_tracking {
   dictionary ErrorEvent {
     DOMString status;
@@ -73,14 +73,6 @@ namespace face_tracking {
     CHIN
   };
 
-  dictionary FaceConfiguration {
-    boolean? enableDetection;
-    boolean? enableLandmarks;
-    long? maxFaces;
-    TrackingModeType? mode;
-    TrackingStrategyType? strategy;
-  };
-
   dictionary Image {
     PixelFormat format;
     long width;
@@ -106,8 +98,29 @@ namespace face_tracking {
     double y;
   };
 
+  // DetectionConfiguration 
+  dictionary DetectionConfiguration {
+    boolean? enable;
+    long? maxFaces;
+  };
+
+  // LandmarksConfiguration 
+  dictionary LandmarksConfiguration {
+    boolean? enable;
+    long? maxFaces;
+    long? numLandmarks;
+  };
+
+  // FaceConfigurationData
+  dictionary FaceConfigurationData {
+    TrackingModeType? mode;
+    TrackingStrategyType? strategy;
+    DetectionConfiguration? detection;
+    LandmarksConfiguration? landmarks;
+  };
+
   // DetectionData
-  dictionary Detection {
+  dictionary DetectionData {
     Rect boundingRect; 
     double avgDepth;
   };
@@ -122,14 +135,15 @@ namespace face_tracking {
   };
 
   // LandmarksData
-  dictionary Landmark {
+  dictionary LandmarksData {
     LandmarkPoint[] points;
   };
 
   // Single Face Data
   dictionary FaceData {
-    Detection? detection;
-    Landmark? landmark;
+    long faceId;
+    DetectionData? detection;
+    LandmarksData? landmarks;
   };
 
   dictionary ProcessedSample {
@@ -139,6 +153,7 @@ namespace face_tracking {
   };
 
   callback ProcessedSamplePromise = void (ProcessedSample sample, DOMString error);
+  callback FaceConfigurationDataPromise = void (FaceConfigurationData faceConf, DOMString error);
   callback Promise = void (DOMString success, DOMString error);
 
   interface Events {
@@ -147,9 +162,13 @@ namespace face_tracking {
   };
 
   interface Functions {
-    static void start(optional FaceConfiguration config, Promise promise);
+    static void start(Promise promise);
     static void stop(Promise promise);
     static void getProcessedSample(ProcessedSamplePromise promise);
+
+    static void set(FaceConfigurationData faceConf, Promise promise);
+    static void getDefaults(FaceConfigurationDataPromise promise);
+    static void get(FaceConfigurationDataPromise promise);
 
     [nodoc] static FaceTracking faceTrackingConstructor(DOMString objectId);
   };
