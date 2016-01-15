@@ -25,6 +25,7 @@
       },
       'sources': [
         '../js/enhanced_photography_api.js',
+        'common.idl',
         'common_utils.cc',
         'common_utils.h',
         "depth_mask.idl",
