@@ -11,7 +11,7 @@
           specStatus:           "unofficial",
 
           additionalCopyrightHolders: "This document uses the BSD license, see the <a href='https://github.com/otcshare/realsense-extensions-crosswalk/blob/master/LICENSE'>LICENSE</a> file.",
-          
+
           shortName:            "scene-perception",
           // editors, add as many as you like
           // only "name" is required
@@ -43,12 +43,12 @@
       <p>
         This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
         as an API Draft.
-        If you wish to make comments regarding this document, please send them to 
+        If you wish to make comments regarding this document, please send them to
         <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
         All comments are welcome.
       </p>
     </section>
-    
+
     <section>
       <h2>Introduction</h2>
       <p>
@@ -64,7 +64,7 @@
         </h2>
         <p>
           The <code><a>ScenePerception</a></code> interface provides methods to
-          track and scan scenes for augmented reality applications. 
+          track and scan scenes for augmented reality applications.
           The <code><a>ScenePerception</a></code> interface is exposed through
           <code>realsense</code> module.
         </p>
@@ -73,86 +73,140 @@
             Promise&lt;void&gt; init(optional InitialConfiguration config)
           </dt>
           <dd>
+            Initialize the Scene Perception module with user-defined configuration.
+            <dl class='parameters'>
+              <dt>optional InitialConfiguration config</dt>
+              <dd>
+                The initial user defined configuration which will be passed to Scene Perception module.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; start()
           </dt>
           <dd>
+            Start scene perception. This method should be called after the <code>init</code> get called and successfully returned, otherwise it will fail with error.
           </dd>
           <dt>
             Promise&lt;void&gt; stop()
           </dt>
           <dd>
+            Stop scene perception. Calling this method will terminate the scene perception procedure. If scene perception has not been started, it will take no effect.
           </dd>
           <dt>
             Promise&lt;void&gt; reset()
           </dt>
           <dd>
+            Reset scene perception module to its initial state.
           </dd>
           <dt>
             Promise&lt;void&gt; destroy()
           </dt>
           <dd>
+            Destroy the scene perception object. After calling this method the scene perception object will no longer being valid, you need to call <code>init</code> to re-initialize it if you want to use again.
           </dd>
           <dt>
             Promise&lt;void&gt; enableReconstruction(boolean enable)
           </dt>
           <dd>
+            Allows user to enable/disable integration of upcoming camera stream into 3D volume.
+            If disabled the volume will not be updated. However scene perception will still keep tracking the camera.
+            This is a control parameter which can be updated before passing every frame to the module.
+            <dl class='parameters'>
+              <dt>boolean enable</dt>
+              <dd>
+                Flag to enable/disable reconstruction.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; enableRelocalization(boolean enable)
           </dt>
           <dd>
+            Allows user to enable/disable re-localization feature of scene perception's camera tracking.
+            By default re-localization is enabled. This functionality is only available after <code><a>init</a></code> is called.
+            <dl class='parameters'>
+              <dt>boolean enable</dt>
+              <dd>
+                Flag to enable/disable re-localization.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;boolean&gt; isReconstructionEnabled()
           </dt>
           <dd>
+            Allows user to check whether integration of upcoming camera stream into 3D volume is enabled or disabled.
           </dd>
           <dt>
             Promise&lt;Sample&gt; getSample()
           </dt>
           <dd>
+            Allows user to access the surface's capture sample that are within view from camera's current pose asynchronously.
           </dd>
           <dt>
             Promise&lt;Vertices&gt; getVertices()
           </dt>
           <dd>
+            Allows user to access the surface's vertices that are within view from camera's current pose asynchronously.
           </dd>
           <dt>
             Promise&lt;Normals&gt; getNormals()
           </dt>
           <dd>
+            Allows user to access normals of surface that are within view from the camera's current pose asynchronously.
           </dd>
           <dt>
             Promise&lt;Image&gt; getVolumePreview(sequence&lt;float&gt; cameraPose)
           </dt>
           <dd>
+            Allows user to access 2D projection image of reconstructed volume from a given camera pose by ray-casting.<br/>
+            This function is optimized for real time performance. It is also useful for visualizing progress of the scene reconstruction.<br/>
+            <dl class='parameters'>
+              <dt>optional sequence&lt;float&gt; cameraPose</dt>
+              <dd>
+              This is a sequence of 12 float that stores the camera pose, which user wishes to set in row-major order. Camera pose is specified in a 3 by 4 matrix:<br/>
+              <code>
+              [R | T] = [Rotation Matrix | Translation Vector]<br/>
+              where R = [ r11 r12 r13  ]<br/>
+                        [ r21 r22 r23  ]<br/>
+                        [ r31 r32 r33  ]<br/>
+                        T = [ tx ty tz  ]<br/>
+              </code>
+              Camera pose sequense layout should be: <code>[r11 r12 r13 tx r21 r22 r23 ty r31 r32 r33 tz]</code><br/>
+              Translation vector is in meters.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;VoxelResolution&gt; getVoxelResolution()
           </dt>
           <dd>
+            To get voxel resolution used by the scene perception module.
           </dd>
           <dt>
             Promise&lt;float&gt; getVoxelSize()
           </dt>
           <dd>
+            Allows user to get length of voxel side in meters.
           </dd>
           <dt>
             Promise&lt;MeshingThresholds&gt; getMeshingThresholds()
           </dt>
           <dd>
+            Allows user to get meshing thresholds used by scene perception.
           </dd>
           <dt>
             Promise&lt;MeshingResolution&gt; getMeshingResolution()
           </dt>
           <dd>
+            Allows user to get meshing resolution.
           </dd>
           <dt>
             Promise&lt;MeshData&gt; getMeshData()
           </dt>
           <dd>
+            Allows user to retrieve mesh data.
           </dd>
           <dt>
             Promise&lt;SurfaceVoxelsData&gt; getSurfaceVoxels(optional InterestRegion region)
@@ -196,26 +250,70 @@
               Save the mesh data of the volume to an ASCII file.
               It will return a blob with 'text/plain' type.
             </p>
+            <dl class='parameters'>
+              <dt>optional SaveMeshInfo info</dt>
+              <dd>
+                Information that needs to save mesh data.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setMeshingResolution(MeshingResolution resolution)
           </dt>
           <dd>
+            Allows user to set meshing resolution.
+            <dl class='parameters'>
+              <dt>MeshingResolution resolution</dt>
+              <dd>
+                Mesh resolution user wishes to set.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setMeshingThresholds(MeshingThresholds thresholds)
           </dt>
           <dd>
+            Is an optional function meant for expert users. It allows user to set meshing thresholds.<br/>
+            The values set by this function will be used by succeeding calls to <code><a>getMeshData()</a></code>. Set the thresholds indicating the magnitude of changes occurring in any block that would be considered significant for re-meshing.
+            <dl class='parameters'>
+              <dt>MeshingThresholds thresholds</dt>
+              <dd>
+                Thresholds information that user wants to set.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setCameraPose(sequence&lt;float&gt; cameraPose)
           </dt>
           <dd>
+            Allows user to enforce the supplied pose as the camera pose. The module will track the camera from this pose when the next frame is passed. this function can be called any time after module finishes processing first frame or any time after module successfully processes the first frame post a call to reset scene perception.
+            <dl class='parameters'>
+              <dt>sequence&lt;float&gt; cameraPose</dt>
+              <dd>
+              This is a sequence of 12 float that stores the camera pose, which user wishes to set in row-major order. Camera pose is specified in a 3 by 4 matrix:<br/>
+              <p><code>
+              [R | T] = [Rotation Matrix | Translation Vector]<br/>
+              where R = [ r11 r12 r13 ]<br/>
+                        [ r21 r22 r23 ]<br/>
+                        [ r31 r32 r33 ]<br/>
+                    T = [ tx  ty  tz  ]<br/>
+              </code></p>
+              Camera pose sequense layout should be: <code>[r11 r12 r13 tx r21 r22 r23 ty r31 r32 r33 tz]</code><br/>
+              Translation vector is in meters.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setMeshingUpdateConfigs(MeshingUpdateConfigs config)
           </dt>
           <dd>
+            Allows user to set meshing update configurations.
+            <dl class='parameters'>
+              <dt>MeshingUpdateConfigs config</dt>
+              <dd>
+                Argument to indicate which mesh data you wish to use.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; configureSurfaceVoxelsData(VoxelsDataConfig config)
@@ -224,6 +322,12 @@
             <p>
               This interface sets the configurations of <code>getSurfaceVoxels</code> function.
             </p>
+            <dl class='parameters'>
+              <dt>VoxelsDataConfig config</dt>
+              <dd>
+                Argument to indicate which configuration for surface's voxels data you wish to use.
+              </dd>
+            </dl>
           </dd>
           <dt>
             Promise&lt;void&gt; setMeshingRegion(InterestRegion region)
@@ -273,7 +377,7 @@
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
               for the <a><code>Event</code></a> that is dispatched
-              to <code><a>ScenePerception</a></code> when mesh is updated. 
+              to <code><a>ScenePerception</a></code> when mesh is updated.
             </p>
           </dd>
           <dt>
@@ -283,7 +387,7 @@
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
               for the <a><code>SampleProcessedEvent</code></a> that is dispatched
-              to <code><a>ScenePerception</a></code> when mesh is updated. 
+              to <code><a>ScenePerception</a></code> when mesh is updated.
             </p>
           </dd>
         </dl>
@@ -304,8 +408,8 @@
             </p>
             <p>
               a negative value to indicate potential reasons of a tracking failure.
-              -1.0 represents the scene lacks of structural/geometry information. 
-              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.) 
+              -1.0 represents the scene lacks of structural/geometry information.
+              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.)
             </p>
           </dd>
         </dl>
@@ -326,8 +430,8 @@
             </p>
             <p>
               a negative value to indicate potential reasons of a tracking failure.
-              -1.0 represents the scene lacks of structural/geometry information. 
-              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.) 
+              -1.0 represents the scene lacks of structural/geometry information.
+              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.)
             </p>
           </dd>
           <dt>
@@ -449,7 +553,7 @@
             VoxelResolution? voxelResolution;
           </dt>
           <dd>
-            The initial voxel resolution.
+            The initial voxel resolution. The voxelResolution is locked when <code><a>init</a></code>is called, afterwards it will remains same throughout the runtime of scene perception module.
           </dd>
           <dt>
             sequence&lt;float&gt;? initialCameraPose;
