@@ -1,7 +1,4 @@
 var statusElement = document.getElementById('status');
-var startButton = document.getElementById('start');
-var stopButton = document.getElementById('stop');
-var snapShotButton = document.getElementById('snapshot');
 var loadPhoto = document.getElementById('loadPhoto');
 var saveButton = document.getElementById('save');
 var fileInput = document.getElementById('fileInput');
@@ -14,11 +11,10 @@ var photoRotateRadio = document.getElementById('photoRotate');
 var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
 var popColorRadio = document.getElementById('popColor');
 
-var previewCanvas = document.getElementById('preview');
 var imageCanvas = document.getElementById('image');
 var overlayCanvas = document.getElementById('overlay');
 
-var previewContext, previewData, imageContext, imageData;
+var imageContext, imageData;
 var overlayContext;
 var refocus, depthMask, measurement, paster, photoCapture, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
@@ -364,7 +360,6 @@ function main() {
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
-  previewContext = previewCanvas.getContext('2d');
   imageContext = imageCanvas.getContext('2d');
   overlayContext = overlay.getContext('2d');
 
@@ -551,72 +546,6 @@ function main() {
     }
   }, false);
 
-  previewData = previewContext.createImageData(width, height);
-
-  var imageFPS = new Stats();
-  imageFPS.domElement.style.position = 'absolute';
-  imageFPS.domElement.style.top = '0px';
-  imageFPS.domElement.style.right = '0px';
-  document.getElementById('canvas_container').appendChild(imageFPS.domElement);
-
-  var gettingImage = false;
-
-  photoCapture.onpreview = function(e) {
-    if (gettingImage)
-      return;
-    gettingImage = true;
-    photoCapture.getPreviewImage().then(
-        function(image) {
-          previewData.data.set(image.data);
-          previewContext.putImageData(previewData, 0, 0);
-          imageFPS.update();
-          gettingImage = false;
-        }, function() {});
-  };
-
-  photoCapture.onerror = function(e) {
-    statusElement.innerHTML = 'Status Info : onerror: ' + e.status;
-  };
-
-  startButton.onclick = function(e) {
-    statusElement.innerHTML = 'Status Info : Start: ';
-    gettingImage = false;
-    photoCapture.startPreview({
-      colorWidth: 1920,
-      colorHeight: 1080,
-      depthWidth: 480,
-      depthHeight: 360,
-      framerate: 30}).then(
-        function(e) { statusElement.innerHTML += e; },
-        function(e) { statusElement.innerHTML += e; });
-  };
-
-  snapShotButton.onclick = function(e) {
-    statusElement.innerHTML = 'Status Info : TakePhoto: ';
-    photoCapture.takePhoto().then(
-        function(photo) {
-          currentPhoto = photo;
-          savePhoto = photo;
-          currentPhoto.queryContainerImage().then(
-              function(image) {
-                imageData = imageContext.createImageData(image.width, image.height);
-                statusElement.innerHTML += 'Sucess';
-                overlayContext.clearRect(0, 0, width, height);
-                imageData.data.set(image.data);
-                imageContext.putImageData(imageData, 0, 0);
-                hasImage = true;
-                if (depthEnhanceRadio.checked) {
-                  depthEnhance();
-                }
-                if (depthUpscaleRadio.checked) {
-                  depthUpscale();
-                }
-              },
-              function(e) { statusElement.innerHTML += e; });
-        },
-        function(e) { statusElement.innerHTML += e; });
-  };
-
   function saveFile(fs, fileName, blob) {
     var fullName = fileName + '.jpg';
     fs.root.getFile(fullName, {}, function(entry) {
@@ -693,10 +622,4 @@ function main() {
         },
         function(e) { statusElement.innerHTML = e; });
   });
-
-  stopButton.onclick = function(e) {
-    statusElement.innerHTML = 'Status Info : Stop: ';
-    photoCapture.stopPreview().then(function(e) { statusElement.innerHTML += e; },
-                                    function(e) { statusElement.innerHTML += e; });
-  };
 }
