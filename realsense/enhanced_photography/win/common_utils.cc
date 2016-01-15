@@ -155,6 +155,19 @@ scoped_ptr<base::ListValue> CreateStringErrorResult(
   return create_results.Pass();
 }
 
+scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
+  scoped_ptr<base::ListValue> create_results(new base::ListValue());
+  create_results->Append(base::Value::CreateNullValue());
+  create_results->Append(new base::FundamentalValue(error));
+  return create_results.Pass();
+}
+
+scoped_ptr<base::ListValue> CreateSuccessResult() {
+  scoped_ptr<base::ListValue> create_results(new base::ListValue());
+  create_results->Append(base::Value::CreateNullValue());
+  return create_results.Pass();
+}
+
 void GetBinaryValueFromArgs(
     base::ListValue* args, base::BinaryValue** value) {
   base::Value* buffer_value = NULL;

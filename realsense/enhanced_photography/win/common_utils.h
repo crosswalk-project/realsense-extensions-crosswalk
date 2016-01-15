@@ -17,6 +17,17 @@
 namespace realsense {
 namespace enhanced_photography {
 
+enum ErrorCode {
+  STATUS_FEATURE_UNSUPPORTED = 1,  // which maps to 'feature-unsupported'
+                                   // error code in js side.
+  STATUS_PARAM_UNSUPPORTED,        // which maps to 'param-unsupported'
+                                   // error code in js side.
+  STATUS_PHOTO_INVALID,            // which maps to 'invalid-photo'
+                                   // error code in js side.
+  STATUS_EXEC_FAILED               // which maps to 'exec-failed'
+                                   // error code in js side.
+};
+
 bool CopyImageToBinaryMessage(PXCImage* image,
                               scoped_ptr<uint8[]>& binary_message,  // NOLINT
                               size_t* length);
@@ -24,6 +35,8 @@ void CreateDepthPhotoObject(EnhancedPhotographyInstance* instance,
                             PXCPhoto* pxcphoto,
                             jsapi::depth_photo::Photo* photo);
 scoped_ptr<base::ListValue> CreateStringErrorResult(const std::string& error);
+scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error);
+scoped_ptr<base::ListValue> CreateSuccessResult();
 void GetBinaryValueFromArgs(base::ListValue* args, base::BinaryValue** value);
 
 }  // namespace enhanced_photography

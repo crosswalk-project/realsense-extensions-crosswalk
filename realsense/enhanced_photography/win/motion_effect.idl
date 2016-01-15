@@ -16,12 +16,9 @@ namespace motion_effect {
     double roll;
   };
 
-  callback ImagePromise = void(depth_photo.Image image, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
-
   interface Functions {
-    void initMotionEffect(depth_photo.Photo photo, Promise promise);
-    void applyMotionEffect(Motion motion, Rotation rotation, double zoom, ImagePromise promise);
+    void initMotionEffect(depth_photo.Photo photo);
+    void applyMotionEffect(Motion motion, Rotation rotation, double zoom);
 
     [nodoc] MotionEffect motionEffectConstructor(DOMString objectId);
   };
