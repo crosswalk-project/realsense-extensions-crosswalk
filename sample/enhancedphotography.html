@@ -11,13 +11,10 @@
   </head>
   <body>
   <div>
-    <button id='start' style='position: absolute; left: 20px; top: 10px; width: 100px; height: 25px'>Start Preview</button>
-    <button id='snapshot' style='position: absolute; left: 125px; top: 10px; width: 100px; height: 25px'>Take Photo</button>
-    <button id='stop' style='position: absolute; left: 230px; top: 10px; width: 100px; height: 25px'>Stop Preview</button>
-    <button id='load' style='position: absolute; left: 335px; top: 10px; width: 100px; height: 25px'>Load</button>
-    <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 335px; top: 10px; width: 100px; opacity:0; height: 25px' />
-    <button id='save' style='position: absolute; left: 440px; top: 10px; width: 100px; height: 25px'>Save</button>
-    <input type="file" id="fileInput" accept="image/*" style='position: absolute; left: 545px; top: 10px; height: 25px'>
+    <button id='load' style='position: absolute; left: 15px; top: 10px; width: 100px; height: 25px'>Load</button>
+    <input type='file' id="loadPhoto" accept="image/*" style='position: absolute; left: 15px; top: 10px; width: 100px; opacity:0; height: 25px' />
+    <button id='save' style='position: absolute; left: 120px; top: 10px; width: 100px; height: 25px'>Save</button>
+    <input type="file" id="fileInput" accept="image/*" style='position: absolute; left: 265px; top: 10px; height: 25px'>
   </div>
   <div style='position: absolute; top: 50px;'>
     <input type='radio' id='measure' name='RadioMethod'>Measure</input>
@@ -29,12 +26,10 @@
     <input type='radio' id='pastOnPlane' name='RadioMethod'>Paste OnPlane</input>
     <input type='radio' id='popColor' name='RadioMethod'>Color Pop</input>
   </div>
-  <p style='position: absolute; left: 140px; top: 390px;'>Preview</p>
-  <p style='position: absolute; left: 600px; top: 390px;'>Photo</p>
+  <p style='position: absolute; left: 140px; top: 390px;'>Photo</p>
   <div id='canvas_container'>
-    <canvas id='preview' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
-    <canvas id='image' width='1920' height='1080' style='position: absolute; left: 425px; top: 90px;'></canvas>
-    <canvas id='overlay' width='1920' height='1080' style='position: absolute; left: 425px; top: 90px;'></canvas>
+    <canvas id='image' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
+    <canvas id='overlay' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
 </div>
 
   <p id='status' style='position: absolute; left: 10px; top: 430px;'></p>
