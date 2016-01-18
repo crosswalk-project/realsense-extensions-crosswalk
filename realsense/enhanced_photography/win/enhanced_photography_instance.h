@@ -9,6 +9,7 @@
 
 #include "base/threading/thread.h"
 #include "base/values.h"
+#include "third_party/libpxc/include/pxcsession.h"
 #include "xwalk/common/extension.h"
 #include "xwalk/common/binding_object_store.h"
 #include "xwalk/common/xwalk_extension_function_handler.h"
@@ -50,9 +51,12 @@ class EnhancedPhotographyInstance : public Instance {
   void OnSegmentationConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnXDMUtilsConstructor(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
+  bool IsRSSDKInstalled();
+
   xwalk::common::XWalkExtensionFunctionHandler handler_;
   xwalk::common::BindingObjectStore store_;
   base::Thread ep_ext_thread_;
+  PXCSession* session_;
 };
 
 }  // namespace enhanced_photography

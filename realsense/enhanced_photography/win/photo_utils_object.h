@@ -21,7 +21,8 @@ using namespace jsapi::photo_utils; // NOLINT
 
 class PhotoUtilsObject : public xwalk::common::BindingObject {
  public:
-  explicit PhotoUtilsObject(EnhancedPhotographyInstance* instance);
+  explicit PhotoUtilsObject(EnhancedPhotographyInstance* instance,
+                            bool isRSSDKInstalled);
   ~PhotoUtilsObject() override;
 
  private:
@@ -36,6 +37,7 @@ class PhotoUtilsObject : public xwalk::common::BindingObject {
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   PXCEnhancedPhoto::PhotoUtils* photo_utils_;
+  bool isRSSDKInstalled_;
 };
 
 }  // namespace enhanced_photography

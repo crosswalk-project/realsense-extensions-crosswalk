@@ -16,8 +16,12 @@ namespace enhanced_photography {
 
 using namespace jsapi::common;  // NOLINT
 
-PhotoUtilsObject::PhotoUtilsObject(EnhancedPhotographyInstance* instance)
-    : instance_(instance) {
+PhotoUtilsObject::PhotoUtilsObject(EnhancedPhotographyInstance* instance,
+                                   bool isRSSDKInstalled)
+    : instance_(instance),
+      isRSSDKInstalled_(isRSSDKInstalled),
+      photo_utils_(nullptr),
+      session_(nullptr) {
   handler_.Register("colorResize",
                     base::Bind(&PhotoUtilsObject::OnColorResize,
                                base::Unretained(this)));
@@ -40,8 +44,10 @@ PhotoUtilsObject::PhotoUtilsObject(EnhancedPhotographyInstance* instance)
                     base::Bind(&PhotoUtilsObject::OnPhotoRotate,
                                base::Unretained(this)));
 
-  session_ = PXCSession::CreateInstance();
-  photo_utils_ = PXCEnhancedPhoto::PhotoUtils::CreateInstance(session_);
+  if (isRSSDKInstalled) {
+    session_ = PXCSession::CreateInstance();
+    photo_utils_ = PXCEnhancedPhoto::PhotoUtils::CreateInstance(session_);
+  }
 }
 
 PhotoUtilsObject::~PhotoUtilsObject() {
@@ -57,6 +63,12 @@ PhotoUtilsObject::~PhotoUtilsObject() {
 
 void PhotoUtilsObject::OnColorResize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<ColorResize::Params> params(
       ColorResize::Params::Create(*info->arguments()));
@@ -89,6 +101,12 @@ void PhotoUtilsObject::OnColorResize(
 
 void PhotoUtilsObject::OnCommonFOV(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<CommonFOV::Params> params(
       CommonFOV::Params::Create(*info->arguments()));
@@ -119,6 +137,12 @@ void PhotoUtilsObject::OnCommonFOV(
 
 void PhotoUtilsObject::OnDepthResize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<DepthResize::Params> params(
       DepthResize::Params::Create(*info->arguments()));
@@ -164,6 +188,12 @@ void PhotoUtilsObject::OnDepthResize(
 
 void PhotoUtilsObject::OnEnhanceDepth(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<EnhanceDepth::Params> params(
       EnhanceDepth::Params::Create(*info->arguments()));
@@ -201,6 +231,12 @@ void PhotoUtilsObject::OnEnhanceDepth(
 
 void PhotoUtilsObject::OnGetDepthQuality(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::photo_utils::DepthMapQuality depth_quality;
   scoped_ptr<GetDepthQuality::Params> params(
       GetDepthQuality::Params::Create(*info->arguments()));
@@ -238,6 +274,12 @@ void PhotoUtilsObject::OnGetDepthQuality(
 
 void PhotoUtilsObject::OnPhotoCrop(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<PhotoCrop::Params> params(
       PhotoCrop::Params::Create(*info->arguments()));
@@ -274,6 +316,12 @@ void PhotoUtilsObject::OnPhotoCrop(
 
 void PhotoUtilsObject::OnPhotoRotate(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   jsapi::depth_photo::Photo photo;
   scoped_ptr<PhotoRotate::Params> params(
       PhotoRotate::Params::Create(*info->arguments()));

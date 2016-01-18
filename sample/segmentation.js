@@ -299,8 +299,13 @@ function main() {
                   currentPhoto = photo;
                   savePhoto = photo;
                   if (!segmentation) {
-                    segmentation =
-                        new realsense.DepthEnabledPhotography.Segmentation();
+                    try {
+                      segmentation =
+                          new realsense.DepthEnabledPhotography.Segmentation();
+                    } catch (e) {
+                      statusElement.innerHTML = e.message;
+                      return;
+                    }
                   }
 
                   currentPhoto.queryContainerImage().then(

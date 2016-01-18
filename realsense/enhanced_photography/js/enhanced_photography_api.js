@@ -9,6 +9,11 @@ const bytesPerRGB32Pixel = 4;
 const bytesPerDEPTHPixel = 2;
 const bytesPerY8Pixel = 1;
 
+function InitFailureException(message) {
+  this.message = message;
+  this.name = 'InitFailureException';
+}
+
 function wrapF32ImageReturns(data) {
   // 3 int32 (4 bytes) values.
   var headerByteOffset = 3 * bytesPerInt32;
@@ -64,8 +69,11 @@ function wrapDepthImageReturns(data) {
 
 var DepthMask = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (objectId == undefined)
-    internal.postMessage('depthMaskConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('depthMaskConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct DepthMask object. Missing dependency');
+  }
 
   this._addMethodWithPromise('init', wrapPhotoArgs);
   this._addMethodWithPromise('computeFromCoordinate', null, wrapF32ImageReturns);
@@ -79,8 +87,11 @@ exports.DepthMask = DepthMask;
 var DepthPhoto = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
 
-  if (objectId == undefined)
-    internal.postMessage('depthPhotoConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('depthPhotoConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct DepthPhoto object. Missing dependency');
+  }
 
   function wrapRGB32ImageArgs(args) {
     if (args[0].format != 'RGB32')
@@ -144,8 +155,11 @@ exports.Photo = DepthPhoto;
 
 var DepthRefocus = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (objectId == undefined)
-    internal.postMessage('depthRefocusConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('depthRefocusConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct DepthRefocus object. Missing dependency');
+  }
 
   this._addMethodWithPromise('init', wrapPhotoArgs);
   this._addMethodWithPromise('apply', null, wrapPhotoReturns);
@@ -159,8 +173,11 @@ var Measurement = function(objectId) {
   common.BindingObject.call(this, common.getUniqueId());
   common.EventTarget.call(this);
 
-  if (objectId == undefined)
-    internal.postMessage('measurementConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('measurementConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct Measurement object. Missing dependency');
+  }
 
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
   this._addMethodWithPromise('measureUADistance', wrapPhotoArgs);
@@ -174,8 +191,11 @@ exports.Measurement = Measurement;
 
 var MotionEffect = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (objectId == undefined)
-    internal.postMessage('motionEffectConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('motionEffectConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct MotionEffect object. Missing dependency');
+  }
 
   this._addMethodWithPromise('init', wrapPhotoArgs);
   this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns);
@@ -187,8 +207,11 @@ exports.MotionEffect = MotionEffect;
 
 var Paster = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
-  if (objectId == undefined)
-    internal.postMessage('pasterConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('pasterConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct Paster object. Missing dependency');
+  }
 
   function wrapSetStickerArgsToArrayBuffer(args) {
     var sticker = args[0];
@@ -328,7 +351,9 @@ var PhotoCapture = function(previewStream, objectId) {
   };
   this._addEvent('depthquality', DepthQualityEvent);
 
-  internal.postMessage('photoCaptureConstructor', [this._id]);
+  var result = internal.sendSyncMessage('photoCaptureConstructor', [this._id]);
+  if (!result)
+    throw new InitFailureException('Failed to construct PhotoCapture object. Missing dependency');
 };
 
 PhotoCapture.prototype = new common.EventTargetPrototype();
@@ -358,8 +383,11 @@ exports.PhotoUtils = new PhotoUtils();
 var Segmentation = function(objectId) {
   common.BindingObject.call(this, objectId ? objectId : common.getUniqueId());
 
-  if (objectId == undefined)
-    internal.postMessage('segmentationConstructor', [this._id]);
+  if (objectId == undefined) {
+    var result = internal.sendSyncMessage('segmentationConstructor', [this._id]);
+    if (!result)
+      throw new InitFailureException('Failed to construct Segmentation object. Missing dependency');
+  }
 
   function wrapObjectSegmentArgsToArrayBuffer(args) {
     var photoId = args[0].photoId;

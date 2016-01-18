@@ -18,8 +18,11 @@ namespace enhanced_photography {
 
 using namespace jsapi::common;  // NOLINT
 
-XDMUtilsObject::XDMUtilsObject(EnhancedPhotographyInstance* instance)
+XDMUtilsObject::XDMUtilsObject(EnhancedPhotographyInstance* instance,
+                               bool isRSSDKInstalled)
       : instance_(instance),
+        isRSSDKInstalled_(isRSSDKInstalled),
+        session_(nullptr),
         binary_message_size_(0) {
   handler_.Register("isXDM",
       base::Bind(&XDMUtilsObject::OnIsXDM,
@@ -31,7 +34,9 @@ XDMUtilsObject::XDMUtilsObject(EnhancedPhotographyInstance* instance)
       base::Bind(&XDMUtilsObject::OnSaveXDM,
                  base::Unretained(this)));
 
-  session_ = PXCSession::CreateInstance();
+  if (isRSSDKInstalled) {
+    session_ = PXCSession::CreateInstance();
+  }
 }
 
 XDMUtilsObject::~XDMUtilsObject() {
@@ -43,6 +48,12 @@ XDMUtilsObject::~XDMUtilsObject() {
 
 void XDMUtilsObject::OnIsXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   base::BinaryValue* binary_value = nullptr;
   GetBinaryValueFromArgs(info->arguments(), &binary_value);
   if (!binary_value)
@@ -67,6 +78,12 @@ void XDMUtilsObject::OnIsXDM(
 
 void XDMUtilsObject::OnLoadXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   base::BinaryValue* binary_value = nullptr;
   GetBinaryValueFromArgs(info->arguments(), &binary_value);
   if (!binary_value)
@@ -92,6 +109,12 @@ void XDMUtilsObject::OnLoadXDM(
 
 void XDMUtilsObject::OnSaveXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!isRSSDKInstalled_) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
+                                       "The RSSDK is uninstalled"));
+    return;
+  }
+
   scoped_ptr<SaveXDM::Params> params(
       SaveXDM::Params::Create(*info->arguments()));
   if (!params) {

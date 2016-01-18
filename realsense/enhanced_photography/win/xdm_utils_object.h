@@ -24,7 +24,8 @@ using namespace jsapi::xdm_utils; // NOLINT
 
 class XDMUtilsObject : public xwalk::common::BindingObject {
  public:
-  explicit XDMUtilsObject(EnhancedPhotographyInstance* instance);
+  explicit XDMUtilsObject(EnhancedPhotographyInstance* instance,
+                          bool isRSSDKInstalled);
   ~XDMUtilsObject() override;
 
  private:
@@ -35,6 +36,7 @@ class XDMUtilsObject : public xwalk::common::BindingObject {
   void CreateFileWithBinaryValue(const base::BinaryValue& value,
                                  base::FilePath* file_path);
 
+  bool isRSSDKInstalled_;
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
   scoped_ptr<uint8[]> binary_message_;
