@@ -156,9 +156,40 @@ scoped_ptr<base::ListValue> CreateStringErrorResult(
 }
 
 scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
+  std::string message;
+  switch (error) {
+    case ERROR_CODE_FEATURE_UNSUPPORTED:
+      message = "The requested feature is not available or not implemented.";
+      break;
+    case ERROR_CODE_PARAM_UNSUPPORTED:
+      message = "There are invalid/unsupported parameters.";
+      break;
+    case ERROR_CODE_INVALID_PHOTO:
+      message = "The Photo object is invalid.";
+      break;
+    case ERROR_CODE_EXEC_FAILED:
+      message = "The operation failed to execute.";
+  }
+
+  DEPError depError;
+  depError.error = error;
+  depError.message = message;
+
   scoped_ptr<base::ListValue> create_results(new base::ListValue());
   create_results->Append(base::Value::CreateNullValue());
-  create_results->Append(new base::FundamentalValue(error));
+  create_results->Append((depError).ToValue().release());
+  return create_results.Pass();
+}
+
+scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error,
+                                              const std::string& message) {
+  DEPError depError;
+  depError.error = error;
+  depError.message = message;
+
+  scoped_ptr<base::ListValue> create_results(new base::ListValue());
+  create_results->Append(base::Value::CreateNullValue());
+  create_results->Append((depError).ToValue().release());
   return create_results.Pass();
 }
 
