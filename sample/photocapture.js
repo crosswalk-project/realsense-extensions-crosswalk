@@ -157,7 +157,7 @@ function preview() {
                       image, [255, 255, 255], [0, 0, 0], imageData.data);
                   depthContext.putImageData(imageData, 0, 0);
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             depthResolution.innerHTML = '';
           }
@@ -197,9 +197,9 @@ takePhotoButton.onclick = function(e) {
                   function(e) { statusElement.innerHTML = e; });
                 });
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     },
-    function(e) { statusElement.innerHTML = e; });
+    function(e) { statusElement.innerHTML = e.message; });
   }
 };
 

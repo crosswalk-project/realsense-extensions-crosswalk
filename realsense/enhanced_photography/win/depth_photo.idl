@@ -99,11 +99,11 @@ namespace depth_photo {
     static void queryNumberOfCameras(IntPromise promise);
     static void queryRawDepthImage(ImagePromise promise);
     static void queryXDMRevision(Promise promise);
-    static void resetContainerImage(Promise promise);
-    static void setContainerImage(ArrayBuffer image, Promise promise);
-    static void setColorImage(ArrayBuffer image, Promise promise);
-    static void setDepthImage(ArrayBuffer image, Promise promise);
-    static void setRawDepthImage(ArrayBuffer  image, Promise promise);
+    static void resetContainerImage();
+    static void setContainerImage(ArrayBuffer image);
+    static void setColorImage(ArrayBuffer image);
+    static void setDepthImage(ArrayBuffer image);
+    static void setRawDepthImage(ArrayBuffer  image);
     static void clone(PhotoPromise promise);
 
     [nodoc] static DepthPhoto depthPhotoConstructor(DOMString objectId);

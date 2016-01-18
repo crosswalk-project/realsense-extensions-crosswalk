@@ -147,14 +147,6 @@ void CreateDepthPhotoObject(EnhancedPhotographyInstance* instance,
   photo->object_id = object_id;
 }
 
-scoped_ptr<base::ListValue> CreateStringErrorResult(
-    const std::string& error) {
-  scoped_ptr<base::ListValue> create_results(new base::ListValue());
-  create_results->Append(new base::FundamentalValue(false));
-  create_results->Append(new base::StringValue(error));
-  return create_results.Pass();
-}
-
 scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
   std::string message;
   switch (error) {

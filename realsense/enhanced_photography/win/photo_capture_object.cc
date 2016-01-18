@@ -273,8 +273,7 @@ void PhotoCaptureObject::OnGetDepthImage(
     base::AutoLock lock(lock_);
     if (!depth_enabled_) {
       Image depth_image;
-      info->PostResult(GetDepthImage::Results::Create(
-          depth_image, std::string("Failed to get depth image")));
+      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
       return;
     }
   }
@@ -293,8 +292,7 @@ void PhotoCaptureObject::OnTakePhoto(
     base::AutoLock lock(lock_);
     if (!depth_enabled_) {
       jsapi::depth_photo::Photo photo;
-      info->PostResult(TakePhoto::Results::Create(photo,
-          "Failed to take photo"));
+      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
       return;
     }
   }
@@ -362,18 +360,15 @@ void PhotoCaptureObject::RunPipeline() {
 
 void PhotoCaptureObject::DoGetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Image image;
   if (!depth_image_) {
-    info->PostResult(GetDepthImage::Results::Create(
-        image, std::string("Failed to get depth image")));
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
   if (!CopyImageToBinaryMessage(depth_image_,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(QueryContainerImage::Results::Create(image,
-        "Failed to get depth image."));
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -386,16 +381,15 @@ void PhotoCaptureObject::DoGetDepthImage(
 
 void PhotoCaptureObject::DoTakePhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  jsapi::depth_photo::Photo photo;
   if (PXC_FAILED(sense_manager_->AcquireFrame(true))) {
-    info->PostResult(TakePhoto::Results::Create(photo,
-        "Failed to take photo"));
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
   PXCCapture::Sample *sample = sense_manager_->QuerySample();
   PXCPhoto* pxcphoto = session_->CreatePhoto();
   pxcphoto->ImportFromPreviewSample(sample);
+  jsapi::depth_photo::Photo photo;
   CreateDepthPhotoObject(instance_, pxcphoto, &photo);
   sense_manager_->ReleaseFrame();
   info->PostResult(TakePhoto::Results::Create(photo, std::string()));

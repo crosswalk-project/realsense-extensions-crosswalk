@@ -19,13 +19,12 @@ namespace paster {
   };
 
   callback ImagePromise = void(depth_photo.Image image, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {
     void getPlanesMap(ImagePromise promise);
-    void setPhoto(depth_photo.Photo photo, Promise promise);
-    void setSticker(depth_photo.Image sticker, depth_photo.Point coordinates, StickerData params, optional PasteEffects effects, Promise promise);
+    void setPhoto(depth_photo.Photo photo);
+    void setSticker(depth_photo.Image sticker, depth_photo.Point coordinates, StickerData params, optional PasteEffects effects);
     void paste(PhotoPromise promise);
     void previewSticker(ImagePromise promise);
 

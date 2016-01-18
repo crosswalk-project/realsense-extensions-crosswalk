@@ -76,7 +76,7 @@ function getColorImage() {
         fillCanvasUsingColorImage(image);
         statusElement.innerHTML = 'queryColorImage success.';
       },
-      function(e) { statusElement.innerHTML = e });
+      function(e) { statusElement.innerHTML = e.message });
 }
 
 function getContainerImage() {
@@ -85,7 +85,7 @@ function getContainerImage() {
         fillCanvasUsingColorImage(image);
         statusElement.innerHTML = 'queryContainerImage success.';
       },
-      function(e) { statusElement.innerHTML = e });
+      function(e) { statusElement.innerHTML = e.message });
 }
 
 function getDepthImage() {
@@ -94,7 +94,7 @@ function getDepthImage() {
         fillCanvasUsingDepthImage(image);
         statusElement.innerHTML = 'queryDepthImage success.';
       },
-      function(e) { statusElement.innerHTML = e });
+      function(e) { statusElement.innerHTML = e.message });
 }
 
 function getRawDepthImage() {
@@ -103,7 +103,7 @@ function getRawDepthImage() {
         fillCanvasUsingDepthImage(image);
         statusElement.innerHTML = 'queryRawDepthImage success.';
       },
-      function(e) { statusElement.innerHTML = e });
+      function(e) { statusElement.innerHTML = e.message });
 }
 
 function resetContainerImage() {
@@ -111,7 +111,7 @@ function resetContainerImage() {
       function() {
         statusElement.innerHTML = 'resetContainerImage success.';
       },
-      function(e) { statusElement.innerHTML = e });
+      function(e) { statusElement.innerHTML = e.message });
 }
 
 function main() {
@@ -194,7 +194,7 @@ function main() {
                           resetContainerImage();
                         }
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
 
                   currentPhoto.checkSignature().then(
                       function(signature) {
@@ -265,11 +265,11 @@ function main() {
                       },
                       function() { });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             statusElement.innerHTML = 'This is not a XDM file. Load failed.';
           }
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   });
 }

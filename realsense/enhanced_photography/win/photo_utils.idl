@@ -23,7 +23,6 @@ namespace photo_utils {
   };
 
   callback DepthMapQualityPromise = void(DepthMapQuality quality, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
 
   interface Functions {

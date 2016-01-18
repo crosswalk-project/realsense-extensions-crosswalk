@@ -151,13 +151,13 @@ function main() {
                                   'mouse buttons to refine the mask';
                               nextClick = TraceClicks;
                             },
-                            function(e) { statusElement.innerHTML = e; });
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e });
+                function(e) { statusElement.innerHTML = e.message });
           },
-          function(e) { statusElement.innerHTML = e });
+          function(e) { statusElement.innerHTML = e.message });
     } else if (nextClick == TraceClicks) {
       stopDrawLine = false;
       resetPoints();
@@ -237,13 +237,13 @@ function main() {
                               statusElement.innerHTML = 'Click and drag the left(foregroud) and' +
                               'right(background) mouse buttons to refine the mask';
                             },
-                            function(e) { statusElement.innerHTML = e; });
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -286,7 +286,7 @@ function main() {
                 saveFile(fs, fileName, blob);
               });
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 
   loadPhoto.addEventListener('change', function(e) {
@@ -318,14 +318,14 @@ function main() {
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             statusElement.innerHTML = 'This is not a XDM file. Load failed.';
           }
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   });
 
   restartButton.onclick = function(e) {
@@ -346,7 +346,7 @@ function main() {
           imageContext.putImageData(imageData, 0, 0);
           hasImage = true;
         },
-        function(e) { statusElement.innerHTML += e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 
   undoButton.onclick = function(e) {
@@ -372,13 +372,13 @@ function main() {
                           function() {
                             statusElement.innerHTML = 'Undo Scribble Complete';
                           },
-                          function(e) { statusElement.innerHTML = e; });
+                          function(e) { statusElement.innerHTML = e.message; });
                     },
-                    function(e) { statusElement.innerHTML = e; });
+                    function(e) { statusElement.innerHTML = e.message; });
               },
-              function(e) { statusElement.innerHTML = e; });
+              function(e) { statusElement.innerHTML = e.message; });
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 
   redoButton.onclick = function(e) {
@@ -404,12 +404,12 @@ function main() {
                           function() {
                             statusElement.innerHTML = 'Redo Scribble Complete';
                           },
-                          function(e) { statusElement.innerHTML = e; });
+                          function(e) { statusElement.innerHTML = e.message; });
                     },
-                    function(e) { statusElement.innerHTML = e; });
+                    function(e) { statusElement.innerHTML = e.message; });
               },
-              function(e) { statusElement.innerHTML = e; });
+              function(e) { statusElement.innerHTML = e.message; });
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 }
