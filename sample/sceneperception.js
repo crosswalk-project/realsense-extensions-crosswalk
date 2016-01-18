@@ -21,25 +21,33 @@ var totalGeom;
 var scene, renderer, stats, controls, camera;
 var z_axis, y_axis, x_axis;
 
+// color_size, depth_size, frameRate can be specified.
+// But the size of volume preview is fixed to be {320, 240}.
+var color_size = {width: 320, height: 240};
+var depth_size = {width: 320, height: 240};
+var unifiedFrameRate = 60;
+var volume_preview_size = {width: 320, height: 240};
+
 var color_canvas = document.getElementById('color');
 var color_context = color_canvas.getContext('2d');
-var color_image_data = color_context.createImageData(320, 240);
+var color_image_data = color_context.createImageData(color_size.width, color_size.height);
 
 var depth_canvas = document.getElementById('depth');
 var depth_context = depth_canvas.getContext('2d');
-var depth_image_data = depth_context.createImageData(320, 240);
+var depth_image_data = depth_context.createImageData(depth_size.width, depth_size.height);
 
 var volumePreview_canvas = document.getElementById('volumePreview');
 var volumePreview_context = volumePreview_canvas.getContext('2d');
-var volumePreview_image_data = volumePreview_context.createImageData(320, 240);
-var rgb_buffer = new Uint8ClampedArray(320 * 240 * 4);
+var volumePreview_image_data = volumePreview_context.createImageData(
+                                   volume_preview_size.width,
+                                   volume_preview_size.height);
 var getting_volumePreview_image = false;
 
 var sp;
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
-  var imageSize = 320 * 240;
+  var imageSize = depth_size.width * depth_size.height;
   for (var l = 0; l < imageSize; ++l) {
     rgbImage[l * 4] = 0;
     rgbImage[l * 4 + 1] = 0;
@@ -48,7 +56,6 @@ function ConvertDepthToRGBUsingHistogram(
   }
   // Produce a cumulative histogram of depth values
   var histogram = new Int32Array(256 * 256);
-  var imageSize = 320 * 240;
   for (var i = 0; i < imageSize; ++i) {
     if (depthImage[i]) {
       ++histogram[depthImage[i]];
@@ -156,7 +163,13 @@ function main() {
 
   initButton.onclick = function(e) {
     getting_sample = false;
-    sp.init().then(function() {
+    var initConfig = {
+      useOpenCVCoordinateSystem: true,
+      colorCaptureSize: color_size,
+      depthCaptureSize: depth_size,
+      captureFramerate: unifiedFrameRate
+    };
+    sp.init(initConfig).then(function() {
       resetButtonState(false);
       reconstructionElement.innerHTML = 'Reconstruction: ' + true;
       console.log('init succeeds');}, function(e) {console.log(e);});
