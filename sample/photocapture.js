@@ -138,11 +138,11 @@ function preview() {
         videoElement.srcObject = stream;
         photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
         photoCapture.onerror = function(e) {
-          statusElement.innerHTML = e.data.error;
+          statusElement.innerHTML = e.message;
         };
         photoCapture.ondepthquality = function(e) {
           eventsFPS.update();
-          var quality = e.data.quality;
+          var quality = e.quality;
           qualityElement.innerHTML = qualityMap[quality].text;
           qualityElement.style.color = qualityMap[quality].color;
           if (depthMapCheckBox.checked) {

@@ -25,6 +25,7 @@ namespace enhanced_photography {
 
 using xwalk::common::XWalkExtensionFunctionInfo;
 using namespace jsapi::photo_capture; // NOLINT
+using namespace jsapi::common;  // NOLINT
 
 class PhotoCaptureObject : public xwalk::common::EventTarget {
  public:
@@ -50,7 +51,7 @@ class PhotoCaptureObject : public xwalk::common::EventTarget {
   void DoTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Helpers
-  void DispatchErrorEvent(const std::string& message);
+  void DispatchErrorEvent(const ErrorCode& error, const std::string& message);
   void ReleaseResources();
 
   bool on_depthquality_;

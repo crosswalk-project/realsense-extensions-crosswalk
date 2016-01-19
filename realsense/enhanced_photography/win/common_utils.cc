@@ -159,6 +159,9 @@ scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
     case ERROR_CODE_INVALID_PHOTO:
       message = "The Photo object is invalid.";
       break;
+    case ERROR_CODE_INIT_FAILED:
+      message = "The initialization failed.";
+      break;
     case ERROR_CODE_EXEC_FAILED:
       message = "The operation failed to execute.";
   }

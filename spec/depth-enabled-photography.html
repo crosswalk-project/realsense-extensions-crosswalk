@@ -925,6 +925,14 @@
           </h3>
           <dl class="idl" title="interface CaptureErrorEvent : Event">
             <dt>
+              readonly attribute ErrorCode error
+            </dt>
+            <dd>
+              <p>
+                The error code.
+              </p>
+            </dd>
+            <dt>
               readonly attribute DOMString message
             </dt>
             <dd>
@@ -2035,6 +2043,14 @@
           <dd>
             <p>
               The Photo object is invalid.
+            </p>
+          </dd>
+          <dt>
+            init_failed
+          </dt>
+          <dd>
+            <p>
+              The initialization failed.
             </p>
           </dd>
           <dt>

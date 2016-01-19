@@ -309,8 +309,24 @@ var PhotoCapture = function(previewStream, objectId) {
   this._addMethodWithPromise('getDepthImage', null, wrapDepthImageReturns);
   this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
 
-  this._addEvent('error');
-  this._addEvent('depthquality');
+  var CaptureErrorEvent = function(type, data) {
+    this.type = type;
+
+    if (data) {
+      this.error = data.error;
+      this.message = data.message;
+    }
+  };
+  this._addEvent('error', CaptureErrorEvent);
+
+  var DepthQualityEvent = function(type, data) {
+    this.type = type;
+
+    if (data) {
+      this.quality = data.quality;
+    }
+  };
+  this._addEvent('depthquality', DepthQualityEvent);
 
   internal.postMessage('photoCaptureConstructor', [this._id]);
 };

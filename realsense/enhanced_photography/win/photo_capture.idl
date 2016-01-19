@@ -4,11 +4,12 @@
 
 // PhotoCapture interface
 namespace photo_capture {
-  dictionary ErrorEvent {
-    DOMString error;
+  dictionary ErrorEventData {
+    common.ErrorCode error;
+    DOMString message;
   };
 
-  dictionary DepthQualityEvent {
+  dictionary DepthQualityEventData {
     photo_utils.DepthMapQuality quality;
   };
 

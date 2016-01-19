@@ -8,6 +8,7 @@ namespace common {
     feature_unsupported,
     param_unsupported,
     invalid_photo,
+    init_failed,
     exec_failed
   };
 
