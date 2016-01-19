@@ -66,19 +66,41 @@
             Promise&lt;void&gt; start()
           </dt>
           <dd>
-            Start to capture and run realsense face pipeline.
+            <p>
+              Start video capture and run face module with current configuration.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected with an error message if there is a failure.
+            </p>
           </dd>
           <dt>
             Promise&lt;void&gt; stop()
           </dt>
           <dd>
-            Stop capturing.
+            <p>
+              Stop capturing and reset face configuration to defaults.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected with an error message if there is a failure.
+            </p>
           </dd>
           <dt>
             Promise&lt;ProcessedSample&gt; getProcessedSample()
           </dt>
           <dd>
-            Get processed sample including preview image and result face data.
+            <p>
+              Get processed sample including preview image and result face data.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with an <code><a>ProcessedSample</a></code>
+              combining preview streams and face module tracking/recognition output data if there are no errors.
+              The promise will be rejected with an error message if there is a failure.
+            </p>
           </dd>
           <dt>
             readonly attribute FaceConfiguration configuration
@@ -86,6 +108,14 @@
           <dd>
             <p>
             The interface to configure <code><a>FaceModule</a></code>.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Recognition recognition
+          </dt>
+          <dd>
+            <p>
+              The interface to access face recognition feature.
             </p>
           </dd>
           <dt>
@@ -126,6 +156,63 @@
         </section>
         <section>
           <h3>
+            <code><a>Recognition</a></code> interface
+          </h3>
+          <p>
+            The <code><a>Recognition</a></code> interface provides methods to
+            access face recognition feature.
+          </p>
+          <dl title='interface Recognition' class='idl'>
+            <dt>
+              Promise&lt;long&gt; registerUserByFaceID(long faceId)
+            </dt>
+            <dd>
+              <p>
+                Register a detected face into recognition database.
+              </p>
+              <p>
+                This method returns a promise.
+                The promise will be fulfilled with the user identifier
+                registered in recognition database if there are no errors.
+                The promise will be rejected with an error message if there is a failure.
+              </p>
+              <dl class='parameters'>
+                <dt>long faceId</dt>
+                <dd>
+                <p>
+                  The face id which could be gotten
+                  from the detected face data <code><a>FaceData</a></code>.
+                </p>
+                </dd>
+              </dl>
+            </dd>
+            <dt>
+              Promise&lt;void&gt; unregisterUserByID(long userId)
+            </dt>
+            <dd>
+              <p>
+                Unregister an user from recognition database.
+              </p>
+              <p>
+                This method returns a promise.
+                The promise will be fulfilled if there are no errors.
+                The promise will be rejected with an error message if there is a failure.
+              </p>
+              <dl class='parameters'>
+                <dt>long userId</dt>
+                <dd>
+                <p>
+                  The user identifier in recognition database,
+                  could be gotten from the face recognition data <code><a>RecognitionData</a></code>
+                  or the return value of the function <code>registerUserByFaceID</code>.
+                </p>
+                </dd>
+              </dl>
+            </dd>
+          </dl>
+        </section>
+        <section>
+          <h3>
             <code><a>FaceConfiguration</a></code> interface
           </h3>
           <p>
@@ -137,19 +224,50 @@
               Promise&lt;void&gt; set(FaceConfigurationData config)
             </dt>
             <dd>
-              Set configuration values.
+              <p>
+                Set configuration values.
+              </p>
+              <p>
+                This method returns a promise.
+                The promise will be fulfilled if there are no errors.
+                The promise will be rejected with an error message if there is a failure.
+              </p>
+              <dl class='parameters'>
+                <dt>FaceConfigurationData config</dt>
+                <dd>
+                <p>
+                  The face configuration to be set effective.
+                </p>
+                </dd>
+              </dl>
             </dd>
             <dt>
               Promise&lt;FaceConfigurationData&gt; getDefaults()
             </dt>
             <dd>
-              Get configuration default values.
+              <p>
+                Get configuration default values.
+              </p>
+              <p>
+                This method returns a promise.
+                The promise will be fulfilled with the default face configuration
+                if there are no errors.
+                The promise will be rejected with an error message if there is a failure.
+              </p>
             </dd>
             <dt>
               Promise&lt;FaceConfigurationData&gt; get()
             </dt>
             <dd>
-              Get current effective configuration values.
+              <p>
+                Get current effective configuration values.
+              </p>
+              <p>
+                This method returns a promise.
+                The promise will be fulfilled with current effective face configuration
+                if there are no errors.
+                The promise will be rejected with an error message if there is a failure.
+              </p>
             </dd>
           </dl>
         </section>
@@ -298,6 +416,19 @@
       </section>
       <section>
         <h2>
+          <code><a>RecognitionConfiguration</a></code>
+        </h2>
+        <dl title='dictionary RecognitionConfiguration' class='idl'>
+          <dt>
+            boolean? enable
+          </dt>
+          <dd>
+            Enable face recognition feature.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>FaceConfigurationData</a></code>
         </h2>
         <dl title='dictionary FaceConfigurationData' class='idl'>
@@ -327,6 +458,14 @@
           <dd>
             <p>
               The structure describing the face landmarks configuration parameters.
+            </p>
+          </dd>
+          <dt>
+            RecognitionConfiguration? recognition
+          </dt>
+          <dd>
+            <p>
+              The structure describing the face recognition configuration parameters.
             </p>
           </dd>
         </dl>
@@ -402,6 +541,19 @@
       </section>
       <section>
         <h2>
+          <code><a>RecognitionData</a></code>
+        </h2>
+        <dl title='dictionary RecognitionData' class='idl'>
+          <dt>
+            long userId
+          </dt>
+          <dd>
+            The user identifier in the recognition database.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>FaceData</a></code>
         </h2>
         <dl title='dictionary FaceData' class='idl'>
@@ -422,6 +574,12 @@
           </dt>
           <dd>
             Landmarks data of the detected face.
+          </dd>
+          <dt>
+            RecognitionData? recognition
+          </dt>
+          <dd>
+            Recognition result data of the detected face.
           </dd>
         </dl>
       </section>

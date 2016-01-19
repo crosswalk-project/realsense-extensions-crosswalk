@@ -23,6 +23,8 @@ using JSDetectionConfiguration =
     realsense::jsapi::face_tracking::DetectionConfiguration;
 using JSLandmarksConfiguration =
     realsense::jsapi::face_tracking::LandmarksConfiguration;
+using JSRecognitionConfiguration =
+    realsense::jsapi::face_tracking::RecognitionConfiguration;
 
 NativeModeType TrackingModeJS2Native(JSModeType params_mode) {
   NativeModeType mode;
@@ -131,6 +133,7 @@ pxcStatus ApplyChangesConfig(
       config->detection.maxTrackedFaces = *(detection->max_faces.get());
     }
   }
+
   if (config_data.landmarks) {
     JSLandmarksConfiguration* landmarks = config_data.landmarks.get();
     if (landmarks->enable) {
@@ -145,6 +148,19 @@ pxcStatus ApplyChangesConfig(
     }
     // landmarks->num_landmarks setting would take no effect,
     // this field is just for readonly and can not be configured.
+  }
+
+  if (config_data.recognition) {
+    JSRecognitionConfiguration* recognition = config_data.recognition.get();
+    if (recognition->enable) {
+      DLOG(INFO) << "ApplyChangesConfig: Enable recognition "
+          << *(recognition->enable.get());
+      if (*(recognition->enable.get())) {
+        config->QueryRecognition()->Enable();
+      } else {
+        config->QueryRecognition()->Disable();
+      }
+    }
   }
 
   return config->ApplyChanges();
@@ -168,6 +184,12 @@ void RetrieveConfig(
   landmarks->enable.reset(new bool(config->landmarks.isEnabled != 0));
   landmarks->max_faces.reset(new int(config->landmarks.maxTrackedFaces));
   landmarks->num_landmarks.reset(new int(config->landmarks.numLandmarks));
+
+  // RecognitionConfiguration.
+  out_data->recognition.reset(new JSRecognitionConfiguration());
+  JSRecognitionConfiguration* recognition = out_data->recognition.get();
+  recognition->enable.reset(
+      new bool(config->QueryRecognition()->properties.isEnabled != 0));
 }
 
 }  // namespace
@@ -208,6 +230,12 @@ FaceTrackingObject::FaceTrackingObject()
                                base::Unretained(this)));
   handler_.Register("get",
                     base::Bind(&FaceTrackingObject::OnGetConf,
+                               base::Unretained(this)));
+  handler_.Register("registerUserByFaceID",
+                    base::Bind(&FaceTrackingObject::OnRegisterUserByFaceID,
+                               base::Unretained(this)));
+  handler_.Register("unregisterUserByID",
+                    base::Bind(&FaceTrackingObject::OnUnregisterUserByID,
                                base::Unretained(this)));
 }
 
@@ -361,6 +389,60 @@ void FaceTrackingObject::OnGetConf(
                    base::Unretained(this),
                    base::Passed(&info)));
   }
+}
+
+void FaceTrackingObject::OnRegisterUserByFaceID(
+  scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!face_tracking_thread_.IsRunning()) {
+    info->PostResult(
+        RegisterUserByFaceID::Results::Create(
+            -1, std::string("Pipeline is not started")));
+    return;
+  }
+
+  scoped_ptr<RegisterUserByFaceID::Params> params(
+      RegisterUserByFaceID::Params::Create(*info->arguments()));
+
+  if (!params) {
+    info->PostResult(RegisterUserByFaceID::Results::Create(
+          -1,
+          std::string("Malformed parameters")));
+    return;
+  }
+
+  face_tracking_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&FaceTrackingObject::OnRegisterUserByFaceIDOnPipeline,
+                 base::Unretained(this),
+                 params->face_id,
+                 base::Passed(&info)));
+}
+
+void FaceTrackingObject::OnUnregisterUserByID(
+  scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!face_tracking_thread_.IsRunning()) {
+    info->PostResult(
+        UnregisterUserByID::Results::Create(
+            std::string(), std::string("Pipeline is not started")));
+    return;
+  }
+
+  scoped_ptr<UnregisterUserByID::Params> params(
+      UnregisterUserByID::Params::Create(*info->arguments()));
+
+  if (!params) {
+    info->PostResult(UnregisterUserByID::Results::Create(
+          std::string(),
+          std::string("Malformed parameters")));
+    return;
+  }
+
+  face_tracking_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&FaceTrackingObject::OnUnregisterUserByIDOnPipeline,
+                 base::Unretained(this),
+                 params->user_id,
+                 base::Passed(&info)));
 }
 
 void FaceTrackingObject::OnStartPipeline(
@@ -605,12 +687,15 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
     const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
     bool detection_enabled = face_config_->detection.isEnabled != 0;
     bool landmarks_enabled = face_config_->landmarks.isEnabled != 0;
+    bool recognition_enabled  =
+        face_config_->QueryRecognition()->properties.isEnabled != 0;
 
     int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
     int_array[0] = num_of_faces;
     int_array[1] = detection_enabled ? 1 : 0;
     int_array[2] = landmarks_enabled ? 1 : 0;
-    offset += 3 * sizeof(int);
+    int_array[3] = recognition_enabled ? 1 : 0;
+    offset += 4 * sizeof(int);
 
     for (int i = 0; i < num_of_faces; i++) {
       PXCFaceData::Face* trackedFace = face_output_->QueryFaceByIndex(i);
@@ -619,6 +704,8 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
       *(reinterpret_cast<int*>(binary_message_.get() + offset)) =
           trackedFace->QueryUserID();
       offset += sizeof(int);
+      DLOG(INFO) << "Tracked face index: " << i
+          << " face id: " << trackedFace->QueryUserID();
 
       if (detection_enabled) {
         const PXCFaceData::DetectionData* detectionData =
@@ -628,7 +715,7 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
           int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
           PXCRectI32 rectangle;
           if (detectionData->QueryBoundingRect(&rectangle)) {
-            DLOG(INFO) << "Traced face No." << i << ": "
+            DLOG(INFO) << "Tracked face index " << i << ": "
                 << rectangle.x << ", " << rectangle.y << ", "
                 << rectangle.w << ", " << rectangle.h;
             int_array[0] = rectangle.x;
@@ -690,6 +777,24 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
           offset += sizeof(int);
         }
       }
+
+      if (recognition_enabled) {
+        const PXCFaceData::RecognitionData* recognitionData =
+            trackedFace->QueryRecognition();
+        // Fill FaceData::recognition data.
+        if (recognitionData) {
+          const int recognitionID = recognitionData->QueryUserID();
+          *(reinterpret_cast<int*>(binary_message_.get() + offset)) =
+              recognitionID;
+          offset += sizeof(int);
+          DLOG(INFO) << "Got recognition id: " << recognitionID;
+        } else {
+          // No recognition data for this face.
+          *(reinterpret_cast<int*>(binary_message_.get() + offset)) = -1;
+          offset += sizeof(int);
+          DLOG(INFO) << "No recognition data";
+        }
+      }
     }
   }
 
@@ -707,6 +812,87 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
         offset));
     info->PostResult(result.Pass());
   }
+}
+
+void FaceTrackingObject::OnRegisterUserByFaceIDOnPipeline(
+    int faceId,
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
+
+  if (state_ != TRACKING) {
+    info->PostResult(
+        RegisterUserByFaceID::Results::Create(
+            -1, std::string("Pipeline is not tracking")));
+    return;
+  }
+
+  if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
+    info->PostResult(
+        RegisterUserByFaceID::Results::Create(
+            -1,
+            std::string("Recognition feature is not enabled yet")));
+    return;
+  }
+
+  int registered_id = -1;
+  std::string error_msg;
+  PXCFaceData::Face* trackedFace = face_output_->QueryFaceByID(faceId);
+  if (trackedFace) {
+    PXCFaceData::RecognitionData* recognitionData =
+        trackedFace->QueryRecognition();
+    if (recognitionData) {
+      int old_id = recognitionData->QueryUserID();
+      registered_id = recognitionData->RegisterUser();
+      DLOG(INFO) << "Registered faceId " << faceId <<
+          " : (" << old_id << ", " << registered_id << ")";
+    } else {
+      DLOG(ERROR) << "Failed to get RecognitionData for faceId: " << faceId;
+      error_msg = "Failed to get RecognitionData";
+    }
+  } else {
+    DLOG(ERROR) << "No FaceData for faceId: " << faceId;
+    error_msg = "Failed to find FaceData";
+  }
+
+  info->PostResult(
+      RegisterUserByFaceID::Results::Create(
+          registered_id, error_msg));
+}
+
+void FaceTrackingObject::OnUnregisterUserByIDOnPipeline(
+    int userId,
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
+
+  if (state_ != TRACKING) {
+    info->PostResult(
+        UnregisterUserByID::Results::Create(
+            std::string(), std::string("Pipeline is not tracking")));
+    return;
+  }
+
+  if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
+    info->PostResult(
+        UnregisterUserByID::Results::Create(
+            std::string(),
+            std::string("Recognition feature is not enabled yet")));
+    return;
+  }
+
+  std::string error_msg;
+  PXCFaceData::RecognitionModuleData* module_data =
+      face_output_->QueryRecognitionModule();
+  if (module_data) {
+    module_data->UnregisterUserByID(userId);
+    DLOG(INFO) << "Unregistered recognition id: " << userId;
+  } else {
+    DLOG(ERROR) << "Failed to get RecognitionModuleData";
+    error_msg = "Failed to get RecognitionModuleData";
+  }
+
+  info->PostResult(
+      UnregisterUserByID::Results::Create(
+          std::string("success"), error_msg));
 }
 
 // May run on face extension thread or face tracking thread.
@@ -966,6 +1152,7 @@ void FaceTrackingObject::OnStopFaceTrackingThread() {
 // number of faces (int32),
 // detection data available (int32),
 // landmark data available (int32),
+// recognition data available (int32),
 // face data array:
 //     array element: faceId (int32),
 //                    rect x, y, w, h (int32), avgDepth (float32),
@@ -977,6 +1164,7 @@ void FaceTrackingObject::OnStopFaceTrackingThread() {
 //                                               world confidence (int32),
 //                                               world point x, y, z (float32),
 //                                               image point x, y (float32),
+//                    recognition data: recognition ID (int32),
 size_t FaceTrackingObject::CalculateBinaryMessageSize() {
   const int image_header_size = 3 * sizeof(int);  // format, width, height
   PXCImage::ImageInfo color_info = latest_color_image_->QueryInfo();
@@ -1007,6 +1195,10 @@ size_t FaceTrackingObject::CalculateBinaryMessageSize() {
     one_face_size += landmark_size;
   }
 
+  if (face_config_->QueryRecognition()->properties.isEnabled != 0) {
+    one_face_size += sizeof(int);
+  }
+
   const int message_size =
       // call_id
       sizeof(int)
@@ -1015,7 +1207,7 @@ size_t FaceTrackingObject::CalculateBinaryMessageSize() {
       // depth image
       + image_header_size + depth_image_size
       // faces
-      + 3 * sizeof(int) + num_of_faces * one_face_size;
+      + 4 * sizeof(int) + num_of_faces * one_face_size;
   return message_size;
 }
 

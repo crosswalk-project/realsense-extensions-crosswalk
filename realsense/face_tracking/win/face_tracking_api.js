@@ -12,6 +12,15 @@ var FaceConfiguration = function(faceModuleObjId) {
 FaceConfiguration.prototype = new common.BindingObjectPrototype();
 FaceConfiguration.prototype.constructor = FaceConfiguration;
 
+var Recognition = function(faceModuleObjId) {
+  common.BindingObject.call(this, faceModuleObjId);
+
+  this._addMethodWithPromise('registerUserByFaceID');
+  this._addMethodWithPromise('unregisterUserByID');
+};
+Recognition.prototype = new common.BindingObjectPrototype();
+Recognition.prototype.constructor = Recognition;
+
 var FaceModule = function(object_id) {
   common.BindingObject.call(this, object_id ? object_id : common.getUniqueId());
   common.EventTarget.call(this);
@@ -26,6 +35,7 @@ var FaceModule = function(object_id) {
     // number of faces (int32),
     // detection data available (int32),
     // landmark data available (int32),
+    // recognition data available (int32),
     // FaceData Array
 
     // FaceData layout:
@@ -39,6 +49,7 @@ var FaceModule = function(object_id) {
     //                    world confidence (int32),
     //                    world point x, y, z (float32),
     //                    image point x, y (float32)
+    // recognition data: recognition ID(int32),
     var int32_array = new Int32Array(data, 0, 4);
     // color format
     var color_format = '';
@@ -74,12 +85,13 @@ var FaceModule = function(object_id) {
     offset = offset + depth_width * depth_height * 2;
 
     var face_array = [];
-    int32_array = new Int32Array(data, offset, 3);
+    int32_array = new Int32Array(data, offset, 4);
     // number of faces
     var num_of_faces = int32_array[0];
     var detection_enabled = int32_array[1] > 0 ? true : false;
     var landmark_enabled = int32_array[2] > 0 ? true : false;
-    offset = offset + 3 * 4; // 3 int32(4 bytes)
+    var recognition_enabled = int32_array[3] > 0 ? true : false;
+    offset = offset + 4 * 4; // 4 int32(4 bytes)
 
     for (var i = 0; i < num_of_faces; ++i) {
 
@@ -89,6 +101,7 @@ var FaceModule = function(object_id) {
 
       var detection_value = undefined;
       var landmark_value = undefined;
+      var recognition_value = undefined;
       if (detection_enabled) {
         int32_array = new Int32Array(data, offset, 4);
         offset = offset + 4 * 4; // 4 int32(4 bytes)
@@ -129,11 +142,18 @@ var FaceModule = function(object_id) {
         }
         landmark_value = { points: landmark_points_array };
       }
+      if (recognition_enabled) {
+        int32_array = new Int32Array(data, offset, 1);
+        offset = offset + 4; // 1 int32(4 bytes)
+        var recognitionId = int32_array[0];
+        recognition_value = { userId: recognitionId };
+      }
 
       var facedata = {
         faceId: faceid_value,
         detection: detection_value,
         landmarks: landmark_value,
+        recognition: recognition_value
       };
       face_array.push(facedata);
     }
@@ -169,10 +189,18 @@ var FaceModule = function(object_id) {
   this._addEvent('processedsample');
 
   var faceConfObj = new FaceConfiguration(this._id);
+  var recognitionObj = new Recognition(this._id);
 
   Object.defineProperties(this, {
     'configuration': {
       value: faceConfObj,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
+    'recognition': {
+      value: recognitionObj,
+      configurable: false,
       writable: false,
       enumerable: true,
     },

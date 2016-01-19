@@ -23,6 +23,15 @@
       <button id='getDefaultsConf'>get default configuration</button>
     </div>
     <div style='margin-bottom:5px;'>
+      <button id='registerFace'>register face</button>
+      <label style='display: inline-block;'>By Face ID:</label>
+      <input type='number' id='recognition_face_id' min='0'></input>
+      <label style='display: inline-block; width: 50px;'></label>
+      <button id='unregisterFace'>unregister face</button>
+      <label style='display: inline-block;'>By Recognition ID:</label>
+      <input type='number' id='recognition_recog_id' min='0'></input>
+    </div>
+    <div style='margin-bottom:5px;'>
       <label style='display: inline-block;'>Tracking Mode:</label>
       <input type='radio' id='tracking_color' name='radioTrackingMode'>color</input>
       <input type='radio' id='tracking_color_depth' name='radioTrackingMode'>color_depth</input>
@@ -50,17 +59,20 @@
       <label style='display: inline-block;'>Max Landmarks to track:</label>
       <label id='landmarks_max_landmarks' style='display: inline-block;'></input>
     </div>
+    <div style='margin-bottom:5px;'>
+      <input type='checkbox' id='enableRecognition'>Recognition</input>
+    </div>
 
-    <div id='color_container' style='position: absolute; top: 190px'>
+    <div id='color_container' style='position: absolute; top: 250px'>
       <canvas id='color' width='640' height='480'></canvas>
     </div>
-    <div id='depth_container' style='position: absolute; left: 660px; top: 190px'>
+    <div id='depth_container' style='position: absolute; left: 660px; top: 250px'>
       <canvas id='depth' width='640' height='480'></canvas>
     </div>
-    <p id='2DSize' style='position: absolute; left: 300px; top: 680px;'>2D</p>
-    <p id='3DSize' style='position: absolute; left: 930px; top: 680px;'>3D</p>
-    <p id='status' style='position: absolute; left: 10px; top: 700px;'>Status</p>
-    <p id='recognitionData' style='position: absolute; left: 10px; top: 730px;'>
+    <p id='2DSize' style='position: absolute; left: 300px; top: 740px;'>2D</p>
+    <p id='3DSize' style='position: absolute; left: 930px; top: 740px;'>3D</p>
+    <p id='status' style='position: absolute; left: 10px; top: 760px;'>Status</p>
+    <p id='recognitionData' style='position: absolute; left: 10px; top: 790px;'>
       (Face id: Recognition id) :
     </p>
   </body>

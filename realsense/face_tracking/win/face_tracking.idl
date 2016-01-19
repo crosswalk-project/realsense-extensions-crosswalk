@@ -111,12 +111,18 @@ namespace face_tracking {
     long? numLandmarks;
   };
 
+  // RecognitionConfiguration
+  dictionary RecognitionConfiguration {
+    boolean? enable;
+  };
+
   // FaceConfigurationData
   dictionary FaceConfigurationData {
     TrackingModeType? mode;
     TrackingStrategyType? strategy;
     DetectionConfiguration? detection;
     LandmarksConfiguration? landmarks;
+    RecognitionConfiguration? recognition;
   };
 
   // DetectionData
@@ -139,11 +145,17 @@ namespace face_tracking {
     LandmarkPoint[] points;
   };
 
+  // RecognitionData
+  dictionary RecognitionData {
+    long userId;
+  };
+
   // Single Face Data
   dictionary FaceData {
     long faceId;
     DetectionData? detection;
     LandmarksData? landmarks;
+    RecognitionData? recognition;
   };
 
   dictionary ProcessedSample {
@@ -154,6 +166,7 @@ namespace face_tracking {
 
   callback ProcessedSamplePromise = void (ProcessedSample sample, DOMString error);
   callback FaceConfigurationDataPromise = void (FaceConfigurationData faceConf, DOMString error);
+  callback LongPromise = void (long value, DOMString error);
   callback Promise = void (DOMString success, DOMString error);
 
   interface Events {
@@ -169,6 +182,9 @@ namespace face_tracking {
     static void set(FaceConfigurationData faceConf, Promise promise);
     static void getDefaults(FaceConfigurationDataPromise promise);
     static void get(FaceConfigurationDataPromise promise);
+
+    static void registerUserByFaceID(long faceId, LongPromise promise);
+    static void unregisterUserByID(long userId, Promise promise);
 
     [nodoc] static FaceTracking faceTrackingConstructor(DOMString objectId);
   };
