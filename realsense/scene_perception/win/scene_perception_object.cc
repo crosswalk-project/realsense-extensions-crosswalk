@@ -23,7 +23,8 @@ bool isValidThresholds(JSThresholds* thresholds) {
   return (isPercentage(thresholds->max) && isPercentage(thresholds->avg));
 }
 
-bool isValidFramerate(int fr) {
+// Currently we only support 30/60 FPS.
+bool isValidFramerate(float fr) {
   return (fr == 30 || fr == 60);
 }
 
@@ -81,26 +82,6 @@ namespace scene_perception {
 using namespace realsense::jsapi::scene_perception; // NOLINT
 using namespace xwalk::common; // NOLINT
 
-// Default configurations.
-// Volume preview size is currently fixed to this resolution.
-const int kCaptureWidth = 320;
-const int kCaptureHeight = 240;
-const float kCaptureFramerate = 60.0;
-
-const PXCSession::CoordinateSystem kCoordinateSystem =
-        PXCSession::COORDINATE_SYSTEM_REAR_OPENCV;
-
-// Default values of SP module:
-//   MaxNumberOfBlockMeshes: 16384
-//   MaxNumberOfFaces: 2621440
-//   MaxNumberOfVertices: 7864320
-// Temporarily set MaxNumberOfBlockMeshes to 1000 for acceptable performance in
-// scene perception sample.
-const int kMaxNumberOfBlockMeshes = 1000;
-const int kMaxNumberOfFaces = 2621440;
-const int kMaxNumberOfVertices = 7864320;
-const bool kBUseColor = true;
-
 ScenePerceptionObject::ScenePerceptionObject() :
     state_(IDLE),
     checking_event_on_(false),
@@ -120,15 +101,16 @@ ScenePerceptionObject::ScenePerceptionObject() :
   last_meshing_time_ = base::TimeTicks::Now();
 
   // Size and framte rate for depth and color images.
-  color_image_width_ = depth_image_width_ = kCaptureWidth;
-  color_image_height_ = depth_image_height_ = kCaptureHeight;
-  color_capture_framerate_ = depth_capture_framerate_ = kCaptureFramerate;
+  // Value set <0, 0, 0> will trigger the default size and
+  // framerate of SP module.
+  color_image_width_ = depth_image_width_ = 0;
+  color_image_height_ = depth_image_height_ = 0;
+  color_capture_framerate_ = depth_capture_framerate_ = 0;
 
-  // Configurations for meshing data.
-  max_block_mesh_ = kMaxNumberOfBlockMeshes;
-  max_faces_ = kMaxNumberOfFaces;
-  max_vertices_ = kMaxNumberOfVertices;
-  b_use_color_ = kBUseColor;
+  // Value set <-1, -1, -1, true> will trigger
+  // the default configurations for meshing data.
+  max_block_mesh_ = max_faces_ = max_vertices_ = -1;
+  b_use_color_ = true;
 
   // Default meshing update info configurations.
   meshing_update_info_.countOfBlockMeshesRequired = true;
@@ -371,10 +353,7 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   }
 
   scoped_ptr<Init::Params> params(Init::Params::Create(*info->arguments()));
-  if (!params || !(params->config)) {
-    // Set the coordinate system as OPENCV.
-    session_->SetCoordinateSystem(kCoordinateSystem);
-  } else {
+  if (params && params->config) {
     // Set the module according to the parameters.
     applyInitialConfigs(params->config.get());
   }
@@ -442,7 +421,8 @@ void ScenePerceptionObject::applyInitialConfigs(
     InitialConfiguration* jsConfig) {
   if (jsConfig->use_open_cv_coordinate_system) {
     bool useOPENCV = *(jsConfig->use_open_cv_coordinate_system.get());
-    PXCSession::CoordinateSystem c = useOPENCV ? kCoordinateSystem
+    PXCSession::CoordinateSystem c = useOPENCV ?
+        PXCSession::COORDINATE_SYSTEM_REAR_OPENCV
       : PXCSession::COORDINATE_SYSTEM_REAR_DEFAULT;
     session_->SetCoordinateSystem(c);
   }
@@ -498,7 +478,7 @@ void ScenePerceptionObject::applyInitialConfigs(
     depth_image_height_ = ds->height;
   }
   if (jsConfig->capture_framerate) {
-    int framerate = *(jsConfig->capture_framerate.get());
+    float framerate = *(jsConfig->capture_framerate.get());
     if (isValidFramerate(framerate))
       color_capture_framerate_ = depth_capture_framerate_ = framerate;
     else
@@ -542,8 +522,8 @@ void ScenePerceptionObject::OnRunPipeline() {
   if (!latest_color_image_) {
     PXCImage::ImageInfo image_info;
     memset(&image_info, 0, sizeof(image_info));
-    image_info.width = color_image_width_;
-    image_info.height = color_image_height_;
+    image_info.width = sample->color->QueryInfo().width;
+    image_info.height = sample->color->QueryInfo().height;
     image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
     latest_color_image_ = session_->CreateImage(&image_info);
   }
@@ -551,8 +531,8 @@ void ScenePerceptionObject::OnRunPipeline() {
   if (!latest_depth_image_) {
     PXCImage::ImageInfo image_info;
     memset(&image_info, 0, sizeof(image_info));
-    image_info.width = depth_image_width_;
-    image_info.height = depth_image_height_;
+    image_info.width = sample->depth->QueryInfo().width;
+    image_info.height = sample->depth->QueryInfo().height;
     image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
     latest_depth_image_ = session_->CreateImage(&image_info);
   }
@@ -995,7 +975,7 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(meshing_thread_.message_loop(), base::MessageLoop::current());
   pxcStatus status = scene_perception_->DoMeshingUpdate(block_meshing_data_,
-                                                        0,
+                                                        b_fill_holes_,
                                                         &meshing_update_info_);
   // Failed to get mesh updates.
   if (status != PXC_STATUS_NO_ERROR) {

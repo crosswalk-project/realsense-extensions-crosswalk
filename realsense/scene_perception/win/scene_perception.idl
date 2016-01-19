@@ -43,7 +43,7 @@ namespace scene_perception {
     MeshingThresholds? meshingThresholds;
     CaptureSize? colorCaptureSize;
     CaptureSize? depthCaptureSize;
-    long? captureFramerate;
+    double? captureFramerate;
   };
 
   dictionary MeshingUpdateInfo {
