@@ -119,6 +119,9 @@ function preview() {
     return;
   }
   if (previewStream) {
+    // Remove listeners as we don't care about the events.
+    photoCapture.onerror = null;
+    photoCapture.ondepthquality = null;
     previewStream.getTracks().forEach(function(track) {
       track.stop();
     });
