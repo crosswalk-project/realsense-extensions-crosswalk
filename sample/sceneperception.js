@@ -1,6 +1,7 @@
 var qualityElement = document.getElementById('quality');
 var accuracyElement = document.getElementById('accuracy');
 var reconstructionElement = document.getElementById('reconstruction');
+var savedMeshElement = document.getElementById('savedMesh');
 var initButton = document.getElementById('init');
 var resetButton = document.getElementById('reset');
 var destoryButton = document.getElementById('destory');
@@ -196,19 +197,24 @@ function main() {
 
   saveButton.onclick = function(e) {
     sp.saveMesh().then(function(blob) {
-      var reader = new FileReader();
-      reader.onload = function(evt) {
-        console.log(evt.target.result);
-        // Currently, crosswalk has bugs to download (see XWALK-5220). So the following code
-        // doesn't work. Once download is enabled. The processed image will be
-        // downloaded into 'Downloads' folder.
-        var a = document.createElement('a');
-        a.href = evt.target.result;
-        a.download = true;
-        a.click();
-        alert('Save successfully');
-      };
-      reader.readAsDataURL(blob);
+      xwalk.experimental.native_file_system.requestNativeFileSystem('documents', function(fs) {
+        var fileName = '/documents/savedMesh';
+        var d = new Date();
+        fileName += '_' + d.getFullYear() + '_' + d.getMonth() + '_' + d.getDate();
+        fileName += '_' + d.getHours() + '_' + d.getMinutes() + '_' + d.getSeconds();
+        fileName += '_' + d.getMilliseconds() + '.obj';
+        fs.root.getFile(fileName, { create: true }, function(entry) {
+          entry.createWriter(function(writer) {
+            writer.onwriteend = function(e) {
+              savedMeshElement.innerHTML = 'Saved Mesh:' + fileName;
+            };
+            writer.onerror = function(e) {
+              savedMeshElement.innerHTML = 'Saved Mesh:save failed, error' + e.toString();
+            };
+            writer.write(blob);
+          }, function(e) {console.log(e);});
+        }, function(e) {console.log(e)});
+      });
     }, function(e) {console.log(e);});
   };
 
