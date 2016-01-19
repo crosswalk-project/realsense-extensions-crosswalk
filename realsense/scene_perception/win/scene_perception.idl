@@ -164,7 +164,7 @@ namespace scene_perception {
     static void start(Promise promise);
     static void stop(Promise promise);
     static void reset(Promise promise);
-    static void destory(Promise promise);
+    static void destroy(Promise promise);
 
     // setters
     static void enableReconstruction(boolean enable, Promise promise);

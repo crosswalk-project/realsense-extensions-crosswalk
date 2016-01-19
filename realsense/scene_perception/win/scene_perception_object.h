@@ -39,7 +39,7 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   void OnStart(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnStop(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnReset(scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void OnDestory(scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnDestroy(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Configuration changing APIs.
   void OnEnableReconstruction(

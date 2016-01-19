@@ -135,8 +135,8 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("reset",
                     base::Bind(&ScenePerceptionObject::OnReset,
                                base::Unretained(this)));
-  handler_.Register("destory",
-                    base::Bind(&ScenePerceptionObject::OnDestory,
+  handler_.Register("destroy",
+                    base::Bind(&ScenePerceptionObject::OnDestroy,
                                base::Unretained(this)));
 
   // Configuration changing APIs.
@@ -214,7 +214,7 @@ ScenePerceptionObject::ScenePerceptionObject() :
 
 ScenePerceptionObject::~ScenePerceptionObject() {
   if (state_ != IDLE) {
-    OnDestory(NULL);
+    OnDestroy(NULL);
   }
 
   sample_message_.reset();
@@ -606,11 +606,11 @@ void ScenePerceptionObject::OnRunPipeline() {
                  base::Unretained(this)));
 }
 
-void ScenePerceptionObject::OnDestory(
+void ScenePerceptionObject::OnDestroy(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        Destory::Results::Create(
+        Destroy::Results::Create(
             std::string(), std::string("scenemanager thread is not running")));
     return;  // Wrong state.
   }
@@ -629,7 +629,7 @@ void ScenePerceptionObject::OnStopAndDestroyPipeline(
   if (state_ == IDLE) {
     scoped_ptr<base::ListValue> error(new base::ListValue());
     info->PostResult(
-        Destory::Results::Create(
+        Destroy::Results::Create(
             std::string(), std::string("state is IDLE")));
     return;
   }
@@ -637,7 +637,7 @@ void ScenePerceptionObject::OnStopAndDestroyPipeline(
   ReleaseResources();
   if (info.get()) {
     info->PostResult(
-        Destory::Results::Create(
+        Destroy::Results::Create(
             std::string("success"), std::string()));
   }
 }
