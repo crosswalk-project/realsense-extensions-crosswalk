@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_FACE_TRACKING_FACE_TRACKING_OBJECT_H_
-#define REALSENSE_FACE_TRACKING_FACE_TRACKING_OBJECT_H_
+#ifndef REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_
+#define REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_
 
 #include <string>
 
@@ -33,22 +33,37 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnGetProcessedSample(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnSetConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnGetDefaultsConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnGetConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
   // Run on face_tracking_thread_
-  void OnCreateAndStartPipeline(
+  void OnStartPipeline(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnRunPipeline();
-  void OnStopAndDestroyPipeline(
+  void OnStopPipeline(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnGetProcessedSampleOnPipeline(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
-  bool CreateSessionInstance();
-  void DestroySessionInstance();
+  // Run on face_ext_thread_ or face_tracking_thread_
+  void DoSetConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void DoGetDefaultsConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void DoGetConf(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+
+  // Run on face extension thread
+  bool Init();
+  void Destroy();
 
   // Run on face_tracking_thread_
   bool CreateProcessedSampleImages();
-  void ReleaseResources();
+  void ReleasePipelineResources();
 
   // Run on face_tracking_thread_
   void StopFaceTrackingThread();
@@ -58,6 +73,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   size_t CalculateBinaryMessageSize();
 
   enum State {
+    NOT_READY,
     IDLE,
     TRACKING,
   };
@@ -72,12 +88,10 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   PXCSession* session_;
   PXCSenseManager* sense_manager_;
   PXCFaceData* face_output_;
+  PXCFaceConfiguration* face_config_;
 
   PXCImage* latest_color_image_;
   PXCImage* latest_depth_image_;
-  bool detection_enabled_;
-  bool landmark_enabled_;
-  int num_of_landmark_points_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;
@@ -86,4 +100,4 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
 }  // namespace face_tracking
 }  // namespace realsense
 
-#endif  // REALSENSE_FACE_TRACKING_FACE_TRACKING_OBJECT_H_
+#endif  // REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_

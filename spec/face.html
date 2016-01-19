@@ -45,6 +45,8 @@
     <section>
       <h2>Introduction</h2>
       <p>
+        The APIs described in this document are exposed through
+        <code>realsense.Face</code> module.
       </p>
     </section>
     <section>
@@ -53,17 +55,15 @@
       </h2>
       <section>
         <h2>
-          <code><a>Face</a></code>
+          <code><a>FaceModule</a></code>
         </h2>
         <p>
-          The <code><a>Face</a></code> interface provides methods to
+          The <code><a>FaceModule</a></code> interface provides methods to
           track and recognize faces for augmented reality applications. 
-          The APIs described in this document are exposed through
-          <code>realsense.Face</code> module.
         </p>
-        <dl title='interface Face : EventTarget' class='idl'>
+        <dl title='interface FaceModule: EventTarget' class='idl'>
           <dt>
-            Promise&lt;void&gt; start(optional FaceConfiguration config)
+            Promise&lt;void&gt; start()
           </dt>
           <dd>
             Start to capture and run realsense face pipeline.
@@ -81,13 +81,21 @@
             Get processed sample including preview image and result face data.
           </dd>
           <dt>
+            readonly attribute FaceConfiguration configuration
+          </dt>
+          <dd>
+            <p>
+            The interface to configure <code><a>FaceModule</a></code>.
+            </p>
+          </dd>
+          <dt>
             attribute EventHandler onerror
           </dt>
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
               for the <a><code>ErrorEvent</code></a> that is dispatched
-              to <code><a>Face</a></code> when there is an error.
+              to <code><a>FaceModule</a></code> when there is an error.
             </p>
           </dd>
           <dt>
@@ -116,49 +124,41 @@
             </dd>
           </dl>
         </section>
+        <section>
+          <h3>
+            <code><a>FaceConfiguration</a></code> interface
+          </h3>
+          <p>
+            The <code><a>FaceConfiguration</a></code> interface provides methods to
+            configure <code><a>FaceModule</a></code>.
+          </p>
+          <dl title='interface FaceConfiguration' class='idl'>
+            <dt>
+              Promise&lt;void&gt; set(FaceConfigurationData config)
+            </dt>
+            <dd>
+              Set configuration values.
+            </dd>
+            <dt>
+              Promise&lt;FaceConfigurationData&gt; getDefaults()
+            </dt>
+            <dd>
+              Get configuration default values.
+            </dd>
+            <dt>
+              Promise&lt;FaceConfigurationData&gt; get()
+            </dt>
+            <dd>
+              Get current effective configuration values.
+            </dd>
+          </dl>
+        </section>
       </section>
     </section>
     <section>
       <h2>
         Dictionaries
       </h2>
-      <section>
-        <h2>
-          <code><a>FaceConfiguration</a></code>
-        </h2>
-        <dl title='dictionary FaceConfiguration' class='idl'>
-          <dt>
-            boolean? enableDetection
-          </dt>
-          <dd>
-            Enable face detection feature.
-          </dd>
-          <dt>
-            boolean? enableLandmarks
-          </dt>
-          <dd>
-            Enable face landmarks feature.
-          </dd>
-          <dt>
-            long? maxFaces
-          </dt>
-          <dd>
-            Maximum number of faces to be tracked.
-          </dd>
-          <dt>
-            TrackingModeType? mode
-          </dt>
-          <dd>
-            Tracking mode.
-          </dd>
-          <dt>
-            TrackingStrategyType? strategy
-          </dt>
-          <dd>
-            Tracking strategy.
-          </dd>
-        </dl>
-      </section>
       <section>
         <h2>
           <code><a>Image</a></code>
@@ -254,9 +254,88 @@
       </section>
       <section>
         <h2>
-          <code><a>Detection</a></code>
+          <code><a>DetectionConfiguration</a></code>
         </h2>
-        <dl title='dictionary Detection' class='idl'>
+        <dl title='dictionary DetectionConfiguration' class='idl'>
+          <dt>
+            boolean? enable
+          </dt>
+          <dd>
+            Enable face detection feature.
+          </dd>
+          <dt>
+            long? maxFaces
+          </dt>
+          <dd>
+            Maximum number of faces to be tracked.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>LandmarksConfiguration</a></code>
+        </h2>
+        <dl title='dictionary LandmarksConfiguration' class='idl'>
+          <dt>
+            boolean? enable
+          </dt>
+          <dd>
+            Enable face landmarks feature.
+          </dd>
+          <dt>
+            long? maxFaces
+          </dt>
+          <dd>
+            Maximum number of faces to be tracked.
+          </dd>
+          <dt>
+            long? numLandmarks
+          </dt>
+          <dd>
+            Maximum number of landmarks to be tracked.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>FaceConfigurationData</a></code>
+        </h2>
+        <dl title='dictionary FaceConfigurationData' class='idl'>
+          <dt>
+            TrackingModeType? mode
+          </dt>
+          <dd>
+            Face tracking input data modes.
+          </dd>
+          <dt>
+            TrackingStrategyType? strategy
+          </dt>
+          <dd>
+            Face tracking strategy.
+          </dd>
+          <dt>
+            DetectionConfiguration? detection
+          </dt>
+          <dd>
+            <p>
+              The structure describing the face detection configuration parameters.
+            </p>
+          </dd>
+          <dt>
+            LandmarksConfiguration? landmarks
+          </dt>
+          <dd>
+            <p>
+              The structure describing the face landmarks configuration parameters.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>DetectionData</a></code>
+        </h2>
+        <dl title='dictionary DetectionData' class='idl'>
           <dt>
             Rect boundingRect
           </dt>
@@ -310,9 +389,9 @@
       </section>
       <section>
         <h2>
-          <code><a>Landmark</a></code>
+          <code><a>LandmarksData</a></code>
         </h2>
-        <dl title='dictionary Landmark' class='idl'>
+        <dl title='dictionary LandmarksData' class='idl'>
           <dt>
             sequence&lt;LandmarkPoint&gt; points
           </dt>
@@ -327,16 +406,22 @@
         </h2>
         <dl title='dictionary FaceData' class='idl'>
           <dt>
-            Detection? detection
+            long? faceId
+          </dt>
+          <dd>
+            ID of the detected face.
+          </dd>
+          <dt>
+            DetectionData? detection
           </dt>
           <dd>
             Detection data of the detected face.
           </dd>
           <dt>
-            Landmark? landmark
+            LandmarksData? landmarks
           </dt>
           <dd>
-            Landmark data of the detected face.
+            Landmarks data of the detected face.
           </dd>
         </dl>
       </section>

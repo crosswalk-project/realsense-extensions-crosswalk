@@ -17,9 +17,14 @@ using NativeModeType = PXCFaceConfiguration::TrackingModeType;
 using NativeStrategyType = PXCFaceConfiguration::TrackingStrategyType;
 using JSModeType = realsense::jsapi::face_tracking::TrackingModeType;
 using JSStrategyType = realsense::jsapi::face_tracking::TrackingStrategyType;
-using JSFaceConfiguration = realsense::jsapi::face_tracking::FaceConfiguration;
+using JSFaceConfigurationData =
+    realsense::jsapi::face_tracking::FaceConfigurationData;
+using JSDetectionConfiguration =
+    realsense::jsapi::face_tracking::DetectionConfiguration;
+using JSLandmarksConfiguration =
+    realsense::jsapi::face_tracking::LandmarksConfiguration;
 
-NativeModeType MapTrackingMode(JSModeType params_mode) {
+NativeModeType TrackingModeJS2Native(JSModeType params_mode) {
   NativeModeType mode;
   if (params_mode == JSModeType::TRACKING_MODE_TYPE_COLOR) {
     mode = NativeModeType::FACE_MODE_COLOR;
@@ -32,7 +37,7 @@ NativeModeType MapTrackingMode(JSModeType params_mode) {
   return mode;
 }
 
-NativeStrategyType MapTrackingStrategy(JSStrategyType params_strategy) {
+NativeStrategyType TrackingStrategyJS2Native(JSStrategyType params_strategy) {
   NativeStrategyType strategy;
   switch (params_strategy) {
     case JSStrategyType::TRACKING_STRATEGY_TYPE_APPEARANCE_TIME:
@@ -58,60 +63,111 @@ NativeStrategyType MapTrackingStrategy(JSStrategyType params_strategy) {
   return strategy;
 }
 
-void DisableAllFeatures(PXCFaceConfiguration* config) {
-  config->detection.isEnabled = false;
-  config->landmarks.isEnabled = false;
-  config->pose.isEnabled = false;
-  config->QueryExpressions()->DisableAllExpressions();
-  config->QueryExpressions()->Disable();
-  config->QueryRecognition()->Disable();
+JSModeType TrackingModeNative2JS(NativeModeType mode) {
+  JSModeType mode_js = JSModeType::TRACKING_MODE_TYPE_NONE;
+
+  if (mode == NativeModeType::FACE_MODE_COLOR) {
+    mode_js = JSModeType::TRACKING_MODE_TYPE_COLOR;
+  } else if (mode == NativeModeType::FACE_MODE_COLOR_PLUS_DEPTH) {
+    mode_js = JSModeType::TRACKING_MODE_TYPE_COLOR_DEPTH;
+  }
+
+  return mode_js;
 }
 
-bool ApplyParamsConfig(
-    PXCFaceModule* faceModule, const JSFaceConfiguration* params_config) {
-  if (!params_config)
-    return true;
+JSStrategyType TrackingStrategyNative2JS(NativeStrategyType strategy) {
+  JSStrategyType strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_NONE;
 
-  PXCFaceConfiguration* config = faceModule->CreateActiveConfiguration();
-  if (!config) {
-    return false;
+  switch (strategy) {
+    case NativeStrategyType::STRATEGY_APPEARANCE_TIME:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_APPEARANCE_TIME;
+      break;
+    case NativeStrategyType::STRATEGY_CLOSEST_TO_FARTHEST:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_CLOSEST_FARTHEST;
+      break;
+    case NativeStrategyType::STRATEGY_FARTHEST_TO_CLOSEST:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_FARTHEST_CLOSEST;
+      break;
+    case NativeStrategyType::STRATEGY_LEFT_TO_RIGHT:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_LEFT_RIGHT;
+      break;
+    case NativeStrategyType::STRATEGY_RIGHT_TO_LEFT:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_RIGHT_LEFT;
+      break;
+    default:
+      strategy_js = JSStrategyType::TRACKING_STRATEGY_TYPE_NONE;
+      break;
   }
 
-  DisableAllFeatures(config);
+  return strategy_js;
+}
 
-  if (params_config->enable_detection) {
-    DLOG(INFO) << "ApplyParamsConfig: Enable detection "
-        << *(params_config->enable_detection.get());
-    config->detection.isEnabled = *(params_config->enable_detection.get());
-  }
-  if (params_config->enable_landmarks) {
-    DLOG(INFO) << "ApplyParamsConfig: Enable landmarks "
-        << *(params_config->enable_landmarks.get());
-    config->landmarks.isEnabled = *(params_config->enable_landmarks.get());
-  }
-  if (params_config->max_faces) {
-    DLOG(INFO) << "ApplyParamsConfig: max faces is "
-        << *(params_config->max_faces.get());
-    config->detection.maxTrackedFaces = *(params_config->max_faces.get());
-  }
-
-  if (params_config->mode != JSModeType::TRACKING_MODE_TYPE_NONE) {
+pxcStatus ApplyChangesConfig(
+    PXCFaceConfiguration* config, const JSFaceConfigurationData& config_data) {
+  if (config_data.mode != JSModeType::TRACKING_MODE_TYPE_NONE) {
     PXCFaceConfiguration::TrackingModeType mode =
-        MapTrackingMode(params_config->mode);
+        TrackingModeJS2Native(config_data.mode);
     config->SetTrackingMode(mode);
-    DLOG(INFO) << "ApplyParamsConfig: TrackingMode is " << mode;
+    DLOG(INFO) << "ApplyChangesConfig: TrackingMode is " << mode;
   }
 
-  if (params_config->strategy != JSStrategyType::TRACKING_STRATEGY_TYPE_NONE) {
+  if (config_data.strategy != JSStrategyType::TRACKING_STRATEGY_TYPE_NONE) {
     PXCFaceConfiguration::TrackingStrategyType strategy =
-        MapTrackingStrategy(params_config->strategy);
+        TrackingStrategyJS2Native(config_data.strategy);
     config->strategy = strategy;
-    DLOG(INFO) << "ApplyParamsConfig: TrackingStrategy is " << strategy;
+    DLOG(INFO) << "ApplyChangesConfig: TrackingStrategy is " << strategy;
   }
 
-  config->ApplyChanges();
-  config->Release();
-  return true;
+  if (config_data.detection) {
+    JSDetectionConfiguration* detection = config_data.detection.get();
+    if (detection->enable) {
+      DLOG(INFO) << "ApplyChangesConfig: Enable detection "
+          << *(detection->enable.get());
+      config->detection.isEnabled = *(detection->enable.get());
+    }
+    if (detection->max_faces) {
+      DLOG(INFO) << "ApplyChangesConfig: Set detection max faces: "
+          << *(detection->max_faces.get());
+      config->detection.maxTrackedFaces = *(detection->max_faces.get());
+    }
+  }
+  if (config_data.landmarks) {
+    JSLandmarksConfiguration* landmarks = config_data.landmarks.get();
+    if (landmarks->enable) {
+      DLOG(INFO) << "ApplyChangesConfig: Enable landmarks "
+          << *(landmarks->enable.get());
+      config->landmarks.isEnabled = *(landmarks->enable.get());
+    }
+    if (landmarks->max_faces) {
+      DLOG(INFO) << "ApplyChangesConfig: Set landmarks max faces: "
+          << *(landmarks->max_faces.get());
+      config->landmarks.maxTrackedFaces = *(landmarks->max_faces.get());
+    }
+    // landmarks->num_landmarks setting would take no effect,
+    // this field is just for readonly and can not be configured.
+  }
+
+  return config->ApplyChanges();
+}
+
+void RetrieveConfig(
+    PXCFaceConfiguration* config, JSFaceConfigurationData* out_data) {
+  // Fill JS FaceConfiguration structure out_data.
+  out_data->mode = TrackingModeNative2JS(config->GetTrackingMode());
+  out_data->strategy = TrackingStrategyNative2JS(config->strategy);
+
+  // DetectionConfiguration.
+  out_data->detection.reset(new JSDetectionConfiguration());
+  JSDetectionConfiguration* detection = out_data->detection.get();
+  detection->enable.reset(new bool(config->detection.isEnabled != 0));
+  detection->max_faces.reset(new int(config->detection.maxTrackedFaces));
+
+  // LandmarksConfiguration.
+  out_data->landmarks.reset(new JSLandmarksConfiguration());
+  JSLandmarksConfiguration* landmarks = out_data->landmarks.get();
+  landmarks->enable.reset(new bool(config->landmarks.isEnabled != 0));
+  landmarks->max_faces.reset(new int(config->landmarks.maxTrackedFaces));
+  landmarks->num_landmarks.reset(new int(config->landmarks.numLandmarks));
 }
 
 }  // namespace
@@ -123,7 +179,7 @@ using namespace realsense::jsapi::face_tracking; // NOLINT
 using namespace xwalk::common; // NOLINT
 
 FaceTrackingObject::FaceTrackingObject()
-    : state_(IDLE),
+    : state_(NOT_READY),
       on_processedsample_(false),
       on_error_(false),
       face_tracking_thread_("FaceTrackingPreviewThread"),
@@ -131,11 +187,9 @@ FaceTrackingObject::FaceTrackingObject()
       session_(NULL),
       sense_manager_(NULL),
       face_output_(NULL),
+      face_config_(NULL),
       latest_color_image_(NULL),
       latest_depth_image_(NULL),
-      detection_enabled_(false),
-      landmark_enabled_(false),
-      num_of_landmark_points_(0),
       binary_message_size_(0) {
   handler_.Register("start",
                     base::Bind(&FaceTrackingObject::OnStart,
@@ -146,12 +200,22 @@ FaceTrackingObject::FaceTrackingObject()
   handler_.Register("getProcessedSample",
                     base::Bind(&FaceTrackingObject::OnGetProcessedSample,
                                base::Unretained(this)));
+  handler_.Register("set",
+                    base::Bind(&FaceTrackingObject::OnSetConf,
+                               base::Unretained(this)));
+  handler_.Register("getDefaults",
+                    base::Bind(&FaceTrackingObject::OnGetDefaultsConf,
+                               base::Unretained(this)));
+  handler_.Register("get",
+                    base::Bind(&FaceTrackingObject::OnGetConf,
+                               base::Unretained(this)));
 }
 
 FaceTrackingObject::~FaceTrackingObject() {
   OnStop(NULL);
-  DestroySessionInstance();
+  Destroy();
 }
+
 
 void FaceTrackingObject::StartEvent(const std::string& type) {
   if (type == std::string("processedsample")) {
@@ -178,11 +242,18 @@ void FaceTrackingObject::OnStart(
     return;  // Wrong state.
   }
 
+  if (!Init()) {
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), std::string("Can't prepare pipeline")));
+    return;
+  }
+
   face_tracking_thread_.Start();
 
   face_tracking_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&FaceTrackingObject::OnCreateAndStartPipeline,
+      base::Bind(&FaceTrackingObject::OnStartPipeline,
                  base::Unretained(this),
                  base::Passed(&info)));
 }
@@ -201,7 +272,7 @@ void FaceTrackingObject::OnStop(
 
   face_tracking_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&FaceTrackingObject::OnStopAndDestroyPipeline,
+      base::Bind(&FaceTrackingObject::OnStopPipeline,
                  base::Unretained(this),
                  base::Passed(&info)));
 
@@ -224,75 +295,94 @@ void FaceTrackingObject::OnGetProcessedSample(
                  base::Passed(&info)));
 }
 
-void FaceTrackingObject::OnCreateAndStartPipeline(
+void FaceTrackingObject::OnSetConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Pipeline is not running, do it on current thread.
+  if (!face_tracking_thread_.IsRunning()) {
+    if (!Init()) {
+      info->PostResult(
+          Set::Results::Create(
+              std::string(), std::string("Can't prepare pipeline")));
+      return;
+    }
+
+    DoSetConf(info.Pass());
+  } else {
+    // Pipeline is running, do it on tracking thread.
+    face_tracking_thread_.message_loop()->PostTask(
+        FROM_HERE,
+        base::Bind(&FaceTrackingObject::DoSetConf,
+                   base::Unretained(this),
+                   base::Passed(&info)));
+  }
+}
+
+void FaceTrackingObject::OnGetDefaultsConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Pipeline is not running, do it on current thread.
+  if (!face_tracking_thread_.IsRunning()) {
+    if (!Init()) {
+      JSFaceConfigurationData config_data;
+      info->PostResult(
+          GetDefaults::Results::Create(
+              config_data, std::string("Can't prepare pipeline")));
+      return;
+    }
+
+    DoGetDefaultsConf(info.Pass());
+  } else {
+    // Pipeline is running, do it on tracking thread.
+    face_tracking_thread_.message_loop()->PostTask(
+        FROM_HERE,
+        base::Bind(&FaceTrackingObject::DoGetDefaultsConf,
+                   base::Unretained(this),
+                   base::Passed(&info)));
+  }
+}
+
+void FaceTrackingObject::OnGetConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Pipeline is not running, do it on current thread.
+  if (!face_tracking_thread_.IsRunning()) {
+    if (!Init()) {
+      JSFaceConfigurationData config_data;
+      info->PostResult(
+          Get::Results::Create(
+              config_data, std::string("Can't prepare pipeline")));
+      return;
+    }
+
+    DoGetConf(info.Pass());
+  } else {
+    // Pipeline is running, do it on tracking thread.
+    face_tracking_thread_.message_loop()->PostTask(
+        FROM_HERE,
+        base::Bind(&FaceTrackingObject::DoGetConf,
+                   base::Unretained(this),
+                   base::Passed(&info)));
+  }
+}
+
+void FaceTrackingObject::OnStartPipeline(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
   DCHECK(state_ == IDLE);
 
-  scoped_ptr<Start::Params> params(
-      Start::Params::Create(*info->arguments()));
-  if (!params) {
-    info->PostResult(
-        Start::Results::Create(
-            std::string(), "Malformed parameters"));
-    StopFaceTrackingThread();
-    return;
-  }
-
-  // Create session.
-  if (!CreateSessionInstance()) {
-    info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to create an SDK session"));
-    StopFaceTrackingThread();
-    return;
-  }
-
-  // Create sense manager.
-  sense_manager_ = session_->CreateSenseManager();
-  if (!sense_manager_) {
-    info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to create sense manager"));
-    StopFaceTrackingThread();
-    return;
-  }
-
-  // Enable face module in sense manager.
-  sense_manager_->EnableFace();
-  PXCFaceModule* faceModule = sense_manager_->QueryFace();
-  if (!faceModule) {
-    info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to enable face module"));
-    ReleaseResources();
-    StopFaceTrackingThread();
-    return;
-  }
-
-  // Apply face module configurations from JS side.
-  if (!ApplyParamsConfig(faceModule, params->config.get())) {
-    info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to apply face configuration"));
-    ReleaseResources();
-    StopFaceTrackingThread();
-    return;
-  }
-
   // Init sense manager.
-  if (sense_manager_->Init() < PXC_STATUS_NO_ERROR) {
+  pxcStatus status = sense_manager_->Init();
+  if (status < PXC_STATUS_NO_ERROR) {
+    DLOG(ERROR) << "Failed to init sense manager: " << status;
     info->PostResult(
         Start::Results::Create(
             std::string(), "Failed to init sense manager"));
-    ReleaseResources();
+    ReleasePipelineResources();
     StopFaceTrackingThread();
     return;
   }
 
-  PXCFaceConfiguration* config = faceModule->CreateActiveConfiguration();
-  if (config->GetTrackingMode() ==
+  if (face_config_->GetTrackingMode() ==
       PXCFaceConfiguration::TrackingModeType::FACE_MODE_COLOR_PLUS_DEPTH) {
+    DLOG(INFO) << "Face color_depth tracking mode, set for DS4 device";
     // Quote from C++ SDK FaceTracking sample application.
     PXCCapture::DeviceInfo device_info;
     sense_manager_->QueryCaptureManager()->QueryDevice()
@@ -305,16 +395,18 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
           ->SetDepthConfidenceThreshold(0);
     }
   }
-  detection_enabled_ = config->detection.isEnabled != 0;
-  landmark_enabled_ = config->landmarks.isEnabled != 0;
-  num_of_landmark_points_ = config->landmarks.numLandmarks;
-  DLOG(INFO) << "Number of landmark points: " << num_of_landmark_points_;
-
-  config->Release();
-  config = NULL;
 
   // Create face module output.
-  face_output_ = faceModule->CreateOutput();
+  face_output_ = sense_manager_->QueryFace()->CreateOutput();
+  if (!face_output_) {
+    DLOG(ERROR) << "Failed to create face output";
+    info->PostResult(
+        Start::Results::Create(
+            std::string(), "Failed to create face output"));
+    ReleasePipelineResources();
+    StopFaceTrackingThread();
+    return;
+  }
 
   // As we called EnableFace(),
   // SDK will enable the corresponding streams implicitly.
@@ -323,11 +415,12 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
     info->PostResult(
         Start::Results::Create(
             std::string(), "Failed to create processed sample images"));
-    ReleaseResources();
+    ReleasePipelineResources();
     StopFaceTrackingThread();
     return;
   }
 
+  DLOG(INFO) << "Start, State transit from IDLE to TRACKING";
   state_ = TRACKING;
 
   face_tracking_thread_.message_loop()->PostTask(
@@ -342,7 +435,7 @@ void FaceTrackingObject::OnCreateAndStartPipeline(
 
 void FaceTrackingObject::OnRunPipeline() {
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
-  if (state_ == IDLE) return;
+  if (state_ != TRACKING) return;
 
   pxcStatus status = sense_manager_->AcquireFrame(true);
   if (status < PXC_STATUS_NO_ERROR) {
@@ -355,9 +448,8 @@ void FaceTrackingObject::OnRunPipeline() {
       DispatchEvent("error", eventData.Pass());
     }
 
-    ReleaseResources();
+    ReleasePipelineResources();
     StopFaceTrackingThread();
-    state_ = IDLE;
     return;
   }
 
@@ -374,9 +466,8 @@ void FaceTrackingObject::OnRunPipeline() {
         DispatchEvent("error", eventData.Pass());
       }
 
-      ReleaseResources();
+      ReleasePipelineResources();
       StopFaceTrackingThread();
-      state_ = IDLE;
       return;
     }
 
@@ -401,12 +492,11 @@ void FaceTrackingObject::OnRunPipeline() {
                  base::Unretained(this)));
 }
 
-void FaceTrackingObject::OnStopAndDestroyPipeline(
+void FaceTrackingObject::OnStopPipeline(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
 
-  state_ = IDLE;
-  ReleaseResources();
+  ReleasePipelineResources();
 
   if (info.get()) {
     info->PostResult(
@@ -513,17 +603,24 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
   // Fill ProcessedSample::faces data.
   if (!fail) {
     const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
+    bool detection_enabled = face_config_->detection.isEnabled != 0;
+    bool landmarks_enabled = face_config_->landmarks.isEnabled != 0;
 
     int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
     int_array[0] = num_of_faces;
-    int_array[1] = detection_enabled_ ? 1 : 0;
-    int_array[2] = landmark_enabled_ ? 1 : 0;
+    int_array[1] = detection_enabled ? 1 : 0;
+    int_array[2] = landmarks_enabled ? 1 : 0;
     offset += 3 * sizeof(int);
 
     for (int i = 0; i < num_of_faces; i++) {
       PXCFaceData::Face* trackedFace = face_output_->QueryFaceByIndex(i);
 
-      if (detection_enabled_) {
+      // Fill FaceData::faceId
+      *(reinterpret_cast<int*>(binary_message_.get() + offset)) =
+          trackedFace->QueryUserID();
+      offset += sizeof(int);
+
+      if (detection_enabled) {
         const PXCFaceData::DetectionData* detectionData =
             trackedFace->QueryDetection();
         // Fill FaceData::detection data.
@@ -556,13 +653,13 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
         }
       }
 
-      if (landmark_enabled_) {
+      if (landmarks_enabled) {
         const PXCFaceData::LandmarksData* landmarkData =
             trackedFace->QueryLandmarks();
-        // Fill FaceData::landmark data.
+        // Fill FaceData::landmarks data.
         if (landmarkData) {
           const int num_of_points = landmarkData->QueryNumPoints();
-          DCHECK(num_of_points == num_of_landmark_points_);
+          DCHECK(num_of_points == face_config_->landmarks.numLandmarks);
           *(reinterpret_cast<int*>(binary_message_.get() + offset)) =
               num_of_points;
           offset += sizeof(int);
@@ -612,27 +709,169 @@ void FaceTrackingObject::OnGetProcessedSampleOnPipeline(
   }
 }
 
-bool FaceTrackingObject::CreateSessionInstance() {
-  if (session_) {
+// May run on face extension thread or face tracking thread.
+void FaceTrackingObject::DoSetConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  // Pipeline is exiting because of error
+  if (state_ == NOT_READY) {
+    info->PostResult(
+        Set::Results::Create(
+            std::string(), std::string("Pipeline is not ready")));
+    return;
+  }
+
+  scoped_ptr<Set::Params> params(
+      Set::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        Set::Results::Create(
+            std::string(), std::string("Malformed parameters")));
+    return;
+  }
+
+  // Apply face configurations from JS side.
+  pxcStatus status = ApplyChangesConfig(face_config_, params->face_conf);
+  if (status < PXC_STATUS_NO_ERROR) {
+    DLOG(ERROR) << "ApplyChangesConfig() failed: " << status;
+    info->PostResult(
+        Set::Results::Create(
+            std::string(), std::string("Failed to set face configuration")));
+    return;
+  }
+  info->PostResult(
+      Set::Results::Create(
+          std::string("Success"), std::string()));
+}
+
+// May run on face extension thread or face tracking thread.
+void FaceTrackingObject::DoGetDefaultsConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  JSFaceConfigurationData config_data;
+
+  // Pipeline is exiting because of error
+  if (state_ == NOT_READY) {
+    info->PostResult(
+        GetDefaults::Results::Create(
+            config_data, std::string("Pipeline is not ready")));
+    return;
+  }
+
+  // Call native restoreDefaults().
+  face_config_->RestoreDefaults();
+
+  // Get face configurations values.
+  RetrieveConfig(face_config_, &config_data);
+  // Post FaceConfigurationData to JS side.
+  info->PostResult(
+      GetDefaults::Results::Create(
+          config_data, std::string()));
+}
+
+// May run on face extension thread or face tracking thread.
+void FaceTrackingObject::DoGetConf(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  JSFaceConfigurationData config_data;
+
+  // Pipeline is exiting because of error
+  if (state_ == NOT_READY) {
+    info->PostResult(
+        Get::Results::Create(
+            config_data, std::string("Pipeline is not ready")));
+    return;
+  }
+
+  // Call native update().
+  pxcStatus status = face_config_->Update();
+  if (status < PXC_STATUS_NO_ERROR) {
+    DLOG(ERROR) << "Face config update() failed: " << status;
+    info->PostResult(
+        Get::Results::Create(
+            config_data, std::string("Failed to get face configuration")));
+    return;
+  }
+
+  // Get face configurations values.
+  RetrieveConfig(face_config_, &config_data);
+  // Post FaceConfigurationData to JS side.
+  info->PostResult(
+      Get::Results::Create(
+          config_data, std::string()));
+}
+
+bool FaceTrackingObject::Init() {
+  // Assure no race condition between current thread and face_tracking_thread_
+  DCHECK(!face_tracking_thread_.IsRunning());
+
+  if (state_ != NOT_READY) {
     return true;
   }
 
-  session_ = PXCSession::CreateInstance();
+  // Create session.
   if (!session_) {
+    session_ = PXCSession::CreateInstance();
+    if (!session_) {
+      DLOG(ERROR) << "Failed to create session";
+      return false;
+    }
+  }
+
+  // Create sense manager.
+  if (!sense_manager_) {
+    sense_manager_ = session_->CreateSenseManager();
+    if (!sense_manager_) {
+      DLOG(ERROR) << "Failed to create sense manager";
+      return false;
+    }
+  }
+
+  // Enable face module in sense manager.
+  sense_manager_->EnableFace();
+  PXCFaceModule* face_module = sense_manager_->QueryFace();
+  if (!face_module) {
+    DLOG(ERROR) << "Failed to enable face module";
     return false;
   }
+
+  // Create FaceConfiguration instance.
+  if (face_config_) {
+    face_config_->Release();
+  }
+  face_config_ = face_module->CreateActiveConfiguration();
+  if (!face_config_) {
+    DLOG(ERROR) << "Failed to create FaceConfiguration";
+    return false;
+  }
+
+  // Transit from NOT_READY to IDLE state.
+  state_ = IDLE;
+  DLOG(INFO) << "State transit from NOT_READY to IDLE";
   return true;
 }
 
-void FaceTrackingObject::DestroySessionInstance() {
+void FaceTrackingObject::Destroy() {
+  // Assure no race condition between current thread and face_tracking_thread_
+  DCHECK(!face_tracking_thread_.IsRunning());
+
+  if (face_config_) {
+    face_config_->Release();
+    face_config_ = NULL;
+  }
+
+  if (sense_manager_) {
+    sense_manager_->Close();
+    sense_manager_->Release();
+    sense_manager_ = NULL;
+  }
+
   if (session_) {
     session_->Release();
     session_ = NULL;
   }
+  DLOG(INFO) << "Destroy, State transit from " << state_ << " to NOT_READY";
+  state_ = NOT_READY;
 }
 
 bool FaceTrackingObject::CreateProcessedSampleImages() {
-  DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
   DCHECK(!latest_color_image_);
   DCHECK(!latest_depth_image_);
 
@@ -642,8 +881,12 @@ bool FaceTrackingObject::CreateProcessedSampleImages() {
 
   // color image.
   if (profiles.color.imageInfo.format) {
-    // TODO(leonhsl): Currently we assume color stream is PIXEL_FORMAT_RGB32.
-    DCHECK(profiles.color.imageInfo.format == PXCImage::PIXEL_FORMAT_RGB32);
+    // Only support color stream PIXEL_FORMAT_RGB32.
+    if (profiles.color.imageInfo.format != PXCImage::PIXEL_FORMAT_RGB32) {
+      DLOG(ERROR) << "Device color stream format is not RGB32: "
+          << profiles.color.imageInfo.format;
+      return false;
+    }
     DLOG(INFO) << "color.imageInfo: width is " << profiles.color.imageInfo.width
         << ", height is " << profiles.color.imageInfo.height
         << ", format is "
@@ -655,8 +898,12 @@ bool FaceTrackingObject::CreateProcessedSampleImages() {
   }
   // depth image.
   if (profiles.depth.imageInfo.format) {
-    // TODO(leonhsl): Currently we assume depth stream is PIXEL_FORMAT_DEPTH.
-    DCHECK(profiles.depth.imageInfo.format == PXCImage::PIXEL_FORMAT_DEPTH);
+    // Only support depth stream PIXEL_FORMAT_DEPTH.
+    if (profiles.depth.imageInfo.format != PXCImage::PIXEL_FORMAT_DEPTH) {
+      DLOG(ERROR) << "Device depth stream format is not DEPTH: "
+          << profiles.depth.imageInfo.format;
+      return false;
+    }
     DLOG(INFO) << "depth.imageInfo: width is " << profiles.depth.imageInfo.width
         << ", height is " << profiles.depth.imageInfo.height
         << ", format is "
@@ -671,7 +918,7 @@ bool FaceTrackingObject::CreateProcessedSampleImages() {
   return latest_color_image_ != NULL;
 }
 
-void FaceTrackingObject::ReleaseResources() {
+void FaceTrackingObject::ReleasePipelineResources() {
   DCHECK_EQ(face_tracking_thread_.message_loop(), base::MessageLoop::current());
 
   binary_message_.reset();
@@ -689,11 +936,15 @@ void FaceTrackingObject::ReleaseResources() {
     face_output_->Release();
     face_output_ = NULL;
   }
-  if (sense_manager_) {
-    sense_manager_->Close();
-    sense_manager_->Release();
-    sense_manager_ = NULL;
+  if (face_config_) {
+    face_config_->Release();
+    face_config_ = NULL;
   }
+  sense_manager_->Close();
+
+  DLOG(INFO) << "Release pipeline, State transit from "
+      << state_ << " to NOT_READY";
+  state_ = NOT_READY;
 }
 
 void FaceTrackingObject::StopFaceTrackingThread() {
@@ -716,7 +967,8 @@ void FaceTrackingObject::OnStopFaceTrackingThread() {
 // detection data available (int32),
 // landmark data available (int32),
 // face data array:
-//     array element: rect x, y, w, h (int32), avgDepth (float32),
+//     array element: faceId (int32),
+//                    rect x, y, w, h (int32), avgDepth (float32),
 //                    landmark data: number of landmark points (int32),
 //                                   landmark point data array:
 //                                      array element:
@@ -738,16 +990,19 @@ size_t FaceTrackingObject::CalculateBinaryMessageSize() {
 
   const int num_of_faces = face_output_->QueryNumberOfDetectedFaces();
   int one_face_size = 0;
-  if (detection_enabled_) {
+  // size for faceId (int32)
+  one_face_size += sizeof(int);
+
+  if (face_config_->detection.isEnabled != 0) {
     one_face_size += (4 * sizeof(int) + sizeof(float));
   }
-  if (landmark_enabled_) {
+  if (face_config_->landmarks.isEnabled != 0) {
     int landmark_size = 0;
     // size for "number of landmark points"
     landmark_size += sizeof(int);
     // size for "one landmark point data"
     const int landmark_point_size = 3 * sizeof(int) + 5 * sizeof(float);
-    landmark_size += num_of_landmark_points_ * landmark_point_size;
+    landmark_size += face_config_->landmarks.numLandmarks * landmark_point_size;
 
     one_face_size += landmark_size;
   }

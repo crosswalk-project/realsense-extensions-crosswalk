@@ -2,8 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-var FaceTracking = function(object_id) {
-  common.BindingObject.call(this, common.getUniqueId());
+var FaceConfiguration = function(faceModuleObjId) {
+  common.BindingObject.call(this, faceModuleObjId);
+
+  this._addMethodWithPromise('set');
+  this._addMethodWithPromise('getDefaults');
+  this._addMethodWithPromise('get');
+};
+FaceConfiguration.prototype = new common.BindingObjectPrototype();
+FaceConfiguration.prototype.constructor = FaceConfiguration;
+
+var FaceModule = function(object_id) {
+  common.BindingObject.call(this, object_id ? object_id : common.getUniqueId());
   common.EventTarget.call(this);
 
   if (object_id == undefined)
@@ -19,6 +29,7 @@ var FaceTracking = function(object_id) {
     // FaceData Array
 
     // FaceData layout:
+    // faceId (int32),
     // detection data: rect x, y, w, h (int32), avgDepth (float32),
     // landmark data: number of landmark points (int32),
     //                landmark point array
@@ -71,18 +82,23 @@ var FaceTracking = function(object_id) {
     offset = offset + 3 * 4; // 3 int32(4 bytes)
 
     for (var i = 0; i < num_of_faces; ++i) {
-      int32_array = new Int32Array(data, offset, 4);
+
+      int32_array = new Int32Array(data, offset, 1);
+      var faceid_value = int32_array[0];
+      offset = offset + 4; // 1 int32(4 bytes)
 
       var detection_value = undefined;
       var landmark_value = undefined;
       if (detection_enabled) {
+        int32_array = new Int32Array(data, offset, 4);
+        offset = offset + 4 * 4; // 4 int32(4 bytes)
         var rect_value = {
           x: int32_array[0],
           y: int32_array[1],
           w: int32_array[2],
           h: int32_array[3],
         };
-        offset = offset + 4 * 4; // 4 int32(4 bytes)
+
         var float32_array = new Float32Array(data, offset, 1);
         offset = offset + 4; // 1 float32(4 bytes)
         detection_value = {
@@ -114,11 +130,12 @@ var FaceTracking = function(object_id) {
         landmark_value = { points: landmark_points_array };
       }
 
-      var face = {
+      var facedata = {
+        faceId: faceid_value,
         detection: detection_value,
-        landmark: landmark_value
+        landmarks: landmark_value,
       };
-      face_array.push(face);
+      face_array.push(facedata);
     }
 
     var color_image_value = {
@@ -142,7 +159,7 @@ var FaceTracking = function(object_id) {
       depth: depth_image_value,
       faces: face_array
     };
-  };
+  }
 
   this._addMethodWithPromise('start');
   this._addMethodWithPromise('stop');
@@ -150,9 +167,18 @@ var FaceTracking = function(object_id) {
 
   this._addEvent('error');
   this._addEvent('processedsample');
+
+  var faceConfObj = new FaceConfiguration(this._id);
+
+  Object.defineProperties(this, {
+    'configuration': {
+      value: faceConfObj,
+      writable: false,
+      enumerable: true,
+    },
+  });
 };
 
-FaceTracking.prototype = new common.EventTargetPrototype();
-FaceTracking.prototype.constructor = FaceTracking;
-
-exports = new FaceTracking();
+FaceModule.prototype = new common.EventTargetPrototype();
+FaceModule.prototype.constructor = FaceModule;
+exports.FaceModule = FaceModule;

@@ -8,27 +8,61 @@
         height: 480px;
         border: 1px solid #000000;
       }
+      button {
+        margin-right:10px;
+      }
   </style>
   <body>
-    <div style='margin-bottom:23px; position: absolute; top: 20px;'>
-      <button id='start'>Start</button>
-      <button id='stop'>Stop</button>
+    <div style='margin-bottom:10px; margin-top:20px;'>
+      <button id='start'>start</button>
+      <button id='stop'>stop</button>
     </div>
-    <div style='margin-bottom:23px; position: absolute; top: 60px;'>
+    <div style='margin-bottom:5px;'>
+      <button id='setConf'>set configuration</button>
+      <button id='getConf'>get current configuration</button>
+      <button id='getDefaultsConf'>get default configuration</button>
+    </div>
+    <div style='margin-bottom:5px;'>
+      <label style='display: inline-block;'>Tracking Mode:</label>
+      <input type='radio' id='tracking_color' name='radioTrackingMode'>color</input>
+      <input type='radio' id='tracking_color_depth' name='radioTrackingMode'>color_depth</input>
+    </div>
+    <div style='margin-bottom:5px;'>
+      <label style='display: inline-block;'>Tracking Strategy:</label>
+      <input type='radio' id='strategy_time' name='radioTrackingStrategy'>appearance_time</input>
+      <input type='radio' id='strategy_close_far' name='radioTrackingStrategy'>closest_farthest</input>
+      <input type='radio' id='strategy_far_close' name='radioTrackingStrategy'>farthest_closest</input>
+      <input type='radio' id='strategy_left_right' name='radioTrackingStrategy'>left_right</input>
+      <input type='radio' id='strategy_right_left' name='radioTrackingStrategy'>right_left</input>
+    </div>
+    <div style='margin-bottom:5px;'>
       <input type='checkbox' id='enableDetection'>Detection</input>
+      <label style='display: inline-block; width: 50px;'></label>
+      <label style='display: inline-block;'>Max Faces to track:</label>
+      <input type='number' id='detection_max_faces' min='1'></input>
     </div>
-    <div style='margin-bottom:23px; position: absolute; left: 100px; top: 60px;'>
+    <div style='margin-bottom:5px;'>
       <input type='checkbox' id='enableLandmarks'>Landmarks</input>
+      <label style='display: inline-block; width: 50px;'></label>
+      <label style='display: inline-block;'>Max Faces to track:</label>
+      <input type='number' id='landmarks_max_faces' min='1'></input>
+      <label style='display: inline-block; width: 50px;'></label>
+      <label style='display: inline-block;'>Max Landmarks to track:</label>
+      <label id='landmarks_max_landmarks' style='display: inline-block;'></input>
     </div>
-    <div id='color_container' style='position: absolute; left: 10px; top: 90px;'>
+
+    <div id='color_container' style='position: absolute; top: 190px'>
       <canvas id='color' width='640' height='480'></canvas>
     </div>
-    <div id='depth_container' style='position: absolute; left: 660px; top: 90px'>
+    <div id='depth_container' style='position: absolute; left: 660px; top: 190px'>
       <canvas id='depth' width='640' height='480'></canvas>
     </div>
-    <p id='2DSize' style='position: absolute; left: 300px; top: 580px;'>2D</p>
-    <p id='3DSize' style='position: absolute; left: 930px; top: 580px;'>3D</p>
-    <p id='status' style='position: absolute; left: 10px; top: 600px;'>Status</p>
+    <p id='2DSize' style='position: absolute; left: 300px; top: 680px;'>2D</p>
+    <p id='3DSize' style='position: absolute; left: 930px; top: 680px;'>3D</p>
+    <p id='status' style='position: absolute; left: 10px; top: 700px;'>Status</p>
+    <p id='recognitionData' style='position: absolute; left: 10px; top: 730px;'>
+      (Face id: Recognition id) :
+    </p>
   </body>
   <script src="libs/stats.min.js"></script>
   <script src="facetracking.js"></script>

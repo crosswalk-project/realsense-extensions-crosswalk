@@ -1,11 +1,29 @@
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
+var getDefaultsButton = document.getElementById('getDefaultsConf');
+var setConfButton = document.getElementById('setConf');
+var getConfButton = document.getElementById('getConf');
+
+var trackingColorModeRadio = document.getElementById('tracking_color');
+var trackingColorDepthModeRadio = document.getElementById('tracking_color_depth');
+
+var strategyTimeRadio = document.getElementById('strategy_time');
+var strategyCloseFarRadio = document.getElementById('strategy_close_far');
+var strategyFarCloseRadio = document.getElementById('strategy_far_close');
+var strategyLeftRightRadio = document.getElementById('strategy_left_right');
+var strategyRightLeftRadio = document.getElementById('strategy_right_left');
+
 var detectionCheckbox = document.getElementById('enableDetection');
+var detectionMaxFacesNum = document.getElementById('detection_max_faces');
+
 var landmarksCheckbox = document.getElementById('enableLandmarks');
+var landmarksMaxFacesNum = document.getElementById('landmarks_max_faces');
+var landmarksMaxLandmarksNum = document.getElementById('landmarks_max_landmarks');
 
 var colorImageSizeElement = document.getElementById('2DSize');
 var depthImageSizeElement = document.getElementById('3DSize');
 var statusElement = document.getElementById('status');
+var recognitionDataElement = document.getElementById('recognitionData');
 
 var color_canvas = document.getElementById('color');
 var color_context = color_canvas.getContext('2d');
@@ -57,8 +75,76 @@ function ConvertDepthToRGBUsingHistogram(
   }
 }
 
+// Collect user settings
+function getConf() {
+  var faceModuleConf = {};
+
+  // Tracking mode
+  if (trackingColorModeRadio.checked) {
+    faceModuleConf.mode = 'color';
+  } else if (trackingColorDepthModeRadio.checked) {
+    faceModuleConf.mode = 'color_depth';
+  }
+  // Tracking strategy
+  if (strategyTimeRadio.checked) {
+    faceModuleConf.strategy = 'appearance_time';
+  } else if (strategyCloseFarRadio.checked) {
+    faceModuleConf.strategy = 'closest_farthest';
+  } else if (strategyFarCloseRadio.checked) {
+    faceModuleConf.strategy = 'farthest_closest';
+  } else if (strategyLeftRightRadio.checked) {
+    faceModuleConf.strategy = 'left_right';
+  } else if (strategyRightLeftRadio.checked) {
+    faceModuleConf.strategy = 'right_left';
+  }
+  // detection
+  faceModuleConf.detection = {};
+  faceModuleConf.detection.enable = detectionCheckbox.checked;
+  if (detectionMaxFacesNum.value) {
+    faceModuleConf.detection.maxFaces = parseInt(detectionMaxFacesNum.value);
+  }
+
+  // landmarks
+  faceModuleConf.landmarks = {};
+  faceModuleConf.landmarks.enable = landmarksCheckbox.checked;
+  if (landmarksMaxFacesNum.value) {
+    faceModuleConf.landmarks.maxFaces = parseInt(landmarksMaxFacesNum.value);
+  }
+
+  return faceModuleConf;
+}
+
+function setConf(faceModuleConf) {
+  // Tracking mode
+  if (faceModuleConf.mode == 'color') {
+    trackingColorModeRadio.checked = true;
+  } else if (faceModuleConf.mode == 'color_depth') {
+    trackingColorDepthModeRadio.checked = true;
+  }
+  // Tracking strategy
+  if (faceModuleConf.strategy == 'appearance_time') {
+    strategyTimeRadio.checked = true;
+  } else if (faceModuleConf.strategy == 'closest_farthest') {
+    strategyCloseFarRadio.checked = true;
+  } else if (faceModuleConf.strategy == 'farthest_closest') {
+    strategyFarCloseRadio.checked = true;
+  } else if (faceModuleConf.strategy == 'left_right') {
+    strategyLeftRightRadio.checked = true;
+  } else if (faceModuleConf.strategy == 'right_left') {
+    strategyRightLeftRadio.checked = true;
+  }
+  // detection
+  detectionCheckbox.checked = faceModuleConf.detection.enable;
+  detectionMaxFacesNum.value = faceModuleConf.detection.maxFaces;
+
+  // landmarks
+  landmarksCheckbox.checked = faceModuleConf.landmarks.enable;
+  landmarksMaxFacesNum.value = faceModuleConf.landmarks.maxFaces;
+  landmarksMaxLandmarksNum.innerHTML = faceModuleConf.landmarks.numLandmarks.toString();
+}
+
 function main() {
-  ft = realsense.Face;
+  ft = new realsense.Face.FaceModule();
 
   var processed_sample_fps = new Stats();
   processed_sample_fps.domElement.style.position = 'absolute';
@@ -66,7 +152,7 @@ function main() {
   processed_sample_fps.domElement.style.right = '0px';
   document.getElementById('color_container').appendChild(processed_sample_fps.domElement);
 
-  //detectionCheckbox.checked = true;
+  var currentFaceDataArray = [];
 
   var getting_processed_sample = false;
   ft.onprocessedsample = function(e) {
@@ -87,39 +173,65 @@ function main() {
       color_image_data.data.set(processed_sample.color.data);
       color_context.putImageData(color_image_data, 0, 0);
 
+      var recogData = '';
       // Get traced faces.
       for (var i = 0; i < processed_sample.faces.length; ++i) {
         var face = processed_sample.faces[i];
-        // Draw rects on every tracked faces.
+        // Draw rect on every tracked face.
         if (face.detection) {
           var rect = face.detection.boundingRect;
           //statusElement.innerHTML = 'Status: face rect is ('
           //    + rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h + ')';
           color_context.strokeStyle = 'red';
           color_context.strokeRect(rect.x, rect.y, rect.w, rect.h);
+          // Print face ID
+          color_context.font = '15px';
+          color_context.fillStyle = 'red';
+          color_context.fillText(face.faceId, rect.x, rect.y + 10);
           console.log('Face No.' + i + ': boundingRect: ' +
               rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h +
               ' avgDepth: ' + face.detection.avgDepth);
         }
-        // Draw landmark points on every tracked faces.
-        if (face.landmark) {
-          for (var j = 0; j < face.landmark.points.length; ++j) {
-            var landmark_point = face.landmark.points[j];
+        // Draw landmark points on every tracked face.
+        if (face.landmarks) {
+          for (var j = 0; j < face.landmarks.points.length; ++j) {
+            var landmark_point = face.landmarks.points[j];
             color_context.font = '6px';
             if (landmark_point.confidenceImage) {
               // White color for confidence point.
               color_context.fillStyle = 'white';
               color_context.fillText('*',
-                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y - 3);
+                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y + 3);
             } else {
               // Red color for non-confidence point.
               color_context.fillStyle = 'red';
               color_context.fillText('x',
-                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y - 3);
+                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y + 3);
             }
           }
         }
+        // Print recognition id for every tracked face.
+        if (face.recognition) {
+          var recognitionId = face.recognition.userId;
+          console.log('Face No.' + i + ': Recognition ID is ' + recognitionId);
+          var text;
+          if (recognitionId == -1) {
+            text = 'Not Registered';
+          } else {
+            text = 'Registered ID: ' + recognitionId;
+          }
+          if (face.detection) {
+            var rect = face.detection.boundingRect;
+            color_context.font = '15px';
+            color_context.fillStyle = 'green';
+            color_context.fillText(text, rect.x + 20, rect.y + 15);
+          }
+          recogData = recogData + '(' + face.faceId + ', ' + recognitionId + ') ';
+        }
       }
+
+      recognitionDataElement.innerHTML = '(Face id: Recognition id) : ' + recogData;
+      currentFaceDataArray = processed_sample.faces;
 
       if (processed_sample.depth) {
         depthImageSizeElement.innerHTML =
@@ -153,11 +265,46 @@ function main() {
     statusElement.innerHTML = 'Status: onerror: ' + e.data.status;
   };
 
+  setConfButton.onclick = function(e) {
+    // Call configuration.set API.
+    ft.configuration.set(getConf()).then(
+        function(e) {
+          statusElement.innerHTML = 'Status: configuration.set succeeds';
+          console.log('configuration.set succeeds');},
+        function(e) {
+          statusElement.innerHTML = 'Status: ' + e;
+          console.log(e);});
+  };
+
+  getDefaultsButton.onclick = function(e) {
+    // Call configuration.getDefaults API, will get back default FaceConfiguration value.
+    ft.configuration.getDefaults().then(
+        function(confData) {
+          // Show FaceConfiguration values onto UI.
+          setConf(confData);
+          statusElement.innerHTML = 'Status: configuration.getDefaults succeeds';
+          console.log('configuration.getDefaults succeeds');},
+        function(e) {
+          statusElement.innerHTML = 'Status: ' + e;
+          console.log(e);});
+  };
+
+  getConfButton.onclick = function(e) {
+    // Call configuration.get API, will get back current FaceConfiguration value.
+    ft.configuration.get().then(
+        function(confData) {
+          // Show FaceConfiguration values onto UI.
+          setConf(confData);
+          statusElement.innerHTML = 'Status: configuration.get succeeds';
+          console.log('configuration.get succeeds');},
+        function(e) {
+          statusElement.innerHTML = 'Status: ' + e;
+          console.log(e);});
+  };
+
   startButton.onclick = function(e) {
     getting_processed_sample = false;
-    ft.start({
-      enableDetection: detectionCheckbox.checked,
-      enableLandmarks: landmarksCheckbox.checked}).then(
+    ft.start().then(
         function(e) {
           statusElement.innerHTML = 'Status: start succeeds';
           console.log('start succeeds');},
@@ -175,4 +322,5 @@ function main() {
           statusElement.innerHTML = 'Status: ' + e;
           console.log(e);});
   };
+
 }
