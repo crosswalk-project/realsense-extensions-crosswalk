@@ -14,7 +14,6 @@ namespace photo_capture {
 
   callback ImagePromise = void(depth_photo.Image image, DOMString error);
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
 
   interface Events {
     static void onerror();
@@ -22,8 +21,8 @@ namespace photo_capture {
   };
 
   interface Functions {
-    static void enableDepthStream(DOMString camera, Promise promise);
-    static void disableDepthStream(Promise promise);
+    static void enableDepthStream(DOMString camera);
+    static void disableDepthStream();
     static void getDepthImage(ImagePromise promise);
     static void takePhoto(PhotoPromise promise);
     

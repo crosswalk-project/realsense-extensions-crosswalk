@@ -27,7 +27,6 @@ bool CopyImageToBinaryMessage(PXCImage* image,
 void CreateDepthPhotoObject(EnhancedPhotographyInstance* instance,
                             PXCPhoto* pxcphoto,
                             jsapi::depth_photo::Photo* photo);
-scoped_ptr<base::ListValue> CreateStringErrorResult(const std::string& error);
 scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error);
 scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error,
                                               const std::string& message);

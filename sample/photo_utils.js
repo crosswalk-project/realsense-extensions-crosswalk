@@ -88,9 +88,9 @@ function colorResize() {
               fillCanvasUsingColorImage(image);
               statusElement.innerHTML = 'colorResize success.';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function commonFOV() {
@@ -102,9 +102,9 @@ function commonFOV() {
               fillCanvasUsingColorImage(image);
               statusElement.innerHTML = 'commonFOV success.';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function depthEnhance() {
@@ -116,9 +116,9 @@ function depthEnhance() {
               fillCanvasUsingDepthImage(image);
               statusElement.innerHTML = 'enhanceDepth success.';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function depthResize() {
@@ -130,9 +130,9 @@ function depthResize() {
               fillCanvasUsingDepthImage(image);
               statusElement.innerHTML = 'depthResize success.';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function depthQuality() {
@@ -140,7 +140,7 @@ function depthQuality() {
       function(quality) {
         statusElement.innerHTML = 'Depth qulity = ' + quality;
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function photoCrop() {
@@ -161,9 +161,9 @@ function photoCrop() {
               fillCanvasUsingColorImage(image);
               statusElement.innerHTML = 'photoCrop success';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function photoRotate() {
@@ -175,9 +175,9 @@ function photoRotate() {
               fillCanvasUsingColorImage(image);
               statusElement.innerHTML = 'photoRotate success';
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function main() {
@@ -248,7 +248,7 @@ function main() {
             fillCanvasUsingColorImage(image);
             statusElement.innerHTML = 'Please select the cropped field.';
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -326,14 +326,14 @@ function main() {
                           photoRotate();
                         }
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             statusElement.innerHTML = 'This is not a XDM file. Load failed.';
           }
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   });
 
   function saveFile(fs, fileName, blob) {
@@ -375,6 +375,6 @@ function main() {
                 saveFile(fs, fileName, blob);
               });
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 }

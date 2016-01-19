@@ -93,13 +93,13 @@ function main() {
                             },
                             function(e) { statusElement.innerHTML = e.message; });
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             statusElement.innerHTML = 'This is not a XDM file. Load failed.';
           }
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   });
 }

@@ -5,10 +5,9 @@
 // DepthRefocus interface
 namespace depth_refocus{
   callback PhotoPromise = void(depth_photo.Photo photo, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    void init(depth_photo.Photo photo, Promise promise);
+    void init(depth_photo.Photo photo);
     void apply(depth_photo.Point focus, optional double aperture, PhotoPromise promise);
 
     [nodoc] DepthRefocus depthRefocusConstructor(DOMString objectId);

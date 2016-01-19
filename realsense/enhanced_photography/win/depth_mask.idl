@@ -12,10 +12,9 @@ namespace depth_mask {
   };
 
   callback MaskImagePromise = void(depth_photo.MaskImage image, DOMString error);
-  callback Promise = void(DOMString success, DOMString error);
 
   interface Functions {
-    void init(depth_photo.Photo photo, Promise promise);
+    void init(depth_photo.Photo photo);
     void computeFromCoordinate(depth_photo.Point point, optional MaskParams params, MaskImagePromise promise);
     void computeFromThreshold(double threshold, optional MaskParams params, MaskImagePromise promise);
 

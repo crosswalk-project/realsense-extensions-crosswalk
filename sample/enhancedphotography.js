@@ -112,7 +112,7 @@ function measureDistance(e) {
               parseFloat(d.distance).toFixed(2) + ' mm',
               (startX + x) / 2, (startY + y) / 2 - 5);
         },
-        function(e) { statusElement.innerHTML += e; });
+        function(e) { statusElement.innerHTML = e.message; });
   } else {
     overlayContext.clearRect(0, 0, width, height);
     drawCross(x, y);
@@ -145,11 +145,11 @@ function depthRefocus(e) {
                     imageData.data.set(image.data);
                     imageContext.putImageData(imageData, 0, 0);
                   },
-                  function(e) { statusElement.innerHTML = e; });
+                  function(e) { statusElement.innerHTML = e.message; });
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function depthEnhance() {
@@ -165,9 +165,9 @@ function depthEnhance() {
                   image, [255, 255, 255], [0, 0, 0], imageData.data);
               imageContext.putImageData(imageData, 0, 0);
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function depthUpscale() {
@@ -184,11 +184,11 @@ function depthUpscale() {
                         image, [255, 255, 255], [0, 0, 0], imageData.data);
                     imageContext.putImageData(imageData, 0, 0);
                   },
-                  function(e) { statusElement.innerHTML = e; });
+                  function(e) { statusElement.innerHTML = e.message; });
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function photoCrop() {
@@ -203,9 +203,9 @@ function photoCrop() {
               imageData.data.set(image.data);
               imageContext.putImageData(imageData, 0, 0);
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function photoRotate() {
@@ -220,9 +220,9 @@ function photoRotate() {
               imageData.data.set(image.data);
               imageContext.putImageData(imageData, 0, 0);
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function doPasteOnPlane() {
@@ -257,13 +257,13 @@ function doPasteOnPlane() {
                           imageData.data.set(image.data);
                           imageContext.putImageData(imageData, 0, 0);
                         },
-                        function(e) { statusElement.innerHTML = e; });
+                        function(e) { statusElement.innerHTML = e.message; });
                   },
-                  function(e) { statusElement.innerHTML = e; });
+                  function(e) { statusElement.innerHTML = e.message; });
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function pasteOnPlane(e) {
@@ -341,15 +341,15 @@ function popColor(e) {
                                 statusElement.innerHTML =
                                     'Finish processing color pop, select again!';
                               },
-                              function(e) { statusElement.innerHTML = e; });
+                              function(e) { statusElement.innerHTML = e.message; });
                         },
-                        function(e) { statusElement.innerHTML = e; });
+                        function(e) { statusElement.innerHTML = e.message; });
                   },
-                  function(e) { statusElement.innerHTML = e; });
+                  function(e) { statusElement.innerHTML = e.message; });
             },
-            function(e) { statusElement.innerHTML = e; });
+            function(e) { statusElement.innerHTML = e.message; });
       },
-      function(e) { statusElement.innerHTML = e; });
+      function(e) { statusElement.innerHTML = e.message; });
 }
 
 function main() {
@@ -412,7 +412,7 @@ function main() {
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -432,7 +432,7 @@ function main() {
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -507,7 +507,7 @@ function main() {
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -527,7 +527,7 @@ function main() {
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
-          function(e) { statusElement.innerHTML = e; });
+          function(e) { statusElement.innerHTML = e.message; });
     }
   }, false);
 
@@ -585,7 +585,7 @@ function main() {
                 saveFile(fs, fileName, blob);
               });
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   };
 
   loadPhoto.addEventListener('change', function(e) {
@@ -613,13 +613,13 @@ function main() {
                           depthUpscale();
                         }
                       },
-                      function(e) { statusElement.innerHTML = e; });
+                      function(e) { statusElement.innerHTML = e.message; });
                 },
-                function(e) { statusElement.innerHTML = e; });
+                function(e) { statusElement.innerHTML = e.message; });
           } else {
             statusElement.innerHTML = 'This is not a XDM file. Load failed.';
           }
         },
-        function(e) { statusElement.innerHTML = e; });
+        function(e) { statusElement.innerHTML = e.message; });
   });
 }

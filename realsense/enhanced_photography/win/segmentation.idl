@@ -4,13 +4,11 @@
 
 // Segmentation interface
 namespace segmentation {
-  callback ImagePromise = void(depth_photo.Image image, DOMString error);
-
   interface Functions {
-    void objectSegment(ArrayBuffer buffer, ImagePromise promise);
-    void redo(ImagePromise promise);
-    void refineMask(ArrayBuffer buffer, ImagePromise promise);
-    void undo(ImagePromise promise);
+    void objectSegment(ArrayBuffer buffer);
+    void redo();
+    void refineMask(ArrayBuffer buffer);
+    void undo();
 
     [nodoc] Segmentation segmentationConstructor(DOMString objectId);
   };
