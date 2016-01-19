@@ -3,7 +3,7 @@ var accuracyElement = document.getElementById('accuracy');
 var reconstructionElement = document.getElementById('reconstruction');
 var initButton = document.getElementById('init');
 var resetButton = document.getElementById('reset');
-var destoryButton = document.getElementById('destory');
+var destroyButton = document.getElementById('destroy');
 var startButton = document.getElementById('startSP');
 var stopButton = document.getElementById('stopSP');
 var saveButton = document.getElementById('saveMesh');
@@ -87,7 +87,7 @@ function ConvertDepthToRGBUsingHistogram(
 function resetButtonState(beforeStart) {
   initButton.disabled = !beforeStart;
   resetButton.disabled = beforeStart;
-  destoryButton.disabled = beforeStart;
+  destroyButton.disabled = beforeStart;
   startButton.disabled = beforeStart;
   stopButton.disabled = true;
   saveButton.disabled = true;
@@ -180,8 +180,8 @@ function main() {
     removeAllMeshes();
   };
 
-  destoryButton.onclick = function(e) {
-    sp.destory().then(function() {
+  destroyButton.onclick = function(e) {
+    sp.destroy().then(function() {
       console.log('stop succeeds');
       resetButtonState(true);
       qualityElement.innerHTML = 'Quality: ';

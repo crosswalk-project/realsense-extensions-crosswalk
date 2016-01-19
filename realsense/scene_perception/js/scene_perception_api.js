@@ -154,7 +154,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('reset');
   this._addMethodWithPromise('start');
   this._addMethodWithPromise('stop');
-  this._addMethodWithPromise('destory');
+  this._addMethodWithPromise('destroy');
 
   this._addMethodWithPromise('enableReconstruction');
   this._addMethodWithPromise('enableRelocalization');
