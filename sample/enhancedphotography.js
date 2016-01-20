@@ -82,6 +82,17 @@ function drawCross(x, y) {
   overlayContext.closePath();
 }
 
+function resetRadioButtons() {
+  measureRadio.checked = false;
+  refocusRadio.checked = false;
+  depthEnhanceRadio.checked = false;
+  depthUpscaleRadio.checked = false;
+  photoCropRadio.checked = false;
+  photoRotateRadio.checked = false;
+  pasteOnPlaneRadio.checked = false;
+  popColorRadio.checked = false;
+}
+
 function measureDistance(e) {
   if (hasImage == false)
     return;
@@ -601,22 +612,22 @@ function main() {
             XDMUtils.loadXDM(file).then(
                 function(photo) {
                   currentPhoto = photo;
-                  savePhoto = photo;
                   currentPhoto.queryContainerImage().then(
                       function(image) {
+                        resetRadioButtons();
                         imageContext.clearRect(0, 0, width, height);
                         imageData = imageContext.createImageData(image.width, image.height);
-                        statusElement.innerHTML = 'Load successfully';
+                        statusElement.innerHTML = 'Load successfully.';
                         overlayContext.clearRect(0, 0, width, height);
                         imageData.data.set(image.data);
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
-                        if (depthEnhanceRadio.checked) {
-                          depthEnhance();
-                        }
-                        if (depthUpscaleRadio.checked) {
-                          depthUpscale();
-                        }
+
+                        photoUtils.getDepthQuality(currentPhoto).then(
+                            function(quality) {
+                              statusElement.innerHTML += ' The photo quality is ' + quality;
+                            },
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
                       function(e) { statusElement.innerHTML = e.message; });
                 },

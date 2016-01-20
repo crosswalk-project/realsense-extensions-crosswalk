@@ -64,6 +64,16 @@ function ConvertDepthToRGBUsingHistogram(
   }
 }
 
+function resetRadioButtons() {
+  colorResizeRadio.checked = false;
+  commonFOVRadio.checked = false;
+  depthResizeRadio.checked = false;
+  enhanceDepthRadio.checked = false;
+  depthQualityRadio.checked = false;
+  photoCropRadio.checked = false;
+  photoRotateRadio.checked = false;
+}
+
 function fillCanvasUsingColorImage(image) {
   imageContext.clearRect(0, 0, width, height);
   imageData = imageContext.createImageData(image.width, image.height);
@@ -301,30 +311,15 @@ function main() {
                   savePhoto = photo;
                   currentPhoto.queryContainerImage().then(
                       function(image) {
+                        resetRadioButtons();
                         fillCanvasUsingColorImage(image);
-                        statusElement.innerHTML = 'Load successfully';
+                        statusElement.innerHTML = 'Load successfully.';
                         hasImage = true;
-                        if (colorResizeRadio.checked) {
-                          colorResize();
-                        }
-                        if (commonFOVRadio.checked) {
-                          commonFOV();
-                        }
-                        if (enhanceDepthRadio.checked) {
-                          depthEnhance();
-                        }
-                        if (depthResizeRadio.checked) {
-                          depthResize();
-                        }
-                        if (depthQualityRadio.checked) {
-                          depthQuality();
-                        }
-                        if (photoCropRadio.checked) {
-                          statusElement.innerHTML = 'Please select the cropped field.';
-                        }
-                        if (photoRotateRadio.checked) {
-                          photoRotate();
-                        }
+                        photoUtils.getDepthQuality(currentPhoto).then(
+                            function(quality) {
+                              statusElement.innerHTML += ' The photo quality is ' + quality;
+                            },
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
                       function(e) { statusElement.innerHTML = e.message; });
                 },

@@ -2,7 +2,7 @@ var statusElement = document.getElementById('status');
 var loadPhoto = document.getElementById('loadPhoto');
 var imageCanvas = document.getElementById('image');
 
-var motionEffect, photoCapture, XDMUtils;
+var motionEffect, photoUtils, XDMUtils;
 var imageContext, imageData;
 
 var width = 1920, height = 1080;
@@ -63,6 +63,7 @@ function doMothionEffect() {
 }
 
 function main() {
+  photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   imageContext = imageCanvas.getContext('2d');
@@ -78,23 +79,33 @@ function main() {
                       function(image) {
                         imageContext.clearRect(0, 0, width, height);
                         imageData = imageContext.createImageData(image.width, image.height);
-                        statusElement.innerHTML = 'Load successfully';
+                        statusElement.innerHTML = 'Load successfully.';
                         imageData.data.set(image.data);
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
-                        if (!motionEffect) {
-                          try {
-                            motionEffect =
-                                new realsense.DepthEnabledPhotography.MotionEffect();
-                          } catch (e) {
-                            statusElement.innerHTML = e.message;
-                            return;
-                          }
-                        }
-                        motionEffect.init(photo).then(
-                            function() {
-                              isInitialized = true;
-                              doMothionEffect();
+
+                        photoUtils.getDepthQuality(photo).then(
+                            function(quality) {
+                              statusElement.innerHTML += ' The photo quality is ' + quality;
+
+                              if (!motionEffect) {
+                                try {
+                                  motionEffect =
+                                      new realsense.DepthEnabledPhotography.MotionEffect();
+                                } catch (e) {
+                                  statusElement.innerHTML = e.message;
+                                  return;
+                                }
+                              }
+                              motionEffect.init(photo).then(
+                                  function() {
+                                    isInitialized = true;
+                                    doMothionEffect();
+                                  },
+                                  function(e) {
+                                    statusElement.innerHTML =
+                                        'The photo quality is ' + quality + '. ' + e.message;
+                                  });
                             },
                             function(e) { statusElement.innerHTML = e.message; });
                       },

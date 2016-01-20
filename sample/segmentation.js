@@ -9,7 +9,7 @@ var imageCanvas = document.getElementById('image');
 var overlayCanvas = document.getElementById('overlay');
 
 const FirstClick = 0, SecondClick = 1, TraceClicks = 2;
-var ep, segmentation, photoCapture, XDMUtils;
+var segmentation, photoUtils, XDMUtils;
 var imageContext, imageData, overlayContext;
 var currentPhoto, savePhoto;
 
@@ -104,7 +104,7 @@ function updateMarkupImage(pointX, pointY, isForeground) {
 }
 
 function main() {
-  ep = realsense.DepthEnabledPhotography.EnhancedPhoto;
+  photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   imageContext = imageCanvas.getContext('2d');
@@ -322,6 +322,11 @@ function main() {
                         imageData.data.set(image.data);
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
+                        photoUtils.getDepthQuality(currentPhoto).then(
+                            function(quality) {
+                              statusElement.innerHTML += ' The photo quality is ' + quality;
+                            },
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
                       function(e) { statusElement.innerHTML = e.message; });
                 },
