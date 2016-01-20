@@ -455,11 +455,11 @@ void PhotoCaptureObject::ReleaseResources() {
 
 void PhotoCaptureObject::DispatchErrorEvent(const ErrorCode& error,
                                             const std::string& message) {
-  ErrorEventData eventData;
-  eventData.error = error;
-  eventData.message = message;
+  RSError rsError;
+  rsError.error = error;
+  rsError.message = message;
   scoped_ptr<base::ListValue> data(new base::ListValue);
-  data->Append(eventData.ToValue().release());
+  data->Append(rsError.ToValue().release());
   DispatchEvent("error", data.Pass());
 }
 

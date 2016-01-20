@@ -36,9 +36,8 @@
 #include "realsense/enhanced_photography/win/xdm_utils_object.h"
 
 namespace realsense {
-namespace enhanced_photography {
-
 using namespace xwalk::common; // NOLINT
+namespace enhanced_photography {
 
 EnhancedPhotographyInstance::EnhancedPhotographyInstance()
     : handler_(this),

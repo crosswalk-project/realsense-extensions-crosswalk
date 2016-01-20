@@ -4,11 +4,6 @@
 
 // PhotoCapture interface
 namespace photo_capture {
-  dictionary ErrorEventData {
-    common.ErrorCode error;
-    DOMString message;
-  };
-
   dictionary DepthQualityEventData {
     photo_utils.DepthMapQuality quality;
   };
@@ -26,7 +21,7 @@ namespace photo_capture {
     static void disableDepthStream();
     static void getDepthImage(ImagePromise promise);
     static void takePhoto(PhotoPromise promise);
-    
+
     [nodoc] static PhotoCapture photoCaptureConstructor(DOMString objectId);
   };
 };

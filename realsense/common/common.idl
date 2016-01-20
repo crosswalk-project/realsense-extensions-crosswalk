@@ -12,7 +12,7 @@ namespace common {
     exec_failed
   };
 
-  dictionary DEPError {
+  dictionary RSError {
     ErrorCode error;
     DOMString message;
   };
