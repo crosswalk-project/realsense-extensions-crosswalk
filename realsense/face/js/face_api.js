@@ -26,7 +26,7 @@ var FaceModule = function(object_id) {
   common.EventTarget.call(this);
 
   if (object_id == undefined)
-    internal.postMessage('faceTrackingConstructor', [this._id]);
+    internal.postMessage('faceModuleConstructor', [this._id]);
 
   function wrapProcessedSampleReturns(data) {
     // ProcessedSample layout:

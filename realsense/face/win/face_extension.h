@@ -2,25 +2,25 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_FACE_TRACKING_FACE_TRACKING_EXTENSION_H_
-#define REALSENSE_FACE_TRACKING_FACE_TRACKING_EXTENSION_H_
+#ifndef REALSENSE_FACE_WIN_FACE_EXTENSION_H_
+#define REALSENSE_FACE_WIN_FACE_EXTENSION_H_
 
 #include "xwalk/common/extension.h"
 
 namespace realsense {
-namespace face_tracking {
+namespace face {
 
-class FaceTrackingExtension : public xwalk::common::Extension {
+class FaceExtension : public xwalk::common::Extension {
  public:
-  FaceTrackingExtension();
-  ~FaceTrackingExtension() override;
+  FaceExtension();
+  ~FaceExtension() override;
 
  private:
   // realsense::common::Extension implementation.
   xwalk::common::Instance* CreateInstance() override;
 };
 
-}  // namespace face_tracking
+}  // namespace face
 }  // namespace realsense
 
-#endif  // REALSENSE_FACE_TRACKING_FACE_TRACKING_EXTENSION_H_
+#endif  // REALSENSE_FACE_WIN_FACE_EXTENSION_H_

@@ -11,7 +11,7 @@
         ['OS=="win"', {
           'dependencies': [
             'enhanced_photography/win/enhanced_photography.gyp:*',
-            'face_tracking/win/face_tracking.gyp:*',
+            'face/win/face.gyp:*',
             'scene_perception/win/scene_perception.gyp:*',
             'session/win/session.gyp:*',
           ]

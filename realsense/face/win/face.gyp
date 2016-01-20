@@ -21,17 +21,17 @@
       ],
       'variables': {
         'jsapi_namespace': 'realsense::jsapi',
-        'jsapi_component': 'face_tracking',
+        'jsapi_component': 'face',
       },
       'sources': [
-        'face_tracking.idl',
-        'face_tracking_api.js',
-        'face_tracking_extension.cc',
-        'face_tracking_extension.h',
-        'face_tracking_instance.cc',
-        'face_tracking_instance.h',
-        'face_tracking_object.cc',
-        'face_tracking_object.h'
+        'face_module.idl',
+        '../js/face_api.js',
+        'face_extension.cc',
+        'face_extension.h',
+        'face_instance.cc',
+        'face_instance.h',
+        'face_module_object.cc',
+        'face_module_object.h'
       ],
     },
   ],
