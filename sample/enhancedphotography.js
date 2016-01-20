@@ -262,6 +262,7 @@ function doPasteOnPlane() {
             function(success) {
               paster.paste().then(
                   function(photo) {
+                    savePhoto = photo;
                     photo.queryContainerImage().then(
                         function(image) {
                           statusElement.innerHTML = 'Finished paste on plane.';

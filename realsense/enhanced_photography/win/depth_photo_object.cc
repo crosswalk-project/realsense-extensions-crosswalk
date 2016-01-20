@@ -384,7 +384,7 @@ void DepthPhotoObject::OnSetContainerImage(
 
   PXCImage::ImageData outData;
   pxcStatus photoSts = out->AcquireAccess(PXCImage::ACCESS_READ_WRITE,
-                                          PXCImage::PIXEL_FORMAT_RGB32,
+                                          PXCImage::PIXEL_FORMAT_RGB24,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
@@ -393,11 +393,11 @@ void DepthPhotoObject::OnSetContainerImage(
 
   for (int y = 0; y < outInfo.height; y++) {
     for (int x = 0; x < outInfo.width; x++) {
-      int i = x * 4 + outData.pitches[0] * y;
-      outData.planes[0][i] = image_data[i + 2];
-      outData.planes[0][i + 1] = image_data[i + 1];
-      outData.planes[0][i + 2] = image_data[i];
-      outData.planes[0][i + 3] = image_data[i + 3];
+      int i = x * 3 + outData.pitches[0] * y;
+      int k = x * 4 + outInfo.width * 4 * y;
+      outData.planes[0][i] = image_data[k + 2];
+      outData.planes[0][i + 1] = image_data[k + 1];
+      outData.planes[0][i + 2] = image_data[k];
     }
   }
   out->ReleaseAccess(&outData);
