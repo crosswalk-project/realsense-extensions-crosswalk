@@ -136,7 +136,12 @@ function preview() {
       .then(function(stream) {
         previewStream = stream;
         videoElement.srcObject = stream;
-        photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
+        try {
+          photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
+        } catch (e) {
+          statusElement.innerHTML = e.message;
+          return;
+        }
         photoCapture.onerror = function(e) {
           statusElement.innerHTML = e.message;
         };

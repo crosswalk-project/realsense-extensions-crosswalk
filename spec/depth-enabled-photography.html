@@ -80,6 +80,9 @@
           The <code><a>DepthMask</a></code> interface provides methods for
           depth-enabled depth mask generator algorithm.
         </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
+        </p>
         <dl title='[Constructor()] interface DepthMask' class='idl'>
           <dt>
             Promise&lt;void&gt; init(Photo photo)
@@ -153,6 +156,9 @@
         <p>
           The <code><a>DepthRefocus</a></code> interface provides methods for
           depth-enabled refocus algorithm.
+        </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
         </p>
         <dl title='[Constructor()] interface DepthRefocus' class='idl'>
           <dt>
@@ -272,6 +278,9 @@
           The <code><a>Measurement</a></code> interface provides methods for
           depth-enabled measurement algorithm.
         </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
+        </p>
         <dl title='[Constructor()] interface Measurement' class='idl'>
           <dt>
             Promise&lt;MeasureData&gt; measureDistance(Photo photo, Point start, Point end)
@@ -366,6 +375,9 @@
           The <code><a>MotionEffect</a></code> interface provides methods for
           6DoF parallax feature.
         </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
+        </p>
         <dl title='[Constructor()] interface MotionEffect' class='idl'>
           <dt>
             Promise&lt;void&gt; init(Photo photo)
@@ -427,6 +439,9 @@
         <p>
           The <code><a>Paster</a></code> interface provides methods to perform
           sticker image pasting to a photo instance.
+        </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
         </p>
         <dl title='[Constructor()] interface Paster' class='idl'>
           <dt>
@@ -857,6 +872,11 @@
           to the constructor must have at least one video track otherwise an
           exception will be thrown.
         </p>
+        <p>
+          If the <code>MediaStream</code> (described in [[!GETUSERMEDIA]]) passed
+          to the constructor is valid, but still failed to create the object,
+          an <code>InitFailureException</code> will be thrown.
+        </p>
         <dl title='[Constructor(MediaStream stream)] interface PhotoCapture : EventTarget' class='idl'>
           <dt>
             Promise&lt;Image&gt; getDepthImage()
@@ -1151,6 +1171,9 @@
         <p>
           The <code><a>Segmentation</a></code> interface provides methods to
           perform depth-based object segmentation and refinement.
+        </p>
+        <p>
+          If failed to create,  an <code>InitFailureException</code> will be thrown.
         </p>
         <dl title='[Constructor()] interface Segmentation' class='idl'>
           <dt>
@@ -2108,6 +2131,17 @@
             </p>
           </dd>
         </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Exceptions
+      </h2>
+      <section>
+        <h2>
+          <code><a>InitFailureException</a></code>
+        </h2>
+        <dl id="exception-basic" class="idl" title="exception InitFailureException"></dl>
       </section>
     </section>
     <section class='informative'>

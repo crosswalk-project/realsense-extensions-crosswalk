@@ -83,8 +83,13 @@ function main() {
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
                         if (!motionEffect) {
-                          motionEffect =
-                              new realsense.DepthEnabledPhotography.MotionEffect();
+                          try {
+                            motionEffect =
+                                new realsense.DepthEnabledPhotography.MotionEffect();
+                          } catch (e) {
+                            statusElement.innerHTML = e.message;
+                            return;
+                          }
                         }
                         motionEffect.init(photo).then(
                             function() {

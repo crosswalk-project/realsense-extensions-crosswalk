@@ -16,7 +16,7 @@ var overlayCanvas = document.getElementById('overlay');
 
 var imageContext, imageData;
 var overlayContext;
-var refocus, depthMask, measurement, paster, photoCapture, photoUtils, XDMUtils;
+var refocus, depthMask, measurement, paster, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
 var width = 1920, height = 1080;
 var canvasWidth = 400, canvasHeight = 300;
@@ -353,10 +353,15 @@ function popColor(e) {
 }
 
 function main() {
-  refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
-  depthMask = new realsense.DepthEnabledPhotography.DepthMask();
-  measurement = new realsense.DepthEnabledPhotography.Measurement();
-  photoCapture = realsense.DepthEnabledPhotography.PhotoCapture;
+  try {
+    refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
+    depthMask = new realsense.DepthEnabledPhotography.DepthMask();
+    measurement = new realsense.DepthEnabledPhotography.Measurement();
+  } catch (e) {
+    statusElement.innerHTML = e.message;
+    return;
+  }
+
   photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 

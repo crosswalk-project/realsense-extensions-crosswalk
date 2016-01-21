@@ -42,6 +42,7 @@ using namespace xwalk::common; // NOLINT
 
 EnhancedPhotographyInstance::EnhancedPhotographyInstance()
     : handler_(this),
+      session_(nullptr),
       store_(&handler_),
       ep_ext_thread_("EPExtensionThread") {
   ep_ext_thread_.Start();
@@ -78,6 +79,8 @@ EnhancedPhotographyInstance::EnhancedPhotographyInstance()
 }
 
 EnhancedPhotographyInstance::~EnhancedPhotographyInstance() {
+  if (session_)
+    session_->Release();
   ep_ext_thread_.Stop();
 }
 
@@ -129,6 +132,17 @@ void EnhancedPhotographyInstance::HandleSyncMessage(const char* msg) {
                  base::Passed(&value)));
 }
 
+bool EnhancedPhotographyInstance::IsRSSDKInstalled() {
+  if (session_)
+    return true;
+
+  session_ = PXCSession::CreateInstance();
+  if (!session_) {
+    return false;
+  }
+  return true;
+}
+
 void EnhancedPhotographyInstance::OnHandleMessage(scoped_ptr<base::Value> msg) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
   handler_.HandleMessage(msg.Pass());
@@ -149,78 +163,148 @@ void EnhancedPhotographyInstance::OnHandleSyncMessage(
 void EnhancedPhotographyInstance::OnMeasurementConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::measurement::MeasurementConstructor::
       Params> params(jsapi::measurement::MeasurementConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new MeasurementObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnDepthMaskConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::depth_mask::DepthMaskConstructor::
       Params> params(jsapi::depth_mask::DepthMaskConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new DepthMaskObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnDepthPhotoConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::depth_photo::DepthPhotoConstructor::
       Params> params(jsapi::depth_photo::DepthPhotoConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new DepthPhotoObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnDepthRefocusConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::depth_refocus::DepthRefocusConstructor::
       Params> params(jsapi::depth_refocus::DepthRefocusConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new DepthRefocusObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnMotionEffectConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::motion_effect::MotionEffectConstructor::
       Params> params(jsapi::motion_effect::MotionEffectConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new MotionEffectObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnPasterConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::paster::PasterConstructor::
       Params> params(jsapi::paster::PasterConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new PasterObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnPhotoCaptureConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::photo_capture::PhotoCaptureConstructor::
       Params> params(jsapi::photo_capture::PhotoCaptureConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new PhotoCaptureObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnPhotoUtilsConstructor(
@@ -230,19 +314,29 @@ void EnhancedPhotographyInstance::OnPhotoUtilsConstructor(
       Params> params(jsapi::photo_utils::PhotoUtilsConstructor::
           Params::Create(*info->arguments()));
 
-  scoped_ptr<BindingObject> obj(new PhotoUtilsObject(this));
+  scoped_ptr<BindingObject> obj(new PhotoUtilsObject(this, IsRSSDKInstalled()));
   store_.AddBindingObject(params->object_id, obj.Pass());
 }
 
 void EnhancedPhotographyInstance::OnSegmentationConstructor(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(ep_ext_thread_.message_loop(), base::MessageLoop::current());
+
+  scoped_ptr<base::Value> result(new base::FundamentalValue(false));
+  if (!IsRSSDKInstalled()) {
+    info->PostResult(result.Pass());
+    return;
+  }
+
   scoped_ptr<jsapi::segmentation::SegmentationConstructor::
       Params> params(jsapi::segmentation::SegmentationConstructor::
           Params::Create(*info->arguments()));
 
   scoped_ptr<BindingObject> obj(new SegmentationObject(this));
   store_.AddBindingObject(params->object_id, obj.Pass());
+
+  result.reset(new base::FundamentalValue(true));
+  info->PostResult(result.Pass());
 }
 
 void EnhancedPhotographyInstance::OnXDMUtilsConstructor(
@@ -252,7 +346,7 @@ void EnhancedPhotographyInstance::OnXDMUtilsConstructor(
       Params> params(jsapi::xdm_utils::XDMUtilsConstructor::
           Params::Create(*info->arguments()));
 
-  scoped_ptr<BindingObject> obj(new XDMUtilsObject(this));
+  scoped_ptr<BindingObject> obj(new XDMUtilsObject(this, IsRSSDKInstalled()));
   store_.AddBindingObject(params->object_id, obj.Pass());
 }
 
