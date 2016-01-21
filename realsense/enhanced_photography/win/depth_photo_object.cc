@@ -224,9 +224,9 @@ void DepthPhotoObject::OnQueryColorImage(
 
   PXCImage* imColor;
   if (params->camera_index)
-    imColor = photo_->QueryColorImage(*(params->camera_index.get()));
+    imColor = photo_->QueryImage(*(params->camera_index.get()));
   else
-    imColor = photo_->QueryColorImage();
+    imColor = photo_->QueryImage();
   if (!CopyImageToBinaryMessage(imColor,
                                 binary_message_,
                                 &binary_message_size_)) {
@@ -258,9 +258,9 @@ void DepthPhotoObject::OnQueryDepthImage(
 
   PXCImage* imDepth;
   if (params->camera_index)
-    imDepth = photo_->QueryDepthImage(*(params->camera_index.get()));
+    imDepth = photo_->QueryDepth(*(params->camera_index.get()));
   else
-    imDepth = photo_->QueryDepthImage();
+    imDepth = photo_->QueryDepth();
   if (!CopyImageToBinaryMessage(imDepth,
                                 binary_message_,
                                 &binary_message_size_)) {
@@ -312,7 +312,7 @@ void DepthPhotoObject::OnQueryRawDepthImage(
     return;
   }
 
-  PXCImage* imDepth = photo_->QueryRawDepthImage();
+  PXCImage* imDepth = photo_->QueryRawDepth();
   if (!CopyImageToBinaryMessage(imDepth,
                                 binary_message_,
                                 &binary_message_size_)) {
@@ -426,7 +426,7 @@ void DepthPhotoObject::OnSetColorImage(
   int height = int_array[1];
   char* image_data = data + 2 * sizeof(int);
 
-  PXCImage* out = photo_->QueryColorImage();
+  PXCImage* out = photo_->QueryImage();
   if (!out) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;
@@ -481,7 +481,7 @@ void DepthPhotoObject::OnSetDepthImage(
   int height = int_array[1];
   char* image_data = data + 2 * sizeof(int);
 
-  PXCImage* out = photo_->QueryDepthImage();
+  PXCImage* out = photo_->QueryDepth();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
@@ -532,7 +532,7 @@ void DepthPhotoObject::OnSetRawDepthImage(
   int height = int_array[1];
   char* image_data = data + 2 * sizeof(int);
 
-  PXCImage* out = photo_->QueryRawDepthImage();
+  PXCImage* out = photo_->QueryRawDepth();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));

@@ -18,9 +18,7 @@ using namespace jsapi::common;  // NOLINT
 
 DepthMaskObject::DepthMaskObject(EnhancedPhotographyInstance* instance)
     : session_(nullptr),
-      ep_(nullptr),
       instance_(instance),
-      photo_(nullptr),
       binary_message_size_(0) {
   handler_.Register("init",
                     base::Bind(&DepthMaskObject::OnInit,
@@ -33,13 +31,13 @@ DepthMaskObject::DepthMaskObject(EnhancedPhotographyInstance* instance)
                  base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
-  session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
+  depth_mask_ = PXCEnhancedPhoto::DepthMask::CreateInstance(session_);
 }
 
 DepthMaskObject::~DepthMaskObject() {
-  if (ep_) {
-    ep_->Release();
-    ep_ = nullptr;
+  if (depth_mask_) {
+    depth_mask_->Release();
+    depth_mask_ = nullptr;
   }
   if (session_) {
     session_->Release();
@@ -48,7 +46,7 @@ DepthMaskObject::~DepthMaskObject() {
 }
 
 void DepthMaskObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  DCHECK(ep_);
+  DCHECK(depth_mask_);
   scoped_ptr<Init::Params> params(
       Init::Params::Create(*info->arguments()));
   if (!params) {
@@ -63,7 +61,11 @@ void DepthMaskObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
     info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
     return;
   }
-  photo_ = depthPhotoObject->GetPhoto();
+  if ((depth_mask_->Init(depthPhotoObject->GetPhoto())) < PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "DepthMask Init failed."));
+    return;
+  }
 
   info->PostResult(CreateSuccessResult());
 }
@@ -77,24 +79,22 @@ void DepthMaskObject::OnComputeFromCoordinate(
     return;
   }
 
-  DCHECK(ep_);
+  DCHECK(depth_mask_);
   PXCPointI32 point;
   point.x = params->point.x;
   point.y = params->point.y;
 
   PXCImage* pxcimage;
   if (params->params) {
-    PXCEnhancedPhoto::MaskParams mask_params;
+    PXCEnhancedPhoto::DepthMask::MaskParams mask_params;
 
     mask_params.frontObjectDepth = params->params->front_object_depth;
     mask_params.backOjectDepth = params->params->back_object_depth;
     mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
     mask_params.farFallOffDepth = params->params->far_fall_off_depth;
-    pxcimage = ep_->ComputeMaskFromCoordinate(photo_,
-                                              point,
-                                              &mask_params);
+    pxcimage = depth_mask_->ComputeFromCoordinate(point, &mask_params);
   } else {
-    pxcimage = ep_->ComputeMaskFromCoordinate(photo_, point);
+    pxcimage = depth_mask_->ComputeFromCoordinate(point);
   }
 
   if (!CopyImageToBinaryMessage(pxcimage,
@@ -122,20 +122,18 @@ void DepthMaskObject::OnComputeFromThreshold(
     return;
   }
 
-  DCHECK(ep_);
+  DCHECK(depth_mask_);
   PXCImage* pxcimage;
   if (params->params) {
-    PXCEnhancedPhoto::MaskParams mask_params;
+    PXCEnhancedPhoto::DepthMask::MaskParams mask_params;
     mask_params.frontObjectDepth = params->params->front_object_depth;
     mask_params.backOjectDepth = params->params->back_object_depth;
     mask_params.nearFallOffDepth = params->params->near_fall_off_depth;
     mask_params.farFallOffDepth = params->params->far_fall_off_depth;
-    pxcimage = ep_->ComputeMaskFromThreshold(photo_,
-                                             params->threshold,
-                                             &mask_params);
+    pxcimage = depth_mask_->ComputeFromThreshold(params->threshold,
+                                                 &mask_params);
   } else {
-    pxcimage = ep_->ComputeMaskFromThreshold(photo_,
-                                             params->threshold);
+    pxcimage = depth_mask_->ComputeFromThreshold(params->threshold);
   }
 
   if (!CopyImageToBinaryMessage(pxcimage,

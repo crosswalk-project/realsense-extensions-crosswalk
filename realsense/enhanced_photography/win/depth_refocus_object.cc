@@ -18,9 +18,7 @@ using namespace jsapi::common;  // NOLINT
 
 DepthRefocusObject::DepthRefocusObject(EnhancedPhotographyInstance* instance)
     : session_(nullptr),
-      ep_(nullptr),
-      instance_(instance),
-      photo_(nullptr) {
+      instance_(instance) {
   handler_.Register("init",
                     base::Bind(&DepthRefocusObject::OnInit,
                                base::Unretained(this)));
@@ -29,13 +27,13 @@ DepthRefocusObject::DepthRefocusObject(EnhancedPhotographyInstance* instance)
                                base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
-  session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
+  depth_refocus_ = PXCEnhancedPhoto::DepthRefocus::CreateInstance(session_);
 }
 
 DepthRefocusObject::~DepthRefocusObject() {
-  if (ep_) {
-    ep_->Release();
-    ep_ = nullptr;
+  if (depth_refocus_) {
+    depth_refocus_->Release();
+    depth_refocus_ = nullptr;
   }
   if (session_) {
     session_->Release();
@@ -44,7 +42,7 @@ DepthRefocusObject::~DepthRefocusObject() {
 }
 
 void DepthRefocusObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  DCHECK(ep_);
+  DCHECK(depth_refocus_);
   scoped_ptr<Init::Params> params(
       Init::Params::Create(*info->arguments()));
   if (!params) {
@@ -59,8 +57,13 @@ void DepthRefocusObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
     info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
     return;
   }
-  photo_ = depthPhotoObject->GetPhoto();
 
+  if ((depth_refocus_->Init(depthPhotoObject->GetPhoto())) <
+      PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "DepthRefocus Init failed"));
+    return;
+  }
   info->PostResult(CreateSuccessResult());
 }
 
@@ -72,18 +75,16 @@ void DepthRefocusObject::OnApply(scoped_ptr<XWalkExtensionFunctionInfo> info) {
     return;
   }
 
-  DCHECK(ep_);
+  DCHECK(depth_refocus_);
   PXCPointI32 focus;
   focus.x = params->focus.x;
   focus.y = params->focus.y;
 
   PXCPhoto* pxcphoto;
   if (params->aperture)
-    pxcphoto = ep_->DepthRefocus(photo_,
-                                 focus,
-                                 *(params->aperture.get()));
+    pxcphoto = depth_refocus_->Apply(focus, *(params->aperture.get()));
   else
-    pxcphoto = ep_->DepthRefocus(photo_, focus);
+    pxcphoto = depth_refocus_->Apply(focus);
   if (!pxcphoto) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;

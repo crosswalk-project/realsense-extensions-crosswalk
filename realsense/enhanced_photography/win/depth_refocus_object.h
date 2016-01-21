@@ -10,7 +10,6 @@
 
 #include "realsense/enhanced_photography/win/enhanced_photography_instance.h"
 #include "third_party/libpxc/include/pxcenhancedphoto.h"
-#include "third_party/libpxc/include/pxcphoto.h"
 #include "third_party/libpxc/include/pxcsession.h"
 
 namespace realsense {
@@ -30,8 +29,7 @@ class DepthRefocusObject : public xwalk::common::BindingObject {
 
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
-  PXCEnhancedPhoto* ep_;
-  PXCPhoto* photo_;
+  PXCEnhancedPhoto::DepthRefocus* depth_refocus_;
 };
 
 }  // namespace enhanced_photography

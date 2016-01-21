@@ -20,7 +20,6 @@ using namespace jsapi::common;  // NOLINT
 MeasurementObject::MeasurementObject(
     EnhancedPhotographyInstance* instance)
         : session_(nullptr),
-          ep_(nullptr),
           instance_(instance) {
   handler_.Register("measureDistance",
                     base::Bind(&MeasurementObject::OnMeasureDistance,
@@ -36,7 +35,7 @@ MeasurementObject::MeasurementObject(
                                base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
-  session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
+  measurement_ = PXCEnhancedPhoto::Measurement::CreateInstance(session_);
 }
 
 MeasurementObject::~MeasurementObject() {
@@ -61,15 +60,18 @@ void MeasurementObject::OnMeasureDistance(
     return;
   }
 
-  DCHECK(ep_);
+  DCHECK(measurement_);
   PXCPointI32 start;
   PXCPointI32 end;
   start.x = params->start.x;
   start.y = params->start.y;
   end.x = params->end.x;
   end.y = params->end.y;
-  PXCEnhancedPhoto::MeasureData data;
-  ep_->MeasureDistance(depthPhotoObject->GetPhoto(), start, end, &data);
+  PXCEnhancedPhoto::Measurement::MeasureData data;
+  measurement_->MeasureDistance(depthPhotoObject->GetPhoto(),
+                                start,
+                                end,
+                                &data);
 
   measure_data.distance = data.distance;
   measure_data.confidence = data.confidence;
@@ -103,9 +105,9 @@ void MeasurementObject::OnQueryUAData(
 }
 
 void MeasurementObject::ReleaseResources() {
-  if (ep_) {
-    ep_->Release();
-    ep_ = nullptr;
+  if (measurement_) {
+    measurement_->Release();
+    measurement_ = nullptr;
   }
   if (session_) {
     session_->Release();
