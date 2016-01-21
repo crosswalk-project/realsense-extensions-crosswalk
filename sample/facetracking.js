@@ -163,8 +163,18 @@ function main() {
       colorImageSizeElement.innerHTML =
           '2D(' + processed_sample.color.width + ', ' +
           processed_sample.color.height + ')';
-      color_canvas.width = processed_sample.color.width;
-      color_canvas.height = processed_sample.color.height;
+
+      // In case color stream size changed
+      if (color_canvas.width != processed_sample.color.width ||
+          color_canvas.height != processed_sample.color.height) {
+        // Resize canvas
+        color_canvas.width = processed_sample.color.width;
+        color_canvas.height = processed_sample.color.height;
+        // Create new image data object
+        color_context = color_canvas.getContext('2d');
+        color_image_data = color_context.createImageData(
+            processed_sample.color.width, processed_sample.color.height);
+      }
 
       if (!color_image_data) {
         color_image_data = color_context.createImageData(
