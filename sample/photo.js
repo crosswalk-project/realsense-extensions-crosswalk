@@ -13,7 +13,7 @@ var currentPhoto;
 var width = 1920, height = 1080;
 
 var hasImage = false;
-var XDMUtils;
+var photoUtils, XDMUtils;
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
@@ -70,6 +70,14 @@ function fillCanvasUsingDepthImage(image) {
   imageContext.putImageData(imageData, 0, 0);
 }
 
+function resetRadioButtons() {
+  colorImageRadio.checked = false;
+  containerImageRadio.checked = false;
+  depthImageRadio.checked = false;
+  rawDepthImgeRadio.checked = false;
+  resetImageRadio.checked = false;
+}
+
 function getColorImage() {
   currentPhoto.queryColorImage().then(
       function(image) {
@@ -115,6 +123,7 @@ function resetContainerImage() {
 }
 
 function main() {
+  photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
   imageContext = imageCanvas.getContext('2d');
 
@@ -178,21 +187,16 @@ function main() {
                   currentPhoto = photo;
                   currentPhoto.queryContainerImage().then(
                       function(image) {
+                        resetRadioButtons();
                         fillCanvasUsingColorImage(image);
-                        statusElement.innerHTML = 'Load successfully';
+                        statusElement.innerHTML = 'Load successfully.';
                         hasImage = true;
-                        if (colorImageRadio.checked) {
-                          getColorImage();
-                        }
-                        if (depthImageRadio.checked) {
-                          getDepthImage();
-                        }
-                        if (rawDepthImgeRadio.checked) {
-                          getRawDepthImage();
-                        }
-                        if (resetImageRadio.checked) {
-                          resetContainerImage();
-                        }
+
+                        photoUtils.getDepthQuality(currentPhoto).then(
+                            function(quality) {
+                              statusElement.innerHTML += ' The photo quality is ' + quality;
+                            },
+                            function(e) { statusElement.innerHTML = e.message; });
                       },
                       function(e) { statusElement.innerHTML = e.message; });
 
