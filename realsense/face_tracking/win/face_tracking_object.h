@@ -39,6 +39,10 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnGetConf(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnRegisterUserByFaceID(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnUnregisterUserByID(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
   // Run on face_tracking_thread_
   void OnStartPipeline(
@@ -47,6 +51,12 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   void OnStopPipeline(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnGetProcessedSampleOnPipeline(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnRegisterUserByFaceIDOnPipeline(
+      int faceId,
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
+  void OnUnregisterUserByIDOnPipeline(
+      int userId,
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
   // Run on face_ext_thread_ or face_tracking_thread_

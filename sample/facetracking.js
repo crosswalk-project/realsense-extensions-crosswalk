@@ -3,6 +3,8 @@ var stopButton = document.getElementById('stop');
 var getDefaultsButton = document.getElementById('getDefaultsConf');
 var setConfButton = document.getElementById('setConf');
 var getConfButton = document.getElementById('getConf');
+var registerButton = document.getElementById('registerFace');
+var unregisterButton = document.getElementById('unregisterFace');
 
 var trackingColorModeRadio = document.getElementById('tracking_color');
 var trackingColorDepthModeRadio = document.getElementById('tracking_color_depth');
@@ -19,6 +21,8 @@ var detectionMaxFacesNum = document.getElementById('detection_max_faces');
 var landmarksCheckbox = document.getElementById('enableLandmarks');
 var landmarksMaxFacesNum = document.getElementById('landmarks_max_faces');
 var landmarksMaxLandmarksNum = document.getElementById('landmarks_max_landmarks');
+
+var recognitionCheckbox = document.getElementById('enableRecognition');
 
 var colorImageSizeElement = document.getElementById('2DSize');
 var depthImageSizeElement = document.getElementById('3DSize');
@@ -111,6 +115,10 @@ function getConf() {
     faceModuleConf.landmarks.maxFaces = parseInt(landmarksMaxFacesNum.value);
   }
 
+  // recognition
+  faceModuleConf.recognition = {};
+  faceModuleConf.recognition.enable = recognitionCheckbox.checked;
+
   return faceModuleConf;
 }
 
@@ -141,6 +149,9 @@ function setConf(faceModuleConf) {
   landmarksCheckbox.checked = faceModuleConf.landmarks.enable;
   landmarksMaxFacesNum.value = faceModuleConf.landmarks.maxFaces;
   landmarksMaxLandmarksNum.innerHTML = faceModuleConf.landmarks.numLandmarks.toString();
+
+  // recognition
+  recognitionCheckbox.checked = faceModuleConf.recognition.enable;
 }
 
 function main() {
@@ -195,9 +206,9 @@ function main() {
           color_context.strokeStyle = 'red';
           color_context.strokeRect(rect.x, rect.y, rect.w, rect.h);
           // Print face ID
-          color_context.font = '15px';
-          color_context.fillStyle = 'red';
-          color_context.fillText(face.faceId, rect.x, rect.y + 10);
+          color_context.font = '20px';
+          color_context.fillStyle = 'white';
+          color_context.fillText(face.faceId, rect.x + 5, rect.y + 10);
           console.log('Face No.' + i + ': boundingRect: ' +
               rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h +
               ' avgDepth: ' + face.detection.avgDepth);
@@ -223,18 +234,18 @@ function main() {
         // Print recognition id for every tracked face.
         if (face.recognition) {
           var recognitionId = face.recognition.userId;
-          console.log('Face No.' + i + ': Recognition ID is ' + recognitionId);
+          console.log('Face ID: ' + face.faceId + ': Recognition ID is ' + recognitionId);
           var text;
           if (recognitionId == -1) {
             text = 'Not Registered';
           } else {
-            text = 'Registered ID: ' + recognitionId;
+            text = 'Recognition ID: ' + recognitionId;
           }
           if (face.detection) {
             var rect = face.detection.boundingRect;
-            color_context.font = '15px';
-            color_context.fillStyle = 'green';
-            color_context.fillText(text, rect.x + 20, rect.y + 15);
+            color_context.font = '20px';
+            color_context.fillStyle = 'white';
+            color_context.fillText(text, rect.x + 20, rect.y + 10);
           }
           recogData = recogData + '(' + face.faceId + ', ' + recognitionId + ') ';
         }
@@ -279,8 +290,8 @@ function main() {
     // Call configuration.set API.
     ft.configuration.set(getConf()).then(
         function(e) {
-          statusElement.innerHTML = 'Status: configuration.set succeeds';
-          console.log('configuration.set succeeds');},
+          statusElement.innerHTML = 'Status: set configuration succeeds';
+          console.log('set configuration succeeds');},
         function(e) {
           statusElement.innerHTML = 'Status: ' + e;
           console.log(e);});
@@ -292,8 +303,8 @@ function main() {
         function(confData) {
           // Show FaceConfiguration values onto UI.
           setConf(confData);
-          statusElement.innerHTML = 'Status: configuration.getDefaults succeeds';
-          console.log('configuration.getDefaults succeeds');},
+          statusElement.innerHTML = 'Status: get default configuration succeeds';
+          console.log('get default configuration succeeds');},
         function(e) {
           statusElement.innerHTML = 'Status: ' + e;
           console.log(e);});
@@ -305,8 +316,8 @@ function main() {
         function(confData) {
           // Show FaceConfiguration values onto UI.
           setConf(confData);
-          statusElement.innerHTML = 'Status: configuration.get succeeds';
-          console.log('configuration.get succeeds');},
+          statusElement.innerHTML = 'Status: get current configuration succeeds';
+          console.log('get current configuration succeeds');},
         function(e) {
           statusElement.innerHTML = 'Status: ' + e;
           console.log(e);});
@@ -328,6 +339,30 @@ function main() {
         function(e) {
           statusElement.innerHTML = 'Status: stop succeeds';
           console.log('stop succeeds');},
+        function(e) {
+          statusElement.innerHTML = 'Status: ' + e;
+          console.log(e);});
+  };
+
+  registerButton.onclick = function(e) {
+    var faceId = parseInt(document.getElementById('recognition_face_id').value);
+    // Call recognition.registerUserByFaceID API
+    ft.recognition.registerUserByFaceID(faceId).then(
+        function(e) {
+          statusElement.innerHTML = 'Status: register face succeeds faceId: ' + faceId;
+          console.log('register face succeeds');},
+        function(e) {
+          statusElement.innerHTML = 'Status: ' + e;
+          console.log(e);});
+  };
+
+  unregisterButton.onclick = function(e) {
+    var recogId = parseInt(document.getElementById('recognition_recog_id').value);
+    // Call recognition.unregisterUserByID API
+    ft.recognition.unregisterUserByID(recogId).then(
+        function(e) {
+          statusElement.innerHTML = 'Status: unregister user succeeds recogId: ' + recogId;
+          console.log('unregister user succeeds');},
         function(e) {
           statusElement.innerHTML = 'Status: ' + e;
           console.log(e);});
