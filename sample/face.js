@@ -154,6 +154,25 @@ function setConf(faceModuleConf) {
   recognitionCheckbox.checked = faceModuleConf.recognition.enable;
 }
 
+function CmdFlowController(size) {
+  var windowSize = size;
+  var avaliableSize = size;
+  this.reset = function() {
+    avaliableSize = windowSize;
+  };
+  this.get = function() {
+    if (avaliableSize < 1) return false;
+
+    avaliableSize--;
+    return true;
+  };
+  this.release = function() {
+    avaliableSize++;
+    if (avaliableSize > windowSize)
+      avaliableSize = windowSize;
+  };
+}
+
 function main() {
   ft = new realsense.Face.FaceModule();
 
@@ -165,11 +184,11 @@ function main() {
 
   var currentFaceDataArray = [];
 
-  var getting_processed_sample = false;
+  var sampleFlowController = new CmdFlowController(5);
+
   ft.onprocessedsample = function(e) {
-    if (getting_processed_sample)
+    if (!sampleFlowController.get())
       return;
-    getting_processed_sample = true;
     ft.getProcessedSample().then(function(processed_sample) {
       colorImageSizeElement.innerHTML =
           '2D(' + processed_sample.color.width + ', ' +
@@ -276,9 +295,9 @@ function main() {
       }
 
       processed_sample_fps.update();
-      getting_processed_sample = false;
+      sampleFlowController.release();
     }, function(e) {
-      getting_processed_sample = false;
+      sampleFlowController.release();
       statusElement.innerHTML = 'Status: ' + e; console.log(e);});
   };
 
@@ -324,7 +343,7 @@ function main() {
   };
 
   startButton.onclick = function(e) {
-    getting_processed_sample = false;
+    sampleFlowController.reset();
     ft.start().then(
         function(e) {
           statusElement.innerHTML = 'Status: start succeeds';
