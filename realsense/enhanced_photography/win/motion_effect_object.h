@@ -33,7 +33,7 @@ class MotionEffectObject : public xwalk::common::BindingObject {
 
   EnhancedPhotographyInstance* instance_;
   PXCSession* session_;
-  PXCEnhancedPhoto* ep_;
+  PXCEnhancedPhoto::MotionEffect* motion_effect_;
 
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;

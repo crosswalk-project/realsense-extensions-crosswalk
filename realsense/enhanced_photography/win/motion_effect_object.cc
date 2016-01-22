@@ -16,7 +16,6 @@ using namespace jsapi::common;  // NOLINT
 
 MotionEffectObject::MotionEffectObject(EnhancedPhotographyInstance* instance)
     : session_(nullptr),
-      ep_(nullptr),
       instance_(instance),
       binary_message_size_(0) {
   handler_.Register("init",
@@ -27,13 +26,13 @@ MotionEffectObject::MotionEffectObject(EnhancedPhotographyInstance* instance)
                                base::Unretained(this)));
 
   session_ = PXCSession::CreateInstance();
-  session_->CreateImpl<PXCEnhancedPhoto>(&ep_);
+  motion_effect_ = PXCEnhancedPhoto::MotionEffect::CreateInstance(session_);
 }
 
 MotionEffectObject::~MotionEffectObject() {
-  if (ep_) {
-    ep_->Release();
-    ep_ = nullptr;
+  if (motion_effect_) {
+    motion_effect_->Release();
+    motion_effect_ = nullptr;
   }
   if (session_) {
     session_->Release();
@@ -43,7 +42,7 @@ MotionEffectObject::~MotionEffectObject() {
 
 void MotionEffectObject::OnInitMotionEffect(
     scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info) {
-  DCHECK(ep_);
+  DCHECK(motion_effect_);
 
   scoped_ptr<InitMotionEffect::Params> params(
       InitMotionEffect::Params::Create(*info->arguments()));
@@ -60,7 +59,7 @@ void MotionEffectObject::OnInitMotionEffect(
     return;
   }
 
-  pxcStatus sts = ep_->InitMotionEffect(depthPhotoObject->GetPhoto());
+  pxcStatus sts = motion_effect_->Init(depthPhotoObject->GetPhoto());
   if (sts < PXC_STATUS_NO_ERROR) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
     return;
@@ -79,7 +78,7 @@ void MotionEffectObject::OnApplyMotionEffect(
     return;
   }
 
-  DCHECK(ep_);
+  DCHECK(motion_effect_);
   pxcF32 motion[3];
   motion[0] = params->motion.horizontal;
   motion[1] = params->motion.vertical;
@@ -90,7 +89,7 @@ void MotionEffectObject::OnApplyMotionEffect(
   rotation[1] = params->rotation.yaw;
   rotation[2] = params->rotation.roll;
 
-  PXCImage* pxcimage = ep_->ApplyMotionEffect(motion, rotation, params->zoom);
+  PXCImage* pxcimage = motion_effect_->Apply(motion, rotation, params->zoom);
 
   if (!pxcimage) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));

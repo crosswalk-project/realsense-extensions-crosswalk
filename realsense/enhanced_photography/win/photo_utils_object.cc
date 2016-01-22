@@ -256,7 +256,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
   DCHECK(photo_utils_);
   PXCEnhancedPhoto::PhotoUtils::DepthMapQuality qulity =
       photo_utils_->GetDepthQuality(
-          depthPhotoObject->GetPhoto()->QueryDepthImage());
+          depthPhotoObject->GetPhoto()->QueryDepth());
   if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::BAD) {
     depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_BAD;
   } else if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::FAIR) {

@@ -32,7 +32,7 @@ class MeasurementObject : public xwalk::common::BindingObject {
   void ReleaseResources();
 
   PXCSession* session_;
-  PXCEnhancedPhoto* ep_;
+  PXCEnhancedPhoto::Measurement* measurement_;
 
   EnhancedPhotographyInstance* instance_;
 };
