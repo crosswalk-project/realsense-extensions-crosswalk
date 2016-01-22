@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// FaceTracking
-namespace face_tracking {
+// FaceModule interface
+namespace face_module {
   dictionary ErrorEvent {
     DOMString status;
   };
@@ -186,6 +186,6 @@ namespace face_tracking {
     static void registerUserByFaceID(long faceId, LongPromise promise);
     static void unregisterUserByID(long userId, Promise promise);
 
-    [nodoc] static FaceTracking faceTrackingConstructor(DOMString objectId);
+    [nodoc] static FaceModule faceModuleConstructor(DOMString objectId);
   };
 };

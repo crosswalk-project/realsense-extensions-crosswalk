@@ -4,27 +4,27 @@
 
 import("//xwalk/common/xwalk_common.gni")
 
-xwalk_idlgen("face_tracking_idl") {
+xwalk_idlgen("face_module_idl") {
   namespace = "realsense::jsapi"
-  sources = [ "face_tracking.idl" ]
+  sources = [ "face_module.idl" ]
 }
 
-xwalk_js2c("face_tracking_js") {
-  sources = [ "face_tracking_api.js" ]
+xwalk_js2c("face_js") {
+  sources = [ "../js/face_api.js" ]
 }
 
 shared_library("face") {
   sources = [
-    "face_tracking_extension.cc",
-    "face_tracking_extension.h",
-    "face_tracking_instance.cc",
-    "face_tracking_instance.h",
-    "face_tracking_object.cc",
-    "face_tracking_object.h",
+    "face_extension.cc",
+    "face_extension.h",
+    "face_instance.cc",
+    "face_instance.h",
+    "face_module_object.cc",
+    "face_module_object.h",
   ]
   deps = [
-    ":face_tracking_idl",
-    ":face_tracking_js",
+    ":face_module_idl",
+    ":face_js",
     "//extensions/third_party/libpxc",
     "//xwalk/common:common_static",
   ]

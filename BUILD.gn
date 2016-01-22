@@ -6,7 +6,7 @@ group("all_extensions") {
   deps = [
     "//extensions/benchmarks/bench_image/win:bench_image",
     "//extensions/realsense/enhanced_photography/win:enhanced_photography",
-    "//extensions/realsense/face_tracking/win:face",
+    "//extensions/realsense/face/win:face",
     "//extensions/realsense/scene_perception/win:scene_perception",
     "//extensions/realsense/session/win:session",
   ]

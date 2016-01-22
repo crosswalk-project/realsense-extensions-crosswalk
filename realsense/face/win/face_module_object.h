@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_
-#define REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_
+#ifndef REALSENSE_FACE_WIN_FACE_MODULE_OBJECT_H_
+#define REALSENSE_FACE_WIN_FACE_MODULE_OBJECT_H_
 
 #include <string>
 
@@ -15,12 +15,12 @@
 #include "xwalk/common/event_target.h"
 
 namespace realsense {
-namespace face_tracking {
+namespace face {
 
-class FaceTrackingObject : public xwalk::common::EventTarget {
+class FaceModuleObject : public xwalk::common::EventTarget {
  public:
-  FaceTrackingObject();
-  ~FaceTrackingObject() override;
+  FaceModuleObject();
+  ~FaceModuleObject() override;
 
   // EventTarget implementation.
   void StartEvent(const std::string& type) override;
@@ -44,7 +44,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   void OnUnregisterUserByID(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
-  // Run on face_tracking_thread_
+  // Run on face_module_thread_
   void OnStartPipeline(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnRunPipeline();
@@ -59,7 +59,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
       int userId,
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
 
-  // Run on face_ext_thread_ or face_tracking_thread_
+  // Run on face_ext_thread_ or face_module_thread_
   void DoSetConf(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void DoGetDefaultsConf(
@@ -71,14 +71,14 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   bool Init();
   void Destroy();
 
-  // Run on face_tracking_thread_
+  // Run on face_module_thread_
   bool CreateProcessedSampleImages();
   void ReleasePipelineResources();
 
-  // Run on face_tracking_thread_
-  void StopFaceTrackingThread();
+  // Run on face_module_thread_
+  void StopFaceModuleThread();
   // Run on face extension thread
-  void OnStopFaceTrackingThread();
+  void OnStopFaceModuleThread();
 
   size_t CalculateBinaryMessageSize();
 
@@ -92,7 +92,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   bool on_processedsample_;
   bool on_error_;
 
-  base::Thread face_tracking_thread_;
+  base::Thread face_module_thread_;
   scoped_refptr<base::MessageLoopProxy> message_loop_;
 
   PXCSession* session_;
@@ -107,7 +107,7 @@ class FaceTrackingObject : public xwalk::common::EventTarget {
   size_t binary_message_size_;
 };
 
-}  // namespace face_tracking
+}  // namespace face
 }  // namespace realsense
 
-#endif  // REALSENSE_FACE_TRACKING_WIN_FACE_TRACKING_OBJECT_H_
+#endif  // REALSENSE_FACE_WIN_FACE_MODULE_OBJECT_H_
