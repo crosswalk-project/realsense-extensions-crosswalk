@@ -95,6 +95,24 @@ function resetButtonState(beforeStart) {
   toggleReconstructionButton.disabled = beforeStart;
 }
 
+function CmdFlowController(size) {
+  var windowSize = size;
+  var avaliableSize = size;
+  this.reset = function() {
+    avaliableSize = windowSize;
+  };
+  this.get = function() {
+    if (avaliableSize < 1) return false;
+
+    avaliableSize--;
+    return true;
+  };
+  this.release = function() {
+    avaliableSize++;
+    if (avaliableSize > windowSize)
+      avaliableSize = windowSize;
+  };
+}
 function main() {
   sp = realsense.ScenePerception;
 
@@ -105,12 +123,11 @@ function main() {
   document.getElementById('color_container').appendChild(sample_fps.domElement);
   resetButtonState(true);
 
-  var getting_sample = false;
+  var sampleFlowController = new CmdFlowController(5);
 
   var updateSampleView = function() {
-    if (getting_sample)
+    if (!sampleFlowController.get())
       return;
-    getting_sample = true;
     sp.getSample().then(function(sample) {
       color_image_data.data.set(sample.color.data);
       color_context.putImageData(color_image_data, 0, 0);
@@ -118,7 +135,7 @@ function main() {
           sample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data);
       depth_context.putImageData(depth_image_data, 0, 0);
       sample_fps.update();
-      getting_sample = false;
+      sampleFlowController.release();
     }, function(e) {console.log(e);});
   };
 
@@ -163,7 +180,7 @@ function main() {
   var meshesCreated = false;
 
   initButton.onclick = function(e) {
-    getting_sample = false;
+    sampleFlowController.reset();
     var initConfig = {
       useOpenCVCoordinateSystem: true,
       colorCaptureSize: color_size,
