@@ -29,6 +29,8 @@ class MeasurementObject : public xwalk::common::BindingObject {
   void OnQueryUADataSize(scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryUAData(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
+  void FillMeasureData(MeasureData* measureData,
+                       PXCEnhancedPhoto::Measurement::MeasureData* data);
   void ReleaseResources();
 
   PXCSession* session_;
