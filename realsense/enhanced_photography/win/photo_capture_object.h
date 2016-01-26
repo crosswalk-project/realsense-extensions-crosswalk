@@ -19,13 +19,14 @@
 #include "third_party/libpxc/include/pxcphoto.h"
 #include "third_party/libpxc/include/pxcsensemanager.h"
 #include "xwalk/common/event_target.h"
+#include "../../common/common.h"
 
 namespace realsense {
+using namespace jsapi::common;  // NOLINT
 namespace enhanced_photography {
 
 using xwalk::common::XWalkExtensionFunctionInfo;
 using namespace jsapi::photo_capture; // NOLINT
-using namespace jsapi::common;  // NOLINT
 
 class PhotoCaptureObject : public xwalk::common::EventTarget {
  public:

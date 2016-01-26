@@ -166,25 +166,25 @@ scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
       message = "The operation failed to execute.";
   }
 
-  DEPError depError;
-  depError.error = error;
-  depError.message = message;
+  RSError rsError;
+  rsError.error = error;
+  rsError.message = message;
 
   scoped_ptr<base::ListValue> create_results(new base::ListValue());
   create_results->Append(base::Value::CreateNullValue());
-  create_results->Append((depError).ToValue().release());
+  create_results->Append((rsError).ToValue().release());
   return create_results.Pass();
 }
 
 scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error,
                                               const std::string& message) {
-  DEPError depError;
-  depError.error = error;
-  depError.message = message;
+  RSError rsError;
+  rsError.error = error;
+  rsError.message = message;
 
   scoped_ptr<base::ListValue> create_results(new base::ListValue());
   create_results->Append(base::Value::CreateNullValue());
-  create_results->Append((depError).ToValue().release());
+  create_results->Append((rsError).ToValue().release());
   return create_results.Pass();
 }
 
