@@ -6,8 +6,6 @@ var measureRadio = document.getElementById('measure');
 var refocusRadio = document.getElementById('refocus');
 var depthEnhanceRadio = document.getElementById('depthEnhance');
 var depthUpscaleRadio = document.getElementById('depthUpscale');
-var photoCropRadio = document.getElementById('photoCrop');
-var photoRotateRadio = document.getElementById('photoRotate');
 var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
 var popColorRadio = document.getElementById('popColor');
 
@@ -87,8 +85,6 @@ function resetRadioButtons() {
   refocusRadio.checked = false;
   depthEnhanceRadio.checked = false;
   depthUpscaleRadio.checked = false;
-  photoCropRadio.checked = false;
-  photoRotateRadio.checked = false;
   pasteOnPlaneRadio.checked = false;
   popColorRadio.checked = false;
 }
@@ -196,40 +192,6 @@ function depthUpscale() {
                     imageContext.putImageData(imageData, 0, 0);
                   },
                   function(e) { statusElement.innerHTML = e.message; });
-            },
-            function(e) { statusElement.innerHTML = e.message; });
-      },
-      function(e) { statusElement.innerHTML = e.message; });
-}
-
-function photoCrop() {
-  photoUtils.photoCrop(currentPhoto, {x: 100, y: 100, w: 80, h: 80}).then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryContainerImage().then(
-            function(image) {
-              imageData = imageContext.createImageData(image.width, image.height);
-              statusElement.innerHTML = 'photoCrop success';
-              overlayContext.clearRect(0, 0, width, height);
-              imageData.data.set(image.data);
-              imageContext.putImageData(imageData, 0, 0);
-            },
-            function(e) { statusElement.innerHTML = e.message; });
-      },
-      function(e) { statusElement.innerHTML = e.message; });
-}
-
-function photoRotate() {
-  photoUtils.photoRotate(currentPhoto, 90.0).then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryContainerImage().then(
-            function(image) {
-              imageData = imageContext.createImageData(image.width, image.height);
-              statusElement.innerHTML = 'photoRotate success';
-              overlayContext.clearRect(0, 0, width, height);
-              imageData.data.set(image.data);
-              imageContext.putImageData(imageData, 0, 0);
             },
             function(e) { statusElement.innerHTML = e.message; });
       },
@@ -472,28 +434,6 @@ function main() {
       }
       overlayContext.clearRect(0, 0, width, height);
       depthUpscale();
-    }
-  }, false);
-
-  photoCropRadio.addEventListener('click', function(e) {
-    if (photoCropRadio.checked) {
-      if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
-        return;
-      }
-      overlayContext.clearRect(0, 0, width, height);
-      photoCrop();
-    }
-  }, false);
-
-  photoRotateRadio.addEventListener('click', function(e) {
-    if (photoRotateRadio.checked) {
-      if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
-        return;
-      }
-      overlayContext.clearRect(0, 0, width, height);
-      photoRotate();
     }
   }, false);
 
