@@ -44,7 +44,6 @@ MeasurementObject::~MeasurementObject() {
 
 void MeasurementObject::OnMeasureDistance(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  MeasureData measure_data;
   scoped_ptr<MeasureDistance::Params> params(
       MeasureDistance::Params::Create(*info->arguments()));
   if (!params) {
@@ -61,47 +60,101 @@ void MeasurementObject::OnMeasureDistance(
   }
 
   DCHECK(measurement_);
-  PXCPointI32 start;
-  PXCPointI32 end;
-  start.x = params->start.x;
-  start.y = params->start.y;
-  end.x = params->end.x;
-  end.y = params->end.y;
+  PXCPointI32 start = { params->start.x, params->start.y };
+  PXCPointI32 end = { params->end.x, params->end.y };
   PXCEnhancedPhoto::Measurement::MeasureData data;
-  measurement_->MeasureDistance(depthPhotoObject->GetPhoto(),
-                                start,
-                                end,
-                                &data);
+  pxcStatus status = measurement_->MeasureDistance(depthPhotoObject->GetPhoto(),
+                                                   start,
+                                                   end,
+                                                   &data);
+  if (status != PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "MeasureDistance failed"));
+    return;
+  }
 
-  measure_data.distance = data.distance;
-  measure_data.confidence = data.confidence;
-  measure_data.precision = data.precision;
-  measure_data.start_point.x = data.startPoint.coord.x;
-  measure_data.start_point.y = data.startPoint.coord.y;
-  measure_data.start_point.z = data.startPoint.coord.z;
-  measure_data.end_point.x = data.endPoint.coord.x;
-  measure_data.end_point.x = data.endPoint.coord.y;
-  measure_data.end_point.x = data.endPoint.coord.z;
+  MeasureData measure_data;
+  FillMeasureData(&measure_data, &data);
   info->PostResult(MeasureDistance::Results::Create(
       measure_data, std::string()));
 }
 
 void MeasurementObject::OnMeasureUADistance(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  NOTIMPLEMENTED();
-  info->PostResult(CreateErrorResult(ERROR_CODE_FEATURE_UNSUPPORTED));
+  scoped_ptr<MeasureUADistance::Params> params(
+      MeasureUADistance::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    return;
+  }
+
+  std::string object_id = params->photo.object_id;
+  DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
+      instance_->GetBindingObjectById(object_id));
+  if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    return;
+  }
+
+  DCHECK(measurement_);
+  PXCPointI32 start = { params->start.x, params->start.y };
+  PXCPointI32 end = { params->end.x, params->end.y };
+  PXCEnhancedPhoto::Measurement::MeasureData data;
+  pxcStatus status = measurement_->MeasureUADistance(
+      depthPhotoObject->GetPhoto(), start, end, &data);
+  if (status != PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "MeasureUADistance failed"));
+    return;
+  }
+
+  MeasureData measure_data;
+  FillMeasureData(&measure_data, &data);
+  info->PostResult(MeasureUADistance::Results::Create(
+      measure_data, std::string()));
 }
 
 void MeasurementObject::OnQueryUADataSize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  NOTIMPLEMENTED();
-  info->PostResult(CreateErrorResult(ERROR_CODE_FEATURE_UNSUPPORTED));
+  DCHECK(measurement_);
+  pxcI32 size = measurement_->QueryUADataSize();
+  info->PostResult(QueryUADataSize::Results::Create(
+      size, std::string()));
 }
 
 void MeasurementObject::OnQueryUAData(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  NOTIMPLEMENTED();
-  info->PostResult(CreateErrorResult(ERROR_CODE_FEATURE_UNSUPPORTED));
+  DCHECK(measurement_);
+  PXCEnhancedPhoto::Measurement::MeasureData data;
+  pxcStatus status = measurement_->QueryUAData(&data);
+  if (status != PXC_STATUS_NO_ERROR) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "QueryUAData failed"));
+    return;
+  }
+
+  MeasureData measure_data;
+  FillMeasureData(&measure_data, &data);
+  info->PostResult(QueryUAData::Results::Create(
+      measure_data, std::string()));
+}
+
+void MeasurementObject::FillMeasureData(
+    MeasureData* measureData,
+    PXCEnhancedPhoto::Measurement::MeasureData* data) {
+  measureData->distance = data->distance;
+  measureData->confidence = data->confidence;
+  measureData->precision = data->precision;
+  measureData->start_point.x = data->startPoint.coord.x;
+  measureData->start_point.y = data->startPoint.coord.y;
+  measureData->start_point.z = data->startPoint.coord.z;
+  measureData->start_point.confidence = data->startPoint.confidence;
+  measureData->start_point.precision = data->startPoint.precision;
+  measureData->end_point.x = data->endPoint.coord.x;
+  measureData->end_point.y = data->endPoint.coord.y;
+  measureData->end_point.z = data->endPoint.coord.z;
+  measureData->end_point.confidence = data->endPoint.confidence;
+  measureData->end_point.precision = data->endPoint.precision;
 }
 
 void MeasurementObject::ReleaseResources() {
