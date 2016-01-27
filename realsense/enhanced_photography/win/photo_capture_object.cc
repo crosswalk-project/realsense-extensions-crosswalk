@@ -11,10 +11,12 @@
 #include "base/guid.h"
 #include "base/logging.h"
 #include "base/strings/sys_string_conversions.h"
+#include "realsense/common/win/common_utils.h"
 #include "realsense/enhanced_photography/win/common_utils.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
+using namespace realsense::common;  // NOLINT
 namespace enhanced_photography {
 
 using realsense::jsapi::photo_utils::DepthMapQuality;

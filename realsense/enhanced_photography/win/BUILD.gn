@@ -57,6 +57,7 @@ shared_library("enhanced_photography") {
   ]
   deps = [
     "../../common:common_idl",
+    "../../common:common_utils",
     ":enhanced_photography_idl",
     ":enhanced_photography_js",
     "//extensions/third_party/libpxc",
