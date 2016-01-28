@@ -10,9 +10,11 @@
 #include "base/bind.h"
 #include "base/guid.h"
 #include "base/strings/sys_string_conversions.h"
+#include "realsense/common/win/common_utils.h"
 #include "realsense/enhanced_photography/win/common_utils.h"
 
 namespace realsense {
+using namespace realsense::common;  // NOLINT
 namespace enhanced_photography {
 
 DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)

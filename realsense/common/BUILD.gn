@@ -10,3 +10,17 @@ xwalk_idlgen("common_idl") {
     "common.idl",
   ]
 }
+
+component("common_utils") {
+  sources = [
+    "win/common_utils.cc",
+    "win/common_utils.h",
+  ]
+  deps = [
+    ":common_idl",
+  ]
+  include_dirs = [
+    "../..",
+    "$target_gen_dir",
+  ]
+}
