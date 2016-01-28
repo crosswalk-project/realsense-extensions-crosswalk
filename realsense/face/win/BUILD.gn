@@ -23,6 +23,8 @@ shared_library("face") {
     "face_module_object.h",
   ]
   deps = [
+    "../../common:common_idl",
+    "../../common:common_utils",
     ":face_module_idl",
     ":face_js",
     "//extensions/third_party/libpxc",

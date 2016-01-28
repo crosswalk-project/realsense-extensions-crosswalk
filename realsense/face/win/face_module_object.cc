@@ -9,6 +9,7 @@
 
 #include "base/bind.h"
 #include "base/logging.h"
+#include "realsense/common/win/common_utils.h"
 #include "third_party/libpxc/include/pxcfaceconfiguration.h"
 
 namespace {
@@ -195,6 +196,7 @@ void RetrieveConfig(
 }  // namespace
 
 namespace realsense {
+using namespace realsense::common;  // NOLINT
 namespace face {
 
 using namespace realsense::jsapi::face_module; // NOLINT
@@ -265,15 +267,15 @@ void FaceModuleObject::OnStart(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (face_module_thread_.IsRunning()) {
     info->PostResult(
-        Start::Results::Create(
-            std::string(), std::string("Face module is already started")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is already started"));
     return;  // Wrong state.
   }
 
   if (!Init()) {
     info->PostResult(
-        Start::Results::Create(
-            std::string(), std::string("Can't prepare pipeline")));
+        CreateErrorResult(ERROR_CODE_INIT_FAILED,
+            "Can't initialize face module"));
     return;
   }
 
@@ -291,9 +293,8 @@ void FaceModuleObject::OnStop(
   if (!face_module_thread_.IsRunning()) {
     if (info.get()) {
       info->PostResult(
-          Stop::Results::Create(
-              std::string(),
-              std::string("Face module is not started yet")));
+          CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+              "Face module is not started yet"));
     }
     return;  // Wrong state.
   }
@@ -310,9 +311,9 @@ void FaceModuleObject::OnStop(
 void FaceModuleObject::OnGetProcessedSample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
-    ProcessedSample processed_sample;
-    GetProcessedSample::Results::Create(
-        processed_sample, std::string("Pipeline is not started"));
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not started yet"));
     return;
   }
 
@@ -329,8 +330,8 @@ void FaceModuleObject::OnSetConf(
   if (!face_module_thread_.IsRunning()) {
     if (!Init()) {
       info->PostResult(
-          Set::Results::Create(
-              std::string(), std::string("Can't prepare pipeline")));
+          CreateErrorResult(ERROR_CODE_INIT_FAILED,
+              "Can't initialize face module"));
       return;
     }
 
@@ -352,8 +353,8 @@ void FaceModuleObject::OnGetDefaultsConf(
     if (!Init()) {
       JSFaceConfigurationData config_data;
       info->PostResult(
-          GetDefaults::Results::Create(
-              config_data, std::string("Can't prepare pipeline")));
+          CreateErrorResult(ERROR_CODE_INIT_FAILED,
+              "Can't initialize face module"));
       return;
     }
 
@@ -375,8 +376,8 @@ void FaceModuleObject::OnGetConf(
     if (!Init()) {
       JSFaceConfigurationData config_data;
       info->PostResult(
-          Get::Results::Create(
-              config_data, std::string("Can't prepare pipeline")));
+          CreateErrorResult(ERROR_CODE_INIT_FAILED,
+              "Can't initialize face module"));
       return;
     }
 
@@ -395,8 +396,8 @@ void FaceModuleObject::OnRegisterUserByFaceID(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
     info->PostResult(
-        RegisterUserByFaceID::Results::Create(
-            -1, std::string("Pipeline is not started")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not started yet"));
     return;
   }
 
@@ -404,9 +405,7 @@ void FaceModuleObject::OnRegisterUserByFaceID(
       RegisterUserByFaceID::Params::Create(*info->arguments()));
 
   if (!params) {
-    info->PostResult(RegisterUserByFaceID::Results::Create(
-          -1,
-          std::string("Malformed parameters")));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -422,8 +421,8 @@ void FaceModuleObject::OnUnregisterUserByID(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
     info->PostResult(
-        UnregisterUserByID::Results::Create(
-            std::string(), std::string("Pipeline is not started")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not started yet"));
     return;
   }
 
@@ -431,9 +430,7 @@ void FaceModuleObject::OnUnregisterUserByID(
       UnregisterUserByID::Params::Create(*info->arguments()));
 
   if (!params) {
-    info->PostResult(UnregisterUserByID::Results::Create(
-          std::string(),
-          std::string("Malformed parameters")));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -455,8 +452,8 @@ void FaceModuleObject::OnStartPipeline(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "Failed to init sense manager: " << status;
     info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to init sense manager"));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to init sense manager"));
     ReleasePipelineResources();
     StopFaceModuleThread();
     return;
@@ -483,8 +480,8 @@ void FaceModuleObject::OnStartPipeline(
   if (!face_output_) {
     DLOG(ERROR) << "Failed to create face output";
     info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to create face output"));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to create face output"));
     ReleasePipelineResources();
     StopFaceModuleThread();
     return;
@@ -495,8 +492,8 @@ void FaceModuleObject::OnStartPipeline(
   // We create color/depth images according current stream profiles.
   if (!CreateProcessedSampleImages()) {
     info->PostResult(
-        Start::Results::Create(
-            std::string(), "Failed to create processed sample images"));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to create processed sample images"));
     ReleasePipelineResources();
     StopFaceModuleThread();
     return;
@@ -510,9 +507,7 @@ void FaceModuleObject::OnStartPipeline(
       base::Bind(&FaceModuleObject::OnRunPipeline,
                  base::Unretained(this)));
 
-  info->PostResult(
-      Start::Results::Create(
-          std::string("success"), std::string()));
+  info->PostResult(CreateSuccessResult());
 }
 
 void FaceModuleObject::OnRunPipeline() {
@@ -523,11 +518,7 @@ void FaceModuleObject::OnRunPipeline() {
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "AcquiredFrame failed: " << status;
     if (on_error_) {
-      ErrorEvent event;
-      event.status = "Fail to AcquireFrame. Stop.";
-      scoped_ptr<base::ListValue> eventData(new base::ListValue);
-      eventData->Append(event.ToValue().release());
-      DispatchEvent("error", eventData.Pass());
+      DispatchErrorEvent(ERROR_CODE_EXEC_FAILED, "Fail to AcquireFrame. Stop.");
     }
 
     ReleasePipelineResources();
@@ -541,11 +532,7 @@ void FaceModuleObject::OnRunPipeline() {
     // At least we should have color image!
     if (!face_sample->color) {
       if (on_error_) {
-        ErrorEvent event;
-        event.status = "Fail to query face sample";
-        scoped_ptr<base::ListValue> eventData(new base::ListValue);
-        eventData->Append(event.ToValue().release());
-        DispatchEvent("error", eventData.Pass());
+        DispatchErrorEvent(ERROR_CODE_EXEC_FAILED, "Fail to query face sample");
       }
 
       ReleasePipelineResources();
@@ -581,9 +568,7 @@ void FaceModuleObject::OnStopPipeline(
   ReleasePipelineResources();
 
   if (info.get()) {
-    info->PostResult(
-        Stop::Results::Create(
-            std::string("Success"), std::string()));
+    info->PostResult(CreateSuccessResult());
   }
 }
 
@@ -594,11 +579,9 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
   bool fail = false;
 
   if (state_ != TRACKING) {
-    ProcessedSample processed_sample;
     info->PostResult(
-        GetProcessedSample::Results::Create(
-            processed_sample,
-            std::string("Is not started yet, no processed_sample")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Is not started yet, no processed_sample"));
     return;
   }
 
@@ -799,11 +782,9 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
   }
 
   if (fail) {
-    ProcessedSample processed_sample;
     info->PostResult(
-        GetProcessedSample::Results::Create(
-            processed_sample,
-            std::string("Failed to prepare processed_sample")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to prepare processed_sample"));
   } else {
     DCHECK(offset <= post_data_size);
     scoped_ptr<base::ListValue> result(new base::ListValue());
@@ -821,16 +802,15 @@ void FaceModuleObject::OnRegisterUserByFaceIDOnPipeline(
 
   if (state_ != TRACKING) {
     info->PostResult(
-        RegisterUserByFaceID::Results::Create(
-            -1, std::string("Pipeline is not started yet")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not started yet"));
     return;
   }
 
   if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
     info->PostResult(
-        RegisterUserByFaceID::Results::Create(
-            -1,
-            std::string("Recognition feature is not enabled yet")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Recognition feature is not enabled yet"));
     return;
   }
 
@@ -847,16 +827,20 @@ void FaceModuleObject::OnRegisterUserByFaceIDOnPipeline(
           " : (" << old_id << ", " << registered_id << ")";
     } else {
       DLOG(ERROR) << "Failed to get RecognitionData for faceId: " << faceId;
-      error_msg = "Failed to get RecognitionData";
+      error_msg = "Failed to get Face Recognition Data";
     }
   } else {
     DLOG(ERROR) << "No FaceData for faceId: " << faceId;
-    error_msg = "Failed to find FaceData";
+    error_msg = "Failed to find Face Data";
   }
 
-  info->PostResult(
-      RegisterUserByFaceID::Results::Create(
-          registered_id, error_msg));
+  if (!error_msg.empty()) {
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED, error_msg));
+  } else {
+    info->PostResult(
+        RegisterUserByFaceID::Results::Create(registered_id));
+  }
 }
 
 void FaceModuleObject::OnUnregisterUserByIDOnPipeline(
@@ -866,16 +850,15 @@ void FaceModuleObject::OnUnregisterUserByIDOnPipeline(
 
   if (state_ != TRACKING) {
     info->PostResult(
-        UnregisterUserByID::Results::Create(
-            std::string(), std::string("Pipeline is not started yet")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not started yet"));
     return;
   }
 
   if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
     info->PostResult(
-        UnregisterUserByID::Results::Create(
-            std::string(),
-            std::string("Recognition feature is not enabled yet")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Recognition feature is not enabled yet"));
     return;
   }
 
@@ -887,12 +870,15 @@ void FaceModuleObject::OnUnregisterUserByIDOnPipeline(
     DLOG(INFO) << "Unregistered recognition id: " << userId;
   } else {
     DLOG(ERROR) << "Failed to get RecognitionModuleData";
-    error_msg = "Failed to get RecognitionModuleData";
+    error_msg = "Failed to get Recognition Module Data";
   }
 
-  info->PostResult(
-      UnregisterUserByID::Results::Create(
-          std::string("success"), error_msg));
+  if (!error_msg.empty()) {
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED, error_msg));
+  } else {
+    info->PostResult(CreateSuccessResult());
+  }
 }
 
 // May run on face extension thread or face module thread.
@@ -901,17 +887,15 @@ void FaceModuleObject::DoSetConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        Set::Results::Create(
-            std::string(), std::string("Pipeline is not ready")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not ready yet"));
     return;
   }
 
   scoped_ptr<Set::Params> params(
       Set::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(
-        Set::Results::Create(
-            std::string(), std::string("Malformed parameters")));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -920,13 +904,11 @@ void FaceModuleObject::DoSetConf(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "ApplyChangesConfig() failed: " << status;
     info->PostResult(
-        Set::Results::Create(
-            std::string(), std::string("Failed to set face configuration")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to set face configuration"));
     return;
   }
-  info->PostResult(
-      Set::Results::Create(
-          std::string("Success"), std::string()));
+  info->PostResult(CreateSuccessResult());
 }
 
 // May run on face extension thread or face module thread.
@@ -937,8 +919,8 @@ void FaceModuleObject::DoGetDefaultsConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        GetDefaults::Results::Create(
-            config_data, std::string("Pipeline is not ready")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not ready yet"));
     return;
   }
 
@@ -948,9 +930,7 @@ void FaceModuleObject::DoGetDefaultsConf(
   // Get face configurations values.
   RetrieveConfig(face_config_, &config_data);
   // Post FaceConfigurationData to JS side.
-  info->PostResult(
-      GetDefaults::Results::Create(
-          config_data, std::string()));
+  info->PostResult(GetDefaults::Results::Create(config_data));
 }
 
 // May run on face extension thread or face module thread.
@@ -961,8 +941,8 @@ void FaceModuleObject::DoGetConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        Get::Results::Create(
-            config_data, std::string("Pipeline is not ready")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Face module is not ready yet"));
     return;
   }
 
@@ -971,17 +951,15 @@ void FaceModuleObject::DoGetConf(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "Face config update() failed: " << status;
     info->PostResult(
-        Get::Results::Create(
-            config_data, std::string("Failed to get face configuration")));
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+            "Failed to get face configuration"));
     return;
   }
 
   // Get face configurations values.
   RetrieveConfig(face_config_, &config_data);
   // Post FaceConfigurationData to JS side.
-  info->PostResult(
-      Get::Results::Create(
-          config_data, std::string()));
+  info->PostResult(Get::Results::Create(config_data));
 }
 
 bool FaceModuleObject::Init() {
@@ -1209,6 +1187,16 @@ size_t FaceModuleObject::CalculateBinaryMessageSize() {
       // faces
       + 4 * sizeof(int) + num_of_faces * one_face_size;
   return message_size;
+}
+
+void FaceModuleObject::DispatchErrorEvent(
+    const ErrorCode& error, const std::string& message) {
+  RSError rsError;
+  rsError.error = error;
+  rsError.message = message;
+  scoped_ptr<base::ListValue> data(new base::ListValue);
+  data->Append(rsError.ToValue().release());
+  DispatchEvent("error", data.Pass());
 }
 
 }  // namespace face

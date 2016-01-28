@@ -185,7 +185,16 @@ var FaceModule = function(object_id) {
   this._addMethodWithPromise('stop');
   this._addMethodWithPromise('getProcessedSample', null, wrapProcessedSampleReturns);
 
-  this._addEvent('error');
+  var FaceErrorEvent = function(type, data) {
+    this.type = type;
+
+    if (data) {
+      this.error = data.error;
+      this.message = data.message;
+    }
+  };
+  this._addEvent('error', FaceErrorEvent);
+
   this._addEvent('processedsample');
 
   var faceConfObj = new FaceConfiguration(this._id);

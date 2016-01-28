@@ -186,7 +186,11 @@ function main() {
 
   var sampleFlowController = new CmdFlowController(5);
 
+  var isRunning = false;
+
   ft.onprocessedsample = function(e) {
+    if (!isRunning)
+      return;
     if (!sampleFlowController.get())
       return;
     ft.getProcessedSample().then(function(processed_sample) {
@@ -298,22 +302,22 @@ function main() {
       sampleFlowController.release();
     }, function(e) {
       sampleFlowController.release();
-      statusElement.innerHTML = 'Status: ' + e; console.log(e);});
+      statusElement.innerHTML = 'Status: ' + e.message; console.log(e.message);});
   };
 
   ft.onerror = function(e) {
-    statusElement.innerHTML = 'Status: onerror: ' + e.data.status;
+    statusElement.innerHTML = 'Status: onerror: ' + e.message;
   };
 
   setConfButton.onclick = function(e) {
     // Call configuration.set API.
     ft.configuration.set(getConf()).then(
-        function(e) {
+        function() {
           statusElement.innerHTML = 'Status: set configuration succeeds';
           console.log('set configuration succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   getDefaultsButton.onclick = function(e) {
@@ -325,8 +329,8 @@ function main() {
           statusElement.innerHTML = 'Status: get default configuration succeeds';
           console.log('get default configuration succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   getConfButton.onclick = function(e) {
@@ -338,53 +342,56 @@ function main() {
           statusElement.innerHTML = 'Status: get current configuration succeeds';
           console.log('get current configuration succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   startButton.onclick = function(e) {
-    sampleFlowController.reset();
     ft.start().then(
-        function(e) {
+        function() {
+          isRunning = true;
+          sampleFlowController.reset();
           statusElement.innerHTML = 'Status: start succeeds';
           console.log('start succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   stopButton.onclick = function(e) {
+    isRunning = false;
     ft.stop().then(
-        function(e) {
+        function() {
           statusElement.innerHTML = 'Status: stop succeeds';
           console.log('stop succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   registerButton.onclick = function(e) {
     var faceId = parseInt(document.getElementById('recognition_face_id').value);
     // Call recognition.registerUserByFaceID API
     ft.recognition.registerUserByFaceID(faceId).then(
-        function(e) {
-          statusElement.innerHTML = 'Status: register face succeeds faceId: ' + faceId;
+        function(recogId) {
+          statusElement.innerHTML =
+              'Status: register face succeeds faceId: ' + faceId + ', recogId: ' + recogId;
           console.log('register face succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
   unregisterButton.onclick = function(e) {
     var recogId = parseInt(document.getElementById('recognition_recog_id').value);
     // Call recognition.unregisterUserByID API
     ft.recognition.unregisterUserByID(recogId).then(
-        function(e) {
+        function() {
           statusElement.innerHTML = 'Status: unregister user succeeds recogId: ' + recogId;
           console.log('unregister user succeeds');},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e;
-          console.log(e);});
+          statusElement.innerHTML = 'Status: ' + e.message;
+          console.log(e.message);});
   };
 
 }
