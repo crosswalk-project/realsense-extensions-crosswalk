@@ -52,7 +52,7 @@ void MeasurementObject::OnMeasureDistance(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -89,7 +89,7 @@ void MeasurementObject::OnMeasureUADistance(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 

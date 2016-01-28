@@ -93,7 +93,7 @@ void DepthPhotoObject::DestroyPhoto() {
 void DepthPhotoObject::OnCheckSignature(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -104,7 +104,7 @@ void DepthPhotoObject::OnCheckSignature(
 void DepthPhotoObject::OnQueryCameraPerspectiveModel(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -136,7 +136,7 @@ void DepthPhotoObject::OnQueryCameraPerspectiveModel(
 void DepthPhotoObject::OnQueryCameraPose(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -165,7 +165,7 @@ void DepthPhotoObject::OnQueryCameraPose(
 void DepthPhotoObject::OnQueryCameraVendorInfo(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -190,7 +190,7 @@ void DepthPhotoObject::OnQueryContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -213,7 +213,7 @@ void DepthPhotoObject::OnQueryImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -247,7 +247,7 @@ void DepthPhotoObject::OnQueryDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -280,7 +280,7 @@ void DepthPhotoObject::OnQueryDepth(
 void DepthPhotoObject::OnQueryDeviceVendorInfo(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -297,7 +297,7 @@ void DepthPhotoObject::OnQueryDeviceVendorInfo(
 void DepthPhotoObject::OnQueryNumberOfCameras(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -310,7 +310,7 @@ void DepthPhotoObject::OnQueryRawDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -332,7 +332,7 @@ void DepthPhotoObject::OnQueryRawDepth(
 void DepthPhotoObject::OnQueryXDMRevision(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -344,7 +344,7 @@ void DepthPhotoObject::OnQueryXDMRevision(
 void DepthPhotoObject::OnResetContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -355,7 +355,7 @@ void DepthPhotoObject::OnResetContainerImage(
 void DepthPhotoObject::OnSetContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -410,7 +410,7 @@ void DepthPhotoObject::OnSetContainerImage(
 void DepthPhotoObject::OnSetColorImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -465,7 +465,7 @@ void DepthPhotoObject::OnSetColorImage(
 void DepthPhotoObject::OnSetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -516,7 +516,7 @@ void DepthPhotoObject::OnSetDepthImage(
 void DepthPhotoObject::OnSetRawDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -568,7 +568,7 @@ void DepthPhotoObject::OnClone(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
