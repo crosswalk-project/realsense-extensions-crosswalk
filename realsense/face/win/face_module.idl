@@ -4,10 +4,6 @@
 
 // FaceModule interface
 namespace face_module {
-  dictionary ErrorEvent {
-    DOMString status;
-  };
-
   enum TrackingModeType {
     color,
     color_depth
@@ -164,28 +160,27 @@ namespace face_module {
     FaceData[] faces;
   };
 
-  callback ProcessedSamplePromise = void (ProcessedSample sample, DOMString error);
-  callback FaceConfigurationDataPromise = void (FaceConfigurationData faceConf, DOMString error);
-  callback LongPromise = void (long value, DOMString error);
-  callback Promise = void (DOMString success, DOMString error);
+  callback ProcessedSamplePromise = void (ProcessedSample sample);
+  callback FaceConfigurationDataPromise = void (FaceConfigurationData faceConf);
+  callback LongPromise = void (long value);
 
   interface Events {
-    static void onerror();
-    static void onprocessedsample();
+    void onerror();
+    void onprocessedsample();
   };
 
   interface Functions {
-    static void start(Promise promise);
-    static void stop(Promise promise);
-    static void getProcessedSample(ProcessedSamplePromise promise);
+    void start();
+    void stop();
+    void getProcessedSample(ProcessedSamplePromise promise);
 
-    static void set(FaceConfigurationData faceConf, Promise promise);
-    static void getDefaults(FaceConfigurationDataPromise promise);
-    static void get(FaceConfigurationDataPromise promise);
+    void set(FaceConfigurationData faceConf);
+    void getDefaults(FaceConfigurationDataPromise promise);
+    void get(FaceConfigurationDataPromise promise);
 
-    static void registerUserByFaceID(long faceId, LongPromise promise);
-    static void unregisterUserByID(long userId, Promise promise);
+    void registerUserByFaceID(long faceId, LongPromise promise);
+    void unregisterUserByID(long userId);
 
-    [nodoc] static FaceModule faceModuleConstructor(DOMString objectId);
+    [nodoc] FaceModule faceModuleConstructor(DOMString objectId);
   };
 };

@@ -72,7 +72,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with an error message if there is a failure.
+              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -85,7 +85,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with an error message if there is a failure.
+              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -99,7 +99,7 @@
               This method returns a promise.
               The promise will be fulfilled with an <code><a>ProcessedSample</a></code>
               combining preview streams and face module tracking/recognition output data if there are no errors.
-              The promise will be rejected with an error message if there is a failure.
+              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -124,7 +124,7 @@
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
-              for the <a><code>ErrorEvent</code></a> that is dispatched
+              for the <a><code>FaceErrorEvent</code></a> that is dispatched
               to <code><a>FaceModule</a></code> when there is an error.
             </p>
           </dd>
@@ -141,9 +141,17 @@
         </dl>
         <section>
           <h3>
-            <code><a>ErrorEvent</a></code> interface
+            <code><a>FaceErrorEvent</a></code> interface
           </h3>
-          <dl class="idl" title="interface ErrorEvent : Event">
+          <dl class="idl" title="interface FaceErrorEvent : Event">
+            <dt>
+              readonly attribute ErrorCode error
+            </dt>
+            <dd>
+              <p>
+                The error code.
+              </p>
+            </dd>
             <dt>
               readonly attribute DOMString message
             </dt>
@@ -174,7 +182,7 @@
                 This method returns a promise.
                 The promise will be fulfilled with the user identifier
                 registered in recognition database if there are no errors.
-                The promise will be rejected with an error message if there is a failure.
+                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>long faceId</dt>
@@ -196,7 +204,7 @@
               <p>
                 This method returns a promise.
                 The promise will be fulfilled if there are no errors.
-                The promise will be rejected with an error message if there is a failure.
+                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>long userId</dt>
@@ -230,7 +238,7 @@
               <p>
                 This method returns a promise.
                 The promise will be fulfilled if there are no errors.
-                The promise will be rejected with an error message if there is a failure.
+                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>FaceConfigurationData config</dt>
@@ -252,7 +260,7 @@
                 This method returns a promise.
                 The promise will be fulfilled with the default face configuration
                 if there are no errors.
-                The promise will be rejected with an error message if there is a failure.
+                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
               </p>
             </dd>
             <dt>
@@ -266,11 +274,37 @@
                 This method returns a promise.
                 The promise will be fulfilled with current effective face configuration
                 if there are no errors.
-                The promise will be rejected with an error message if there is a failure.
+                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
               </p>
             </dd>
           </dl>
         </section>
+      </section>
+      <section>
+        <h2>
+          <code><a>FaceError</a></code>
+        </h2>
+        <p>
+          The error type from the reject callback of Promise.
+        </p>
+        <dl class="idl" title="interface FaceError">
+          <dt>
+            readonly attribute ErrorCode error
+          </dt>
+          <dd>
+            <p>
+              The error code. See the <code><a>ErrorCode</a></code> enumerator for definition.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute DOMString message
+          </dt>
+          <dd>
+            <p>
+              The descripton string for error.
+            </p>
+          </dd>
+        </dl>
       </section>
     </section>
     <section>
@@ -615,7 +649,38 @@
       </h2>
       <section>
         <h2>
-          <code><a>TrackingModeType</a></code>
+          <code><a>ErrorCode</a></code> enum
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum ErrorCode">
+          <dt>
+            param_unsupported
+          </dt>
+          <dd>
+            <p>
+              There are invalid/unsupported parameters.
+            </p>
+          </dd>
+          <dt>
+            init_failed
+          </dt>
+          <dd>
+            <p>
+              The initialization failed.
+            </p>
+          </dd>
+          <dt>
+            exec_failed
+          </dt>
+          <dd>
+            <p>
+              The operation failed to execute.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TrackingModeType</a></code> enum
         </h2>
         <dl id="enum-basic" class="idl" title="enum TrackingModeType">
           <dt>
@@ -638,7 +703,7 @@
       </section>
       <section>
         <h2>
-          <code><a>TrackingStrategyType</a></code>
+          <code><a>TrackingStrategyType</a></code> enum
         </h2>
         <dl id="enum-basic" class="idl" title="enum TrackingStrategyType">
           <dt>
@@ -685,7 +750,7 @@
       </section>
       <section>
         <h2>
-          <code><a>PixelFormat</a></code>
+          <code><a>PixelFormat</a></code> enum
         </h2>
         <dl id="enum-basic" class="idl" title="enum PixelFormat">
           <dt>
@@ -708,7 +773,7 @@
       </section>
       <section>
         <h2>
-          <code><a>LandmarkType</a></code>
+          <code><a>LandmarkType</a></code> enum
         </h2>
         <dl id="enum-basic" class="idl" title="enum LandmarkType">
           <dt>

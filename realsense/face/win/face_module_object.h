@@ -13,9 +13,12 @@
 #include "third_party/libpxc/include/pxcimage.h"
 #include "third_party/libpxc/include/pxcsensemanager.h"
 #include "xwalk/common/event_target.h"
+#include "../../common/common.h"
 
 namespace realsense {
 namespace face {
+
+using realsense::jsapi::common::ErrorCode;
 
 class FaceModuleObject : public xwalk::common::EventTarget {
  public:
@@ -81,6 +84,7 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   void OnStopFaceModuleThread();
 
   size_t CalculateBinaryMessageSize();
+  void DispatchErrorEvent(const ErrorCode& error, const std::string& message);
 
   enum State {
     NOT_READY,
