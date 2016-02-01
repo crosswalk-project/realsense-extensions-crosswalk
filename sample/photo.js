@@ -10,7 +10,7 @@ var imageCanvas = document.getElementById('image');
 
 var imageContext, imageData;
 var currentPhoto;
-var width = 1920, height = 1080;
+var width, height;
 
 var hasImage = false;
 var photoUtils, XDMUtils;
@@ -188,6 +188,10 @@ function main() {
                   currentPhoto.queryContainerImage().then(
                       function(image) {
                         resetRadioButtons();
+                        width = image.width;
+                        height = image.height;
+                        imageCanvas.width = width;
+                        imageCanvas.height = height;
                         fillCanvasUsingColorImage(image);
                         statusElement.innerHTML = 'Load successfully.';
                         hasImage = true;

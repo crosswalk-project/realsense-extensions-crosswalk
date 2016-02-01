@@ -16,8 +16,7 @@ var imageContext, imageData;
 var overlayContext;
 var photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
-var width = 1920, height = 1080;
-var canvasWidth = 600, canvasHeight = 450;
+var width, height;
 
 const FirstClick = 0, SecondClick = 1;
 var nextClick = FirstClick;
@@ -62,6 +61,18 @@ function ConvertDepthToRGBUsingHistogram(
       rgbImage[l * 4 + 3] = 255;
     }
   }
+}
+
+function getDateString() {
+  var date = new Date();
+  var dateString =
+      date.getFullYear() +
+      ('0' + (date.getMonth() + 1)).slice(-2) +
+      ('0' + date.getDate()).slice(-2) +
+      ('0' + date.getHours()).slice(-2) +
+      ('0' + date.getMinutes()).slice(-2) +
+      ('0' + date.getSeconds()).slice(-2);
+  return dateString;
 }
 
 function resetRadioButtons() {
@@ -276,20 +287,20 @@ function main() {
     if (!hasImage || !photoCropRadio.checked)
       return;
     if (nextClick == FirstClick) {
-      topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-      topY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+      topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+      topY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
       nextClick = SecondClick;
     } else if (nextClick == SecondClick) {
-      bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-      bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+      bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+      bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
       nextClick = FirstClick;
       photoCrop();
     }
   }, false);
 
   overlayCanvas.addEventListener('mousemove', function(e) {
-    bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-    bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+    bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+    bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
     if (nextClick == SecondClick) {
       overlayContext.clearRect(0, 0, width, height);
       var offsetX = bottomX - topX;
@@ -312,6 +323,12 @@ function main() {
                   currentPhoto.queryContainerImage().then(
                       function(image) {
                         resetRadioButtons();
+                        width = image.width;
+                        height = image.height;
+                        imageCanvas.width = width;
+                        imageCanvas.height = height;
+                        overlayCanvas.width = width;
+                        overlayCanvas.height = height;
                         fillCanvasUsingColorImage(image);
                         statusElement.innerHTML = 'Load successfully.';
                         hasImage = true;
@@ -331,32 +348,6 @@ function main() {
         function(e) { statusElement.innerHTML = e.message; });
   });
 
-  function saveFile(fs, fileName, blob) {
-    var fullName = fileName + '.jpg';
-    fs.root.getFile(fullName, {}, function(entry) {
-      // The file already exist.
-      fileName += '1';
-      saveFile(fs, fileName, blob);
-    },
-    function(e) {
-      // file doesn't exist. Create it.
-      fs.root.getFile(fullName, { create: true }, function(entry) {
-        entry.createWriter(function(writer) {
-          writer.onwriteend = function(e) {
-            statusElement.innerHTML =
-                'The photo has been saved to ' + fullName + ' successfully.';
-          };
-          writer.onerror = function(e) {
-            statusElement.innerHTML = 'Save failed.';
-          };
-          writer.write(blob);
-        },
-        function(e) { statusElement.innerHTML = e; });
-      },
-      function(e) { statusElement.innerHTML = e; });
-    });
-  }
-
   saveButton.onclick = function(e) {
     if (!savePhoto) {
       statusElement.innerHTML = 'There is no photo to save';
@@ -366,8 +357,21 @@ function main() {
         function(blob) {
           xwalk.experimental.native_file_system.requestNativeFileSystem('pictures',
               function(fs) {
-                var fileName = '/pictures/savedPhoto';
-                saveFile(fs, fileName, blob);
+                var fileName = '/pictures/depthphoto_' + getDateString() + '.jpg';
+                fs.root.getFile(fileName, { create: true }, function(entry) {
+                  entry.createWriter(function(writer) {
+                    writer.onwriteend = function(e) {
+                      statusElement.innerHTML =
+                          'The depth photo has been saved to ' + fileName + ' successfully.';
+                    };
+                    writer.onerror = function(e) {
+                      statusElement.innerHTML = 'Failed to save depth photo.';
+                    };
+                    writer.write(blob);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
               });
         },
         function(e) { statusElement.innerHTML = e.message; });
