@@ -8,7 +8,6 @@ var depthEnhanceRadio = document.getElementById('depthEnhance');
 var depthUpscaleRadio = document.getElementById('depthUpscale');
 var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
 var popColorRadio = document.getElementById('popColor');
-
 var imageCanvas = document.getElementById('image');
 var overlayCanvas = document.getElementById('overlay');
 
@@ -16,8 +15,7 @@ var imageContext, imageData;
 var overlayContext;
 var refocus, depthMask, measurement, paster, photoUtils, XDMUtils;
 var currentPhoto, savePhoto;
-var width = 1920, height = 1080;
-var canvasWidth = 400, canvasHeight = 300;
+var canvasWidth, canvasHeight;
 
 var clickCount = 0;
 var startX = 0;
@@ -67,6 +65,18 @@ function ConvertDepthToRGBUsingHistogram(
   }
 }
 
+function getDateString() {
+  var date = new Date();
+  var dateString =
+      date.getFullYear() +
+      ('0' + (date.getMonth() + 1)).slice(-2) +
+      ('0' + date.getDate()).slice(-2) +
+      ('0' + date.getHours()).slice(-2) +
+      ('0' + date.getMinutes()).slice(-2) +
+      ('0' + date.getSeconds()).slice(-2);
+  return dateString;
+}
+
 function drawCross(x, y) {
   overlayContext.beginPath();
   overlayContext.strokeStyle = 'blue';
@@ -94,8 +104,8 @@ function measureDistance(e) {
     return;
 
   clickCount = clickCount + 1;
-  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * canvasWidth / imageCanvas.scrollWidth);
+  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * canvasHeight / imageCanvas.scrollHeight);
   if (clickCount % 2 == 0) {
     drawCross(x, y);
     overlayContext.beginPath();
@@ -121,7 +131,7 @@ function measureDistance(e) {
         },
         function(e) { statusElement.innerHTML = e.message; });
   } else {
-    overlayContext.clearRect(0, 0, width, height);
+    overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
     drawCross(x, y);
     startX = x;
     startY = y;
@@ -132,10 +142,10 @@ function depthRefocus(e) {
   if (hasImage == false)
     return;
 
-  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * canvasWidth / imageCanvas.scrollWidth);
+  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * canvasHeight / imageCanvas.scrollHeight);
 
-  overlayContext.clearRect(0, 0, width, height);
+  overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
   drawCross(x, y);
 
   refocus.init(currentPhoto).then(
@@ -148,7 +158,7 @@ function depthRefocus(e) {
                     imageData = imageContext.createImageData(image.width, image.height);
                     statusElement.innerHTML =
                         'Depth refocus success. Please select focus point again.';
-                    overlayContext.clearRect(0, 0, width, height);
+                    overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
                     imageData.data.set(image.data);
                     imageContext.putImageData(imageData, 0, 0);
                   },
@@ -165,7 +175,7 @@ function depthEnhance() {
         savePhoto = photo;
         photo.queryDepthImage().then(
             function(image) {
-              imageContext.clearRect(0, 0, width, height);
+              imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
               imageData = imageContext.createImageData(image.width, image.height);
               statusElement.innerHTML = 'Finished depth enhancing.';
               ConvertDepthToRGBUsingHistogram(
@@ -185,6 +195,7 @@ function depthUpscale() {
               savePhoto = photo;
               photo.queryDepthImage().then(
                   function(image) {
+                    imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
                     imageData = imageContext.createImageData(image.width, image.height);
                     statusElement.innerHTML = 'Finished depth upscaling.';
                     ConvertDepthToRGBUsingHistogram(
@@ -245,8 +256,8 @@ function pasteOnPlane(e) {
     return;
 
   clickCount = clickCount + 1;
-  endX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-  endY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+  endX = parseInt((e.clientX - overlayCanvas.offsetLeft) * canvasWidth / imageCanvas.scrollWidth);
+  endY = parseInt((e.clientY - overlayCanvas.offsetTop) * canvasHeight / imageCanvas.scrollHeight);
   if (clickCount % 2 == 0) {
     drawCross(endX, endY);
     overlayContext.beginPath();
@@ -260,7 +271,7 @@ function pasteOnPlane(e) {
     hasSelectPoints = true;
     doPasteOnPlane();
   } else {
-    overlayContext.clearRect(0, 0, width, height);
+    overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
     drawCross(endX, endY);
     startX = endX;
     startY = endY;
@@ -271,10 +282,10 @@ function popColor(e) {
   if (hasImage == false)
     return;
 
-  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+  var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * canvasWidth / imageCanvas.scrollWidth);
+  var y = parseInt((e.clientY - overlayCanvas.offsetTop) * canvasHeight / imageCanvas.scrollHeight);
 
-  overlayContext.clearRect(0, 0, width, height);
+  overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
   drawCross(x, y);
 
   depthMask.init(currentPhoto).then(
@@ -302,7 +313,7 @@ function popColor(e) {
                       }
                     }
 
-                    imageContext.clearRect(0, 0, width, height);
+                    imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
                     imageData = imageContext.createImageData(colorImage.width, colorImage.height);
                     imageData.data.set(colorImage.data);
                     imageContext.putImageData(imageData, 0, 0);
@@ -378,15 +389,15 @@ function main() {
   measureRadio.addEventListener('click', function(e) {
     if (measureRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
 
       statusElement.innerHTML = 'Select two points to measure distance.';
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       currentPhoto.queryContainerImage().then(
           function(image) {
-            imageContext.clearRect(0, 0, width, height);
+            imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
             imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
@@ -398,15 +409,15 @@ function main() {
   refocusRadio.addEventListener('click', function(e) {
     if (refocusRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
 
       statusElement.innerHTML = 'Select the refocus point.';
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       currentPhoto.queryContainerImage().then(
           function(image) {
-            imageContext.clearRect(0, 0, width, height);
+            imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
             imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
@@ -418,10 +429,10 @@ function main() {
   depthEnhanceRadio.addEventListener('click', function(e) {
     if (depthEnhanceRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       depthEnhance();
     }
   }, false);
@@ -429,10 +440,10 @@ function main() {
   depthUpscaleRadio.addEventListener('click', function(e) {
     if (depthUpscaleRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       depthUpscale();
     }
   }, false);
@@ -440,7 +451,7 @@ function main() {
   pasteOnPlaneRadio.addEventListener('click', function(e) {
     if (pasteOnPlaneRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
 
@@ -456,10 +467,10 @@ function main() {
             'Select two points on the image to paste the sticker.';
       }
 
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       currentPhoto.queryContainerImage().then(
           function(image) {
-            imageContext.clearRect(0, 0, width, height);
+            imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
             imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
@@ -471,15 +482,15 @@ function main() {
   popColorRadio.addEventListener('click', function(e) {
     if (popColorRadio.checked) {
       if (hasImage == false) {
-        statusElement.innerHTML = 'Please capture/load a photo first.';
+        statusElement.innerHTML = 'Please load a photo first.';
         return;
       }
 
       statusElement.innerHTML = 'Select the point to pop color.';
-      overlayContext.clearRect(0, 0, width, height);
+      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
       currentPhoto.queryContainerImage().then(
           function(image) {
-            imageContext.clearRect(0, 0, width, height);
+            imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
             imageData = imageContext.createImageData(image.width, image.height);
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
@@ -503,32 +514,6 @@ function main() {
     }
   }, false);
 
-  function saveFile(fs, fileName, blob) {
-    var fullName = fileName + '.jpg';
-    fs.root.getFile(fullName, {}, function(entry) {
-      // The file already exist.
-      fileName += '1';
-      saveFile(fs, fileName, blob);
-    },
-    function(e) {
-      // file doesn't exist. Create it.
-      fs.root.getFile(fullName, { create: true }, function(entry) {
-        entry.createWriter(function(writer) {
-          writer.onwriteend = function(e) {
-            statusElement.innerHTML =
-                'The photo has been saved to ' + fullName + ' successfully.';
-          };
-          writer.onerror = function(e) {
-            statusElement.innerHTML = 'Save failed.';
-          };
-          writer.write(blob);
-        },
-        function(e) { statusElement.innerHTML = e; });
-      },
-      function(e) { statusElement.innerHTML = e; });
-    });
-  }
-
   saveButton.onclick = function(e) {
     if (!savePhoto) {
       statusElement.innerHTML = 'There is no photo to save';
@@ -538,8 +523,21 @@ function main() {
         function(blob) {
           xwalk.experimental.native_file_system.requestNativeFileSystem('pictures',
               function(fs) {
-                var fileName = '/pictures/savedPhoto';
-                saveFile(fs, fileName, blob);
+                var fileName = '/pictures/depthphoto_' + getDateString() + '.jpg';
+                fs.root.getFile(fileName, { create: true }, function(entry) {
+                  entry.createWriter(function(writer) {
+                    writer.onwriteend = function(e) {
+                      statusElement.innerHTML =
+                          'The depth photo has been saved to ' + fileName + ' successfully.';
+                    };
+                    writer.onerror = function(e) {
+                      statusElement.innerHTML = 'Failed to save depth photo.';
+                    };
+                    writer.write(blob);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
               });
         },
         function(e) { statusElement.innerHTML = e.message; });
@@ -553,13 +551,18 @@ function main() {
             XDMUtils.loadXDM(file).then(
                 function(photo) {
                   currentPhoto = photo;
+                  savePhoto = photo;
                   currentPhoto.queryContainerImage().then(
                       function(image) {
                         resetRadioButtons();
-                        imageContext.clearRect(0, 0, width, height);
+                        canvasWidth = image.width;
+                        canvasHeight = image.height;
+                        imageCanvas.width = canvasWidth;
+                        imageCanvas.height = canvasHeight;
+                        overlayCanvas.width = canvasWidth;
+                        overlayCanvas.height = canvasHeight;
                         imageData = imageContext.createImageData(image.width, image.height);
                         statusElement.innerHTML = 'Load successfully.';
-                        overlayContext.clearRect(0, 0, width, height);
                         imageData.data.set(image.data);
                         imageContext.putImageData(imageData, 0, 0);
                         hasImage = true;
