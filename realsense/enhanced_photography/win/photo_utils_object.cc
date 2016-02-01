@@ -79,7 +79,7 @@ void PhotoUtilsObject::OnColorResize(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -117,7 +117,7 @@ void PhotoUtilsObject::OnCommonFOV(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -153,7 +153,7 @@ void PhotoUtilsObject::OnDepthResize(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -204,7 +204,7 @@ void PhotoUtilsObject::OnEnhanceDepth(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -247,7 +247,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -290,7 +290,7 @@ void PhotoUtilsObject::OnPhotoCrop(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -332,7 +332,7 @@ void PhotoUtilsObject::OnPhotoRotate(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INVALID_PHOTO));
+    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 

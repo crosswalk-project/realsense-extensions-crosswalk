@@ -17,7 +17,7 @@ scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error) {
     case ERROR_CODE_PARAM_UNSUPPORTED:
       message = "There are invalid/unsupported parameters.";
       break;
-    case ERROR_CODE_INVALID_PHOTO:
+    case ERROR_CODE_PHOTO_INVALID:
       message = "The Photo object is invalid.";
       break;
     case ERROR_CODE_INIT_FAILED:

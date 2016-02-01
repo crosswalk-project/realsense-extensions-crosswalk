@@ -7,7 +7,7 @@ namespace common {
   enum ErrorCode {
     feature_unsupported,
     param_unsupported,
-    invalid_photo,
+    photo_invalid,
     init_failed,
     exec_failed
   };
