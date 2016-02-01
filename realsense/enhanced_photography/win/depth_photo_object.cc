@@ -35,11 +35,11 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("queryContainerImage",
                     base::Bind(&DepthPhotoObject::OnQueryContainerImage,
                                base::Unretained(this)));
-  handler_.Register("queryColorImage",
-                    base::Bind(&DepthPhotoObject::OnQueryColorImage,
+  handler_.Register("queryImage",
+                    base::Bind(&DepthPhotoObject::OnQueryImage,
                                base::Unretained(this)));
-  handler_.Register("queryDepthImage",
-                    base::Bind(&DepthPhotoObject::OnQueryDepthImage,
+  handler_.Register("queryDepth",
+                    base::Bind(&DepthPhotoObject::OnQueryDepth,
                                base::Unretained(this)));
   handler_.Register("queryDeviceVendorInfo",
                     base::Bind(&DepthPhotoObject::OnQueryDeviceVendorInfo,
@@ -47,8 +47,8 @@ DepthPhotoObject::DepthPhotoObject(EnhancedPhotographyInstance* instance)
   handler_.Register("queryNumberOfCameras",
                     base::Bind(&DepthPhotoObject::OnQueryNumberOfCameras,
                                base::Unretained(this)));
-  handler_.Register("queryRawDepthImage",
-                    base::Bind(&DepthPhotoObject::OnQueryRawDepthImage,
+  handler_.Register("queryRawDepth",
+                    base::Bind(&DepthPhotoObject::OnQueryRawDepth,
                                base::Unretained(this)));
   handler_.Register("queryXDMRevision",
                     base::Bind(&DepthPhotoObject::OnQueryXDMRevision,
@@ -209,7 +209,7 @@ void DepthPhotoObject::OnQueryContainerImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnQueryColorImage(
+void DepthPhotoObject::OnQueryImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
@@ -243,7 +243,7 @@ void DepthPhotoObject::OnQueryColorImage(
   info->PostResult(result.Pass());
 }
 
-void DepthPhotoObject::OnQueryDepthImage(
+void DepthPhotoObject::OnQueryDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
@@ -306,7 +306,7 @@ void DepthPhotoObject::OnQueryNumberOfCameras(
       number, std::string()));
 }
 
-void DepthPhotoObject::OnQueryRawDepthImage(
+void DepthPhotoObject::OnQueryRawDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {

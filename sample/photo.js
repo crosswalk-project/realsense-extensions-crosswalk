@@ -1,8 +1,8 @@
 var loadPhoto = document.getElementById('loadPhoto');
-var colorImageRadio = document.getElementById('queryColorImage');
+var imageRadio = document.getElementById('queryImage');
 var containerImageRadio = document.getElementById('queryContainerImage');
-var depthImageRadio = document.getElementById('queryDepthImage');
-var rawDepthImgeRadio = document.getElementById('queryRawDepthImage');
+var depthRadio = document.getElementById('queryDepth');
+var rawDepthRadio = document.getElementById('queryRawDepth');
 var resetImageRadio = document.getElementById('resetContainerImage');
 
 var statusElement = document.getElementById('status');
@@ -71,18 +71,18 @@ function fillCanvasUsingDepthImage(image) {
 }
 
 function resetRadioButtons() {
-  colorImageRadio.checked = false;
+  imageRadio.checked = false;
   containerImageRadio.checked = false;
-  depthImageRadio.checked = false;
-  rawDepthImgeRadio.checked = false;
+  depthRadio.checked = false;
+  rawDepthRadio.checked = false;
   resetImageRadio.checked = false;
 }
 
-function getColorImage() {
-  currentPhoto.queryColorImage().then(
+function getImage() {
+  currentPhoto.queryImage().then(
       function(image) {
         fillCanvasUsingColorImage(image);
-        statusElement.innerHTML = 'queryColorImage success.';
+        statusElement.innerHTML = 'queryImage success.';
       },
       function(e) { statusElement.innerHTML = e.message });
 }
@@ -96,20 +96,20 @@ function getContainerImage() {
       function(e) { statusElement.innerHTML = e.message });
 }
 
-function getDepthImage() {
-  currentPhoto.queryDepthImage().then(
+function getDepth() {
+  currentPhoto.queryDepth().then(
       function(image) {
         fillCanvasUsingDepthImage(image);
-        statusElement.innerHTML = 'queryDepthImage success.';
+        statusElement.innerHTML = 'queryDepth success.';
       },
       function(e) { statusElement.innerHTML = e.message });
 }
 
-function getRawDepthImage() {
-  currentPhoto.queryRawDepthImage().then(
+function getRawDepth() {
+  currentPhoto.queryRawDepth().then(
       function(image) {
         fillCanvasUsingDepthImage(image);
-        statusElement.innerHTML = 'queryRawDepthImage success.';
+        statusElement.innerHTML = 'queryRawDepth success.';
       },
       function(e) { statusElement.innerHTML = e.message });
 }
@@ -127,13 +127,13 @@ function main() {
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
   imageContext = imageCanvas.getContext('2d');
 
-  colorImageRadio.addEventListener('click', function(e) {
-    if (colorImageRadio.checked) {
+  imageRadio.addEventListener('click', function(e) {
+    if (imageRadio.checked) {
       if (hasImage == false) {
         statusElement.innerHTML = 'Please capture/load a photo first.';
         return;
       }
-      getColorImage();
+      getImage();
     }
   }, false);
 
@@ -147,23 +147,23 @@ function main() {
     }
   }, false);
 
-  depthImageRadio.addEventListener('click', function(e) {
-    if (depthImageRadio.checked) {
+  depthRadio.addEventListener('click', function(e) {
+    if (depthRadio.checked) {
       if (hasImage == false) {
         statusElement.innerHTML = 'Please capture/load a photo first.';
         return;
       }
-      getDepthImage();
+      getDepth();
     }
   }, false);
 
-  rawDepthImgeRadio.addEventListener('click', function(e) {
-    if (rawDepthImgeRadio.checked) {
+  rawDepthRadio.addEventListener('click', function(e) {
+    if (rawDepthRadio.checked) {
       if (hasImage == false) {
         statusElement.innerHTML = 'Please capture/load a photo first.';
         return;
       }
-      getRawDepthImage();
+      getRawDepth();
     }
   }, false);
 

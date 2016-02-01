@@ -128,11 +128,11 @@ var DepthPhoto = function(objectId) {
   this._addMethodWithPromise('queryCameraPose');
   this._addMethodWithPromise('queryCameraVendorInfo');
   this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('queryColorImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('queryDepthImage', null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryImage', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('queryDepth', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryDeviceVendorInfo');
   this._addMethodWithPromise('queryNumberOfCameras');
-  this._addMethodWithPromise('queryRawDepthImage', null, wrapDepthImageReturns);
+  this._addMethodWithPromise('queryRawDepth', null, wrapDepthImageReturns);
   this._addMethodWithPromise('queryXDMRevision');
   this._addMethodWithPromise('resetContainerImage');
   this._addBinaryMethodWithPromise('setContainerImage', wrapRGB32ImageArgs);

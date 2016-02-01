@@ -11,7 +11,7 @@
           specStatus:           "unofficial",
 
           additionalCopyrightHolders: "This document uses the BSD license, see the <a href='https://github.com/otcshare/realsense-extensions-crosswalk/blob/master/LICENSE'>LICENSE</a> file.",
-          
+
           shortName:            "depth-enabled-photography",
           // editors, add as many as you like
           // only "name" is required
@@ -55,12 +55,12 @@
       <p>
         This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
         as an API Draft.
-        If you wish to make comments regarding this document, please send them to 
+        If you wish to make comments regarding this document, please send them to
         <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
         All comments are welcome.
       </p>
     </section>
-    
+
     <section>
       <h2>Introduction</h2>
       <p>
@@ -589,7 +589,7 @@
           </dt>
           <dd>
             <p>
-              The <code>queryCameraPerspectiveModel()</code> method gets the 
+              The <code>queryCameraPerspectiveModel()</code> method gets the
               specified camera perspective model parameters.
             </p>
             <p>
@@ -648,14 +648,15 @@
             </dl>
           </dd>
           <dt>
-            Promise&lt;Image&gt; queryColorImage(optional unsigned long cameraIndex)
+            Promise&lt;Image&gt; queryImage(optional unsigned long cameraIndex)
           </dt>
           <dd>
             <p>
-              The <code>queryColorImage()</code> method gets the color
-              image stored in the specified camera device.
+              The <code>queryImage()</code> method gets the color
+              image from the specified camera device (camera[cameraIndex]).
+              The unedited image is usually the unprocessed color image.
               If cameraIndex is not specified,
-              the method gets the unedited color image in camera zero.
+              the method gets the unedited color image in camera[0].
             </p>
             <p>
               This method returns a promise.
@@ -665,7 +666,7 @@
             <dl class='parameters'>
               <dt>optional unsigned long cameraIndex</dt>
               <dd>
-                The optional zero-based camera device index. 
+                The optional zero-based camera device index.
               </dd>
             </dl>
           </dd>
@@ -674,7 +675,7 @@
           </dt>
           <dd>
             <p>
-              The <code>queryContainerImage()</code> method gets the container 
+              The <code>queryContainerImage()</code> method gets the container
               photo image.
             </p>
             <p>
@@ -684,14 +685,15 @@
             </p>
           </dd>
           <dt>
-            Promise&lt;Image&gt; queryDepthImage(optional unsigned long cameraIndex)
+            Promise&lt;Image&gt; queryDepth(optional unsigned long cameraIndex)
           </dt>
           <dd>
             <p>
-              The <code>queryDepthImage()</code> method gets the depth
-              image stored in the specified camera.
+              The <code>queryDepth()</code> method gets the depth
+              map of the photo from the specified camera (camera[cameraIndex]).
+              The depth map is the holefilled depth.
               If cameraIndex is not specified, the method gets the depth image
-              in camera zero.
+              in camera[0].
             </p>
             <p>
               This method returns a promise.
@@ -701,7 +703,7 @@
             <dl class='parameters'>
               <dt>optional unsigned long cameraIndex</dt>
               <dd>
-                The optional zero-based camera device index. 
+                The optional zero-based camera device index.
               </dd>
             </dl>
           </dd>
@@ -736,12 +738,13 @@
             </p>
           </dd>
           <dt>
-            Promise&lt;Image&gt; queryRawDepthImage()
+            Promise&lt;Image&gt; queryRawDepth()
           </dt>
           <dd>
             <p>
-              The <code>queryRawDepthImage()</code> method gets the
-              not-processed original depth image.
+              The <code>queryRawDepth()</code> method gets the raw depth image
+              of the photo. This would be the unprocessed depth captured from
+              the camera or loaded from a file if it existed.
             </p>
             <p>
               This method returns a promise.
@@ -800,7 +803,7 @@
               </dd>
               <dt>optional unsigned long cameraIndex</dt>
               <dd>
-                The optional zero-based camera device index. 
+                The optional zero-based camera device index.
               </dd>
             </dl>
           </dd>
@@ -839,7 +842,7 @@
               </dd>
               <dt>optional unsigned long cameraIndex</dt>
               <dd>
-                The optional zero-based camera device index. 
+                The optional zero-based camera device index.
               </dd>
             </dl>
           </dd>
