@@ -13,8 +13,7 @@ var segmentation, photoUtils, XDMUtils;
 var imageContext, imageData, overlayContext;
 var currentPhoto, savePhoto;
 
-var width = 1920, height = 1080;
-var canvasWidth = 400, canvasHeight = 300;
+var width, height;
 var curPhotoWidth, curPhotoHeight;
 var topX, topY, bottomX, bottomY;
 var lastX = -1, lastY = -1;
@@ -26,6 +25,17 @@ var points = [];
 var foreground;
 var isLeftButtonDown = false, isRightButtonDown = false;
 
+function getDateString() {
+  var date = new Date();
+  var dateString =
+      date.getFullYear() +
+      ('0' + (date.getMonth() + 1)).slice(-2) +
+      ('0' + date.getDate()).slice(-2) +
+      ('0' + date.getHours()).slice(-2) +
+      ('0' + date.getMinutes()).slice(-2) +
+      ('0' + date.getSeconds()).slice(-2);
+  return dateString;
+}
 
 function doBlendColorPop(colorImage, maskImage) {
   var GREY = 0x7f;
@@ -114,12 +124,12 @@ function main() {
     if (!hasImage)
       return;
     if (nextClick == FirstClick) {
-      topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-      topY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+      topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+      topY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
       nextClick = SecondClick;
     } else if (nextClick == SecondClick) {
-      bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-      bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+      bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+      bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
 
       createInitialMask();
 
@@ -161,8 +171,8 @@ function main() {
     } else if (nextClick == TraceClicks) {
       stopDrawLine = false;
       resetPoints();
-      var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-      var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+      var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+      var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
       overlayContext.beginPath();
       if (e.button == 0) {
         isLeftButtonDown = true;
@@ -182,8 +192,8 @@ function main() {
     if (!hasImage || nextClick == FirstClick ||
         (nextClick == TraceClicks && !isLeftButtonDown && !isRightButtonDown))
       return;
-    bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / canvasWidth);
-    bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / canvasHeight);
+    bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
+    bottomY = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
     if (nextClick == SecondClick) {
       overlayContext.clearRect(0, 0, width, height);
       var offsetX = bottomX - topX;
@@ -247,32 +257,6 @@ function main() {
     }
   }, false);
 
-  function saveFile(fs, fileName, blob) {
-    var fullName = fileName + '.jpg';
-    fs.root.getFile(fullName, {}, function(entry) {
-      // The file already exist.
-      fileName += '1';
-      saveFile(fs, fileName, blob);
-    },
-    function(e) {
-      // file doesn't exist. Create it.
-      fs.root.getFile(fullName, { create: true }, function(entry) {
-        entry.createWriter(function(writer) {
-          writer.onwriteend = function(e) {
-            statusElement.innerHTML =
-                'The photo has been saved to ' + fullName + ' successfully.';
-          };
-          writer.onerror = function(e) {
-            statusElement.innerHTML = 'Save failed.';
-          };
-          writer.write(blob);
-        },
-        function(e) { statusElement.innerHTML = e; });
-      },
-      function(e) { statusElement.innerHTML = e; });
-    });
-  }
-
   saveButton.onclick = function(e) {
     if (!savePhoto) {
       statusElement.innerHTML = 'There is no photo to save';
@@ -282,8 +266,21 @@ function main() {
         function(blob) {
           xwalk.experimental.native_file_system.requestNativeFileSystem('pictures',
               function(fs) {
-                var fileName = '/pictures/savedPhoto';
-                saveFile(fs, fileName, blob);
+                var fileName = '/pictures/depthphoto_' + getDateString() + '.jpg';
+                fs.root.getFile(fileName, { create: true }, function(entry) {
+                  entry.createWriter(function(writer) {
+                    writer.onwriteend = function(e) {
+                      statusElement.innerHTML =
+                          'The depth photo has been saved to ' + fileName + ' successfully.';
+                    };
+                    writer.onerror = function(e) {
+                      statusElement.innerHTML = 'Failed to save depth photo.';
+                    };
+                    writer.write(blob);
+                  },
+                  function(e) { statusElement.innerHTML = e; });
+                },
+                function(e) { statusElement.innerHTML = e; });
               });
         },
         function(e) { statusElement.innerHTML = e.message; });
@@ -312,6 +309,12 @@ function main() {
                       function(image) {
                         curPhotoWidth = image.width;
                         curPhotoHeight = image.height;
+                        width = image.width;
+                        height = image.height;
+                        imageCanvas.width = width;
+                        imageCanvas.height = height;
+                        overlayCanvas.width = width;
+                        overlayCanvas.height = height;
                         resetMarkupImgHints();
                         resetPoints();
                         nextClick = FirstClick;
@@ -339,6 +342,10 @@ function main() {
   });
 
   restartButton.onclick = function(e) {
+    if (!hasImage) {
+      statusElement.innerHTML = 'Please load a photo.';
+      return;
+    }
     overlayContext.clearRect(0, 0, width, height);
     currentPhoto.queryContainerImage().then(
         function(image) {
@@ -362,6 +369,7 @@ function main() {
   undoButton.onclick = function(e) {
     if (!segmentation || !hasImage) {
       statusElement.innerHTML = 'Undo Scribble Error';
+      return;
     }
     segmentation.undo().then(
         function(maskImage) {
@@ -394,6 +402,7 @@ function main() {
   redoButton.onclick = function(e) {
     if (!segmentation || !hasImage) {
       statusElement.innerHTML = 'Redo Scribble Error';
+      return;
     }
     segmentation.redo().then(
         function(maskImage) {

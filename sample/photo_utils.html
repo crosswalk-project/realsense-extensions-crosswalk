@@ -3,8 +3,8 @@
   <title>RealSense Enhanced Photography API Sample</title>
   <style>
     canvas {
-      width: 600px;
-      height: 450px;
+      max-width: 100%;
+      height: 80%;
       border: 1px solid #000000;
     }
   </style>
@@ -24,14 +24,13 @@
     <input type='radio' id='photoCrop' name='RadioMethod'>Photo Crop</input>
     <input type='radio' id='photoRotate' name='RadioMethod'>Photo Rotate</input>
   </div>
-  <p style='position: absolute; left: 250px; top: 530px;'>Photo</p>
-  <p style='position: absolute; left: 900px; top: 530px;'>Saved Photo</p>
-  <div id='canvas_container'>
-    <canvas id='image' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
-    <canvas id='overlay' width='1920' height='1080' style='position: absolute; left: 10px; top: 90px;'></canvas>
+  <div style='position: absolute; top: 65px;'>
+    <p>Status: <span id="status"></span></p>
   </div>
-
-  <p id='status' style='position: absolute; left: 10px; top: 560px;'></p>
+  <div id='canvas_container'>
+    <canvas id='image' style='position: absolute; left: 10px; top: 100px;'></canvas>
+    <canvas id='overlay' style='position: absolute; left: 10px; top: 100px;'></canvas>
+  </div>
 </body>
 <script src="libs/stats.min.js"></script>
 <script src="photo_utils.js"></script>
