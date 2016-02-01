@@ -1,11 +1,9 @@
 var statusElement = document.getElementById('status');
 var loadPhoto = document.getElementById('loadPhoto');
 var imageCanvas = document.getElementById('image');
-
 var motionEffect, photoUtils, XDMUtils;
 var imageContext, imageData;
 
-var width = 1920, height = 1080;
 var yaw = 0.0, pitch = 0.0, roll = 0.0, zoom = 0.0;
 var right = 0.0, up = 0.0, forward = 0.0;
 
@@ -13,17 +11,17 @@ var hasImage = false;
 var isInitialized = false;
 
 function outputRightUpdate(value) {
-  right = parseInt(value) * 0.2;
+  right = parseInt(value) * 0.01;
   doMothionEffect();
 }
 
 function outputUpUpdate(value) {
-  up = parseInt(value) * 0.2;
+  up = parseInt(value) * 0.01;
   doMothionEffect();
 }
 
 function outputforwardUpdate(value) {
-  forward = parseInt(value) * 0.2;
+  forward = parseInt(value) * 0.01;
   doMothionEffect();
 }
 
@@ -67,7 +65,6 @@ function main() {
   XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
 
   imageContext = imageCanvas.getContext('2d');
-
   loadPhoto.addEventListener('change', function(e) {
     var file = loadPhoto.files[0];
     XDMUtils.isXDM(file).then(
@@ -77,7 +74,8 @@ function main() {
                 function(photo) {
                   photo.queryContainerImage().then(
                       function(image) {
-                        imageContext.clearRect(0, 0, width, height);
+                        imageCanvas.width = image.width;
+                        imageCanvas.height = image.height;
                         imageData = imageContext.createImageData(image.width, image.height);
                         statusElement.innerHTML = 'Load successfully.';
                         imageData.data.set(image.data);
