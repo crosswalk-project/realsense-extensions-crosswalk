@@ -61,18 +61,25 @@
           The <code><a>FaceModule</a></code> interface provides methods to
           track and recognize faces for augmented reality applications. 
         </p>
-        <dl title='interface FaceModule: EventTarget' class='idl'>
+        <p>
+          The <code>MediaStream</code> (described in [[!GETUSERMEDIA]]) passed
+          to the constructor must have at least one video track otherwise an
+          exception will be thrown.
+        </p>
+        <dl title='[Constructor(MediaStream stream)] interface FaceModule: EventTarget' class='idl'>
           <dt>
             Promise&lt;void&gt; start()
           </dt>
           <dd>
             <p>
-              Start video capture and run face module with current configuration.
+            Start to run face module on the <code><a>previewStream</a></code> with current configuration.
             </p>
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
               The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+              Note: Please call this method after <code><a>ready</a></code> event,
+              otherwise you will get a <code><a>FaceErrorEvent</a></code>.
             </p>
           </dd>
           <dt>
@@ -80,7 +87,7 @@
           </dt>
           <dd>
             <p>
-              Stop capturing and reset face configuration to defaults.
+              Stop face module running and reset face configuration to defaults.
             </p>
             <p>
               This method returns a promise.
@@ -89,18 +96,33 @@
             </p>
           </dd>
           <dt>
-            Promise&lt;ProcessedSample&gt; getProcessedSample()
+            Promise&lt;ProcessedSample&gt; getProcessedSample(optional boolean getColor, optional boolean getDepth)
           </dt>
           <dd>
             <p>
-              Get processed sample including preview image and result face data.
+              Get processed sample including result face data along with processed color/depth image(optional).
             </p>
             <p>
               This method returns a promise.
               The promise will be fulfilled with an <code><a>ProcessedSample</a></code>
-              combining preview streams and face module tracking/recognition output data if there are no errors.
+              combining color/depth processed images(only if required and available)
+              and face module tracking/recognition output data if there are no errors.
               The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
             </p>
+            <dl class='parameters'>
+              <dt>optional boolean getColor</dt>
+              <dd>
+              <p>
+                The flag to indicate whether want to aquire the color image data. The default value is false.
+              </p>
+              </dd>
+              <dt>optional boolean getDepth</dt>
+              <dd>
+              <p>
+                The flag to indicate whether want to aquire the depth image data. The default value is false.
+              </p>
+              </dd>
+            </dl>
           </dd>
           <dt>
             readonly attribute FaceConfiguration configuration
@@ -116,6 +138,36 @@
           <dd>
             <p>
               The interface to access face recognition feature.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute MediaStream previewStream;
+          </dt>
+          <dd>
+            <p>
+              The <code>MediaStream</code> instance passed in constructor.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onready
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>FaceModule</a></code> to indicate that it's ready to <code><a>start</a></code>
+              because the <code><a>previewStream</a></code> has been started.
+            </p>
+          </dd>
+          <dt>
+            attribute EventHandler onended
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>Event</code></a> that is dispatched
+              to <code><a>FaceModule</a></code> to indicate that the <code><a>previewStream</a></code> has ended
+              and <code><a>FaceModule</a></code> has already detached from it completely.
             </p>
           </dd>
           <dt>
@@ -135,7 +187,7 @@
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
               for the <a><code>Event</code></a> that is dispatched
-              to <code><a>Face</a></code> when a new processed sample is ready.
+              to <code><a>FaceModule</a></code> when a new processed sample is ready.
             </p>
           </dd>
         </dl>
@@ -245,6 +297,9 @@
                 <dd>
                 <p>
                   The face configuration to be set effective.
+                  Note: some configuration items won't take effect while face module is running,
+                  such as <code><a>TrackingModeType</a></code>.
+                  If you need to set it, please stop face module firstly.
                 </p>
                 </dd>
               </dl>
@@ -623,7 +678,7 @@
         </h2>
         <dl title='dictionary ProcessedSample' class='idl'>
           <dt>
-            Image color
+            Image? color
           </dt>
           <dd>
             Color stream image.

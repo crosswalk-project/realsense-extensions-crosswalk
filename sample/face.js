@@ -1,3 +1,15 @@
+var resolutionSelect = document.getElementById('resolution');
+var cameraLabel = document.getElementById('camera');
+var depthMapCheckBox = document.getElementById('depthmap');
+var viewerDiv = document.getElementById('viewer');
+var videoElement = document.getElementById('preview');
+var depthCanvas = document.getElementById('depth');
+var depthContext = depthCanvas.getContext('2d');
+var overlayCanvas = document.getElementById('overlay');
+var overlayContext = overlay.getContext('2d');
+depthCanvas.style.display = 'none';
+resolutionSelect.value = 'vga';
+
 var startButton = document.getElementById('start');
 var stopButton = document.getElementById('stop');
 var getDefaultsButton = document.getElementById('getDefaultsConf');
@@ -24,20 +36,30 @@ var landmarksMaxLandmarksNum = document.getElementById('landmarks_max_landmarks'
 
 var recognitionCheckbox = document.getElementById('enableRecognition');
 
-var colorImageSizeElement = document.getElementById('2DSize');
-var depthImageSizeElement = document.getElementById('3DSize');
+var resolutionTextElement = document.getElementById('resolutionText');
 var statusElement = document.getElementById('status');
 var recognitionDataElement = document.getElementById('recognitionData');
 
-var color_canvas = document.getElementById('color');
-var color_context = color_canvas.getContext('2d');
-var color_image_data;
+var processed_sample_fps = new Stats();
+processed_sample_fps.domElement.style.position = 'absolute';
+processed_sample_fps.domElement.style.top = '0px';
+processed_sample_fps.domElement.style.left = '0px';
+document.body.appendChild(processed_sample_fps.domElement);
 
-var depth_canvas = document.getElementById('depth');
-var depth_context = depth_canvas.getContext('2d');
-var depth_image_data;
+const cameraName = 'Intel(R) RealSense(TM) 3D Camera R200';
+var cameraId = '';
 
-var ft;
+var previewStream = null;
+var ft = null;
+var ftStarted = false;
+
+var constraintsMap = {
+  'qvga60': {width: 320, height: 240, fps: 60},
+  'vga60': {width: 640, height: 480, fps: 60},
+  'vga': {width: 640, height: 480, fps: 30},
+  'hd': {width: 1280, height: 720, fps: 30},
+  'fhd': {width: 1920, height: 1080, fps: 30},
+};
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage, depthWidth, depthHeight) {
@@ -154,244 +176,332 @@ function setConf(faceModuleConf) {
   recognitionCheckbox.checked = faceModuleConf.recognition.enable;
 }
 
-function CmdFlowController(size) {
-  var windowSize = size;
-  var avaliableSize = size;
-  this.reset = function() {
-    avaliableSize = windowSize;
-  };
-  this.get = function() {
-    if (avaliableSize < 1) return false;
+function gotDevices(deviceInfos) {
+  for (var i = 0; i < deviceInfos.length; ++i) {
+    var deviceInfo = deviceInfos[i];
+    if (deviceInfo.kind === 'videoinput') {
+      console.log(deviceInfo.label);
+      if (deviceInfo.label === cameraName) {
+        cameraId = deviceInfo.deviceId;
+        break;
+      }
+    }
+  }
+  if (cameraId !== '') {
+    cameraLabel.innerHTML = cameraName;
+    preview();
+  } else {
+    cameraLabel.innerHTML = cameraName + ' is not available';
+    cameraLabel.style.color = 'red';
+  }
+}
 
-    avaliableSize--;
-    return true;
-  };
-  this.release = function() {
-    avaliableSize++;
-    if (avaliableSize > windowSize)
-      avaliableSize = windowSize;
-  };
+function errorCallback(error) {
+  statusElement.innerHTML = error;
 }
 
 function main() {
-  ft = new realsense.Face.FaceModule();
+  navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
+}
 
-  var processed_sample_fps = new Stats();
-  processed_sample_fps.domElement.style.position = 'absolute';
-  processed_sample_fps.domElement.style.top = '0px';
-  processed_sample_fps.domElement.style.right = '0px';
-  document.getElementById('color_container').appendChild(processed_sample_fps.domElement);
+function preview() {
+  if (cameraId === '') {
+    return;
+  }
 
-  var currentFaceDataArray = [];
+  if (previewStream) {
+    previewStream.getTracks().forEach(function(track) {
+      track.stop();
+    });
+    // Remove listeners as we don't care about the events.
+    ft.onerror = null;
+    ft.onprocessedsample = null;
+    ft = null;
+  }
 
-  var sampleFlowController = new CmdFlowController(5);
-
-  var isRunning = false;
-
-  ft.onprocessedsample = function(e) {
-    if (!isRunning)
-      return;
-    if (!sampleFlowController.get())
-      return;
-    ft.getProcessedSample().then(function(processed_sample) {
-      colorImageSizeElement.innerHTML =
-          '2D(' + processed_sample.color.width + ', ' +
-          processed_sample.color.height + ')';
-
-      // In case color stream size changed
-      if (color_canvas.width != processed_sample.color.width ||
-          color_canvas.height != processed_sample.color.height) {
-        // Resize canvas
-        color_canvas.width = processed_sample.color.width;
-        color_canvas.height = processed_sample.color.height;
-        // Create new image data object
-        color_context = color_canvas.getContext('2d');
-        color_image_data = color_context.createImageData(
-            processed_sample.color.width, processed_sample.color.height);
-      }
-
-      if (!color_image_data) {
-        color_image_data = color_context.createImageData(
-            processed_sample.color.width, processed_sample.color.height);
-      }
-      color_image_data.data.set(processed_sample.color.data);
-      color_context.putImageData(color_image_data, 0, 0);
-
-      var recogData = '';
-      // Get traced faces.
-      for (var i = 0; i < processed_sample.faces.length; ++i) {
-        var face = processed_sample.faces[i];
-        // Draw rect on every tracked face.
-        if (face.detection) {
-          var rect = face.detection.boundingRect;
-          //statusElement.innerHTML = 'Status: face rect is ('
-          //    + rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h + ')';
-          color_context.strokeStyle = 'red';
-          color_context.strokeRect(rect.x, rect.y, rect.w, rect.h);
-          // Print face ID
-          color_context.font = '20px';
-          color_context.fillStyle = 'white';
-          color_context.fillText(face.faceId, rect.x + 5, rect.y + 10);
-          console.log('Face No.' + i + ': boundingRect: ' +
-              rect.x + ' ' + rect.y + ' ' + rect.w + ' ' + rect.h +
-              ' avgDepth: ' + face.detection.avgDepth);
+  var resolution = constraintsMap[resolutionSelect.value];
+  var constraints = {video: {
+    width: {exact: resolution.width},
+    height: {exact: resolution.height},
+    frameRate: {exact: resolution.fps}}};
+  constraints.video.deviceId = {exact: cameraId};
+  navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream) {
+        previewStream = stream;
+        videoElement.srcObject = stream;
+        try {
+          ft = new realsense.Face.FaceModule(stream);
+        } catch (e) {
+          statusElement.innerHTML = e.message;
+          return;
         }
-        // Draw landmark points on every tracked face.
-        if (face.landmarks) {
-          for (var j = 0; j < face.landmarks.points.length; ++j) {
-            var landmark_point = face.landmarks.points[j];
-            color_context.font = '6px';
-            if (landmark_point.confidenceImage) {
-              // White color for confidence point.
-              color_context.fillStyle = 'white';
-              color_context.fillText('*',
-                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y + 3);
-            } else {
-              // Red color for non-confidence point.
-              color_context.fillStyle = 'red';
-              color_context.fillText('x',
-                  landmark_point.coordinateImage.x - 3, landmark_point.coordinateImage.y + 3);
+
+        ft.onprocessedsample = function(e) {
+          ft.getProcessedSample(false, depthMapCheckBox.checked).then(function(processed_sample) {
+            if (overlayCanvas.width != videoElement.clientWidth ||
+                overlayCanvas.height != videoElement.clientHeight) {
+              overlayCanvas.width = videoElement.clientWidth;
+              overlayCanvas.height = videoElement.clientHeight;
+              overlayContext = overlayCanvas.getContext('2d');
             }
-          }
-        }
-        // Print recognition id for every tracked face.
-        if (face.recognition) {
-          var recognitionId = face.recognition.userId;
-          console.log('Face ID: ' + face.faceId + ': Recognition ID is ' + recognitionId);
-          var text;
-          if (recognitionId == -1) {
-            text = 'Not Registered';
-          } else {
-            text = 'Recognition ID: ' + recognitionId;
-          }
-          if (face.detection) {
-            var rect = face.detection.boundingRect;
-            color_context.font = '20px';
-            color_context.fillStyle = 'white';
-            color_context.fillText(text, rect.x + 20, rect.y + 10);
-          }
-          recogData = recogData + '(' + face.faceId + ', ' + recognitionId + ') ';
-        }
-      }
 
-      recognitionDataElement.innerHTML = '(Face id: Recognition id) : ' + recogData;
-      currentFaceDataArray = processed_sample.faces;
+            overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-      if (processed_sample.depth) {
-        depthImageSizeElement.innerHTML =
-            '3D(' + processed_sample.depth.width + ', ' +
-            processed_sample.depth.height + ')';
-        depth_canvas.width = processed_sample.depth.width;
-        depth_canvas.height = processed_sample.depth.height;
+            var resolution = constraintsMap[resolutionSelect.value];
+            var xScale = overlayCanvas.width / resolution.width;
+            var yScale = overlayCanvas.height / resolution.height;
 
-        if (!depth_image_data) {
-          depth_image_data = depth_context.createImageData(
-              processed_sample.depth.width, processed_sample.depth.height);
-        }
+            var recogData = '';
+            // Get traced faces.
+            for (var i = 0; i < processed_sample.faces.length; ++i) {
+              var face = processed_sample.faces[i];
+              // Draw rect on every tracked face.
+              if (face.detection) {
+                var rect = face.detection.boundingRect;
 
-        ConvertDepthToRGBUsingHistogram(
-            processed_sample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data,
-            processed_sample.depth.width, processed_sample.depth.height);
-        depth_context.putImageData(depth_image_data, 0, 0);
-      } else {
-        depthImageSizeElement.innerHTML = '3D(no stream)';
-        console.log('No depth stream available');
-      }
+                overlayContext.strokeStyle = 'red';
+                overlayContext.strokeRect(
+                    rect.x * xScale, rect.y * yScale, rect.w * xScale, rect.h * yScale);
+                // Print face ID
+                overlayContext.font = '20px';
+                overlayContext.fillStyle = 'white';
+                overlayContext.fillText(
+                    'Face ID: ' + face.faceId, (rect.x + 5) * xScale, (rect.y + 10) * yScale);
+              }
+              // Draw landmark points on every tracked face.
+              if (face.landmarks) {
+                for (var j = 0; j < face.landmarks.points.length; ++j) {
+                  var landmark_point = face.landmarks.points[j];
+                  overlayContext.font = '6px';
+                  if (landmark_point.confidenceImage) {
+                    // White color for confidence point.
+                    overlayContext.fillStyle = 'white';
+                    overlayContext.fillText('*',
+                        (landmark_point.coordinateImage.x - 3) * xScale,
+                        (landmark_point.coordinateImage.y + 3) * yScale);
+                  } else {
+                    // Red color for non-confidence point.
+                    overlayContext.fillStyle = 'red';
+                    overlayContext.fillText('x',
+                        (landmark_point.coordinateImage.x - 3) * xScale,
+                        (landmark_point.coordinateImage.y + 3) * yScale);
+                  }
+                }
+              }
+              // Print recognition id for every tracked face.
+              if (face.recognition) {
+                var recognitionId = face.recognition.userId;
+                var text;
+                if (recognitionId == -1) {
+                  text = 'Not Registered';
+                } else {
+                  text = 'Recog ID: ' + recognitionId;
+                }
+                if (face.detection) {
+                  var rect = face.detection.boundingRect;
+                  overlayContext.font = '20px';
+                  overlayContext.fillStyle = 'white';
+                  overlayContext.fillText(text, rect.x * xScale, (rect.y + rect.h - 5) * yScale);
+                }
+                recogData = recogData + '(' + face.faceId + ', ' + recognitionId + ') ';
+              }
+            }
 
-      processed_sample_fps.update();
-      sampleFlowController.release();
-    }, function(e) {
-      sampleFlowController.release();
-      statusElement.innerHTML = 'Status: ' + e.message; console.log(e.message);});
-  };
+            recognitionDataElement.innerHTML = '(Face id: Recognition id) : ' + recogData;
 
-  ft.onerror = function(e) {
-    statusElement.innerHTML = 'Status: onerror: ' + e.message;
-  };
+            if (!depthMapCheckBox.checked) {
+              resolutionTextElement.innerHTML = '';
+            } else if (processed_sample.depth) {
+              resolutionTextElement.innerHTML =
+                  'Depth Map (' + processed_sample.depth.width + 'x' +
+                  processed_sample.depth.height + ')';
+              if (depthCanvas.width != processed_sample.depth.width ||
+                  depthCanvas.height != processed_sample.depth.height) {
+                depthCanvas.width = processed_sample.depth.width;
+                depthCanvas.height = processed_sample.depth.height;
+                depthContext = depthCanvas.getContext('2d');
+              }
+              depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
 
-  setConfButton.onclick = function(e) {
-    // Call configuration.set API.
-    ft.configuration.set(getConf()).then(
-        function() {
-          statusElement.innerHTML = 'Status: set configuration succeeds';
-          console.log('set configuration succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+              var depth_image_data = depthContext.createImageData(
+                  processed_sample.depth.width, processed_sample.depth.height);
 
-  getDefaultsButton.onclick = function(e) {
-    // Call configuration.getDefaults API, will get back default FaceConfiguration value.
-    ft.configuration.getDefaults().then(
-        function(confData) {
-          // Show FaceConfiguration values onto UI.
-          setConf(confData);
-          statusElement.innerHTML = 'Status: get default configuration succeeds';
-          console.log('get default configuration succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+              ConvertDepthToRGBUsingHistogram(
+                  processed_sample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data,
+                  processed_sample.depth.width, processed_sample.depth.height);
+              depthContext.putImageData(depth_image_data, 0, 0);
+            } else {
+              resolutionTextElement.innerHTML = 'No Depth Map';
+            }
 
-  getConfButton.onclick = function(e) {
-    // Call configuration.get API, will get back current FaceConfiguration value.
-    ft.configuration.get().then(
-        function(confData) {
-          // Show FaceConfiguration values onto UI.
-          setConf(confData);
-          statusElement.innerHTML = 'Status: get current configuration succeeds';
-          console.log('get current configuration succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+            processed_sample_fps.update();
+          }, function(e) {
+            statusElement.innerHTML = 'Status: ' + e.message; console.log(e.message);});
+        };
 
-  startButton.onclick = function(e) {
-    ft.start().then(
-        function() {
-          isRunning = true;
-          sampleFlowController.reset();
-          statusElement.innerHTML = 'Status: start succeeds';
-          console.log('start succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+        ft.onerror = function(e) {
+          statusElement.innerHTML = 'Status: onerror: ' + e.message;
+        };
 
-  stopButton.onclick = function(e) {
-    isRunning = false;
+        ft.onready = function(e) {
+          console.log('Face module ready to start');
+          ft.ready = true;
+        };
+
+        ft.onended = function(e) {
+          console.log('Face module ends without stop');
+          ftStarted = false;
+        };
+
+        ft.ready = false;
+        ftStarted = false;
+        onGetConfButton();
+      }, errorCallback);
+
+}
+
+function clearAfterStopped() {
+  ftStarted = false;
+  overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
+  depthMapCheckBox.checked = false;
+  depthMapCheckBox.onchange();
+  depthMapCheckBox.disabled = true;
+  trackingColorModeRadio.disabled = false;
+  trackingColorDepthModeRadio.disabled = false;
+  onGetConfButton();
+}
+
+resolutionSelect.onchange = function(e) {
+  if (ft && ftStarted) {
     ft.stop().then(
         function() {
           statusElement.innerHTML = 'Status: stop succeeds';
-          console.log('stop succeeds');},
+          console.log('stop succeeds');
+          clearAfterStopped();
+          preview();},
         function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+          statusElement.innerHTML = 'Status: stop fails';
+          console.log('stop fails');
+          clearAfterStopped();
+          preview();});
+  } else {
+    preview();
+  }
+};
 
-  registerButton.onclick = function(e) {
-    var faceId = parseInt(document.getElementById('recognition_face_id').value);
-    // Call recognition.registerUserByFaceID API
-    ft.recognition.registerUserByFaceID(faceId).then(
-        function(recogId) {
-          statusElement.innerHTML =
-              'Status: register face succeeds faceId: ' + faceId + ', recogId: ' + recogId;
-          console.log('register face succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+setConfButton.onclick = function(e) {
+  if (!ft) return;
+  // Call configuration.set API.
+  ft.configuration.set(getConf()).then(
+      function() {
+        statusElement.innerHTML = 'Status: set configuration succeeds';
+        console.log('set configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
 
-  unregisterButton.onclick = function(e) {
-    var recogId = parseInt(document.getElementById('recognition_recog_id').value);
-    // Call recognition.unregisterUserByID API
-    ft.recognition.unregisterUserByID(recogId).then(
-        function() {
-          statusElement.innerHTML = 'Status: unregister user succeeds recogId: ' + recogId;
-          console.log('unregister user succeeds');},
-        function(e) {
-          statusElement.innerHTML = 'Status: ' + e.message;
-          console.log(e.message);});
-  };
+getDefaultsButton.onclick = function(e) {
+  if (!ft) return;
+  // Call configuration.getDefaults API, will get back default FaceConfiguration value.
+  ft.configuration.getDefaults().then(
+      function(confData) {
+        // Show FaceConfiguration values onto UI.
+        setConf(confData);
+        statusElement.innerHTML = 'Status: get default configuration succeeds';
+        console.log('get default configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
 
+function onGetConfButton(e) {
+  if (!ft) return;
+  // Call configuration.get API, will get back current FaceConfiguration value.
+  ft.configuration.get().then(
+      function(confData) {
+        // Show FaceConfiguration values onto UI.
+        setConf(confData);
+        statusElement.innerHTML = 'Status: get current configuration succeeds';
+        console.log('get current configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
 }
+
+getConfButton.onclick = onGetConfButton;
+
+startButton.onclick = function(e) {
+  if (!ft) return;
+  if (!ft.ready) {
+    statusElement.innerHTML = 'Status: face module is not ready to start';
+    return;
+  }
+  ft.start().then(
+      function() {
+        ftStarted = true;
+        statusElement.innerHTML = 'Status: start succeeds';
+        console.log('start succeeds');
+        depthMapCheckBox.disabled = false;
+        trackingColorModeRadio.disabled = true;
+        trackingColorDepthModeRadio.disabled = true;
+        onGetConfButton();},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
+
+stopButton.onclick = function(e) {
+  if (!ft) return;
+  ft.stop().then(
+      function() {
+        statusElement.innerHTML = 'Status: stop succeeds';
+        console.log('stop succeeds');
+        clearAfterStopped();},
+      function(e) {
+        statusElement.innerHTML = 'Status: stop fails';
+        console.log('stop fails');
+        clearAfterStopped()});
+};
+
+registerButton.onclick = function(e) {
+  if (!ft) return;
+  var faceId = parseInt(document.getElementById('recognition_face_id').value);
+  // Call recognition.registerUserByFaceID API
+  ft.recognition.registerUserByFaceID(faceId).then(
+      function(recogId) {
+        statusElement.innerHTML =
+            'Status: register face succeeds faceId: ' + faceId + ', recogId: ' + recogId;
+        console.log('register face succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
+
+unregisterButton.onclick = function(e) {
+  if (!ft) return;
+  var recogId = parseInt(document.getElementById('recognition_recog_id').value);
+  // Call recognition.unregisterUserByID API
+  ft.recognition.unregisterUserByID(recogId).then(
+      function() {
+        statusElement.innerHTML = 'Status: unregister user succeeds recogId: ' + recogId;
+        console.log('unregister user succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
+
+depthMapCheckBox.onchange = function(e) {
+  if (depthMapCheckBox.checked) {
+    videoElement.style.display = 'none';
+    overlayCanvas.style.display = 'none';
+    depthCanvas.style.display = 'inline';
+  } else {
+    videoElement.style.display = 'inline';
+    overlayCanvas.style.display = 'inline';
+    depthCanvas.style.display = 'none';
+  }
+};
+
+depthMapCheckBox.disabled = true;

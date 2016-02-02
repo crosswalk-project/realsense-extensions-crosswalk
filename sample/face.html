@@ -3,81 +3,146 @@
     <title>RealSense Face API Sample</title>
   </head>
   <style>
+      video {
+        max-width: 65%;
+        text-align: center;
+      }
       canvas {
-        width: 640px;
-        height: 480px;
-        border: 1px solid #000000;
+        max-width: 65%;
+        text-align: center;
+      }
+      .center {
+        text-align:center; 
+        margin-left:auto; 
+        margin-right:auto;
       }
       button {
         margin-right:10px;
       }
+      div.controls_container {
+        margin-bottom: 60px;
+        margin-left: 70%;
+      }
   </style>
   <body>
-    <div style='margin-bottom:10px; margin-top:20px;'>
-      <button id='start'>start</button>
-      <button id='stop'>stop</button>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <button id='setConf'>set configuration</button>
-      <button id='getConf'>get current configuration</button>
-      <button id='getDefaultsConf'>get default configuration</button>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <button id='registerFace'>register face</button>
-      <label style='display: inline-block;'>By Face ID:</label>
-      <input type='number' id='recognition_face_id' min='0'></input>
-      <label style='display: inline-block; width: 50px;'></label>
-      <button id='unregisterFace'>unregister face</button>
-      <label style='display: inline-block;'>By Recognition ID:</label>
-      <input type='number' id='recognition_recog_id' min='0'></input>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <label style='display: inline-block;'>Tracking Mode:</label>
-      <input type='radio' id='tracking_color' name='radioTrackingMode'>color</input>
-      <input type='radio' id='tracking_color_depth' name='radioTrackingMode'>color_depth</input>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <label style='display: inline-block;'>Tracking Strategy:</label>
-      <input type='radio' id='strategy_time' name='radioTrackingStrategy'>appearance_time</input>
-      <input type='radio' id='strategy_close_far' name='radioTrackingStrategy'>closest_farthest</input>
-      <input type='radio' id='strategy_far_close' name='radioTrackingStrategy'>farthest_closest</input>
-      <input type='radio' id='strategy_left_right' name='radioTrackingStrategy'>left_right</input>
-      <input type='radio' id='strategy_right_left' name='radioTrackingStrategy'>right_left</input>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <input type='checkbox' id='enableDetection'>Detection</input>
-      <label style='display: inline-block; width: 50px;'></label>
-      <label style='display: inline-block;'>Max Faces to track:</label>
-      <input type='number' id='detection_max_faces' min='1'></input>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <input type='checkbox' id='enableLandmarks'>Landmarks</input>
-      <label style='display: inline-block; width: 50px;'></label>
-      <label style='display: inline-block;'>Max Faces to track:</label>
-      <input type='number' id='landmarks_max_faces' min='1'></input>
-      <label style='display: inline-block; width: 50px;'></label>
-      <label style='display: inline-block;'>Max Landmarks to track:</label>
-      <label id='landmarks_max_landmarks' style='display: inline-block;'></input>
-    </div>
-    <div style='margin-bottom:5px;'>
-      <input type='checkbox' id='enableRecognition'>Recognition</input>
+    <div class='controls_container'>
+      <fieldset style='margin-bottom:10px;'>
+        <legend>Camera</legend>
+        <div style='margin-bottom:5px;'>
+          <label>Name: <span id='camera' style='font-weight: bold;'></span></label>
+        </div>
+        <label>Resolution: </label>
+        <select id='resolution' style='margin-bottom:5px;'>
+          <option value='qvga60'>QVGA@60FPS</option>
+          <option value='vga60'>VGA@60FPS</option>
+          <option value='vga'>VGA@30FPS</option>
+          <option value='hd'>HD@30FPS</option>
+          <option value='fhd'>Full HD@30FPS</option>
+        </select>
+      </fieldset>
+      <fieldset style='margin-bottom:10px;'>
+        <legend>Face Module</legend>
+        <div style='margin-bottom:5px;'>
+          <button id='start'>Start</button>
+          <button id='stop'>Stop</button>
+          <input type='checkbox' id='depthmap'>
+          <label for='depthmap'>Show Depth</label>
+        </div>
+      </fieldset>
+      <div style='margin-bottom:5px;'>
+        <fieldset style='margin-bottom:10px;'>
+          <legend>Configuration</legend>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
+              <legend>Tracking Mode:</legend>
+              <input type='radio' id='tracking_color' name='radioTrackingMode'>color</input>
+              <input type='radio' id='tracking_color_depth' name='radioTrackingMode'>color_depth</input>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
+              <legend>Tracking Strategy:</legend>
+              <div>
+                <input type='radio' id='strategy_time' name='radioTrackingStrategy'>appearance_time</input>
+                <input type='radio' id='strategy_close_far' name='radioTrackingStrategy'>closest_farthest</input>
+              </div>
+              <div>
+                <input type='radio' id='strategy_far_close' name='radioTrackingStrategy'>farthest_closest</input>
+                <input type='radio' id='strategy_left_right' name='radioTrackingStrategy'>left_right</input>
+                <input type='radio' id='strategy_right_left' name='radioTrackingStrategy'>right_left</input>
+              </div>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
+              <legend>Detection:</legend>
+              <div>
+                <input type='checkbox' id='enableDetection'>Enable</input>
+              </div>
+              <div>
+                <label style='display: inline-block;'>Number of max faces:</label>
+                <input type='number' id='detection_max_faces' min='1' style='width: 4em;'></input>
+              </div>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
+              <legend>Landmarks:</legend>
+              <div>
+                <input type='checkbox' id='enableLandmarks'>Enable</input>
+              </div>
+              <div>
+                <label style='display: inline-block;'>Max number of faces:</label>
+                <input type='number' id='landmarks_max_faces' min='1' style='width: 4em;'></input>
+              </div>
+              <div>
+                <label style='display: inline-block;'>Max number of landmarks:</label>
+                <label id='landmarks_max_landmarks' style='display: inline-block;'></lable>
+              </div>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
+              <legend>Recognition</legend>
+              <input type='checkbox' id='enableRecognition'>Enable</input>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <button id='setConf'>Set</button>
+            <button id='getConf'>Get</button>
+            <button id='getDefaultsConf'>Default</button>
+          </div>
+        </fieldset>
+      </div>
+      <fieldset style='margin-bottom:10px;'>
+        <legend>Recognition</legend>
+        <p id='recognitionData'>
+          (Face ID: Recognition ID) :
+        </p>
+        <div style='margin-bottom:5px;'>
+          <button id='registerFace'>Register</button>
+          <label style='display: inline-block;'>by Face ID:</label>
+          <input type='number' id='recognition_face_id' min='0' style='width: 4em;'></input>
+        </div>
+        <div style='margin-bottom:5px;'>
+          <button id='unregisterFace'>Unregister</button>
+          <label style='display: inline-block;'>by Recognition ID:</label>
+          <input type='number' id='recognition_recog_id' min='0' style='width: 4em;'></input>
+        </div>
+      </fieldset>
+      <p id='status'>Status</p>
     </div>
 
-    <div id='color_container' style='position: absolute; top: 250px'>
-      <canvas id='color' width='640' height='480'></canvas>
+    <div style='margin-bottom:5px;' class='center' id='viewer'>
+      <video id='preview' autoplay style='position: absolute; left: 10px; top: 50px; z-index: -1;'></video>
+      <canvas id='overlay' style='position: absolute; left: 10px; top: 50px; z-index: 1;'></canvas>
+      <canvas id='depth' style='position: absolute; left: 10px; top: 50px;'></canvas>
+      <p id='resolutionText' style='position: absolute; left: 160px; top: 0px;'></p>
     </div>
-    <div id='depth_container' style='position: absolute; left: 660px; top: 250px'>
-      <canvas id='depth' width='640' height='480'></canvas>
-    </div>
-    <p id='2DSize' style='position: absolute; left: 300px; top: 740px;'>2D</p>
-    <p id='3DSize' style='position: absolute; left: 930px; top: 740px;'>3D</p>
-    <p id='status' style='position: absolute; left: 10px; top: 760px;'>Status</p>
-    <p id='recognitionData' style='position: absolute; left: 10px; top: 790px;'>
-      (Face id: Recognition id) :
-    </p>
   </body>
-  <script src="libs/stats.min.js"></script>
-  <script src="face.js"></script>
+  <script src='libs/adapter.js'></script>
+  <script src='libs/stats.min.js'></script>
+  <script src='face.js'></script>
   <script>
     window.onload = main();
   </script>
