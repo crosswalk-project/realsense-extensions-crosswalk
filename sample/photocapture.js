@@ -5,6 +5,8 @@ var depthContext = depthCanvas.getContext('2d');
 var cameraLabel = document.getElementById('camera');
 var resolutionSelect = document.getElementById('resolution');
 var takePhotoButton = document.getElementById('takephoto');
+var startButton = document.getElementById('start');
+var stopButton = document.getElementById('stop');
 var statusElement = document.getElementById('status');
 var qualityElement = document.getElementById('quality');
 resolutionSelect.value = 'fhd';
@@ -103,7 +105,6 @@ function gotDevices(deviceInfos) {
   }
   if (cameraId !== '') {
     cameraLabel.innerHTML = cameraName;
-    preview();
   } else {
     cameraLabel.innerHTML = cameraName + ' is not available';
     cameraLabel.style.color = 'red';
@@ -114,17 +115,16 @@ function main() {
   navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
 }
 
-function preview() {
+function errorCallback(error) {
+  statusElement.innerHTML = error;
+}
+
+var previewing = false;
+
+startButton.onclick = function(e) {
+  if (previewing) return;
   if (cameraId === '') {
     return;
-  }
-  if (previewStream) {
-    // Remove listeners as we don't care about the events.
-    photoCapture.onerror = null;
-    photoCapture.ondepthquality = null;
-    previewStream.getTracks().forEach(function(track) {
-      track.stop();
-    });
   }
   var resolution = constraintsMap[resolutionSelect.value];
   var constraints = {video: {
@@ -142,6 +142,7 @@ function preview() {
           statusElement.innerHTML = e.message;
           return;
         }
+        previewing = true;
         photoCapture.onerror = function(e) {
           statusElement.innerHTML = e.message;
         };
@@ -171,13 +172,19 @@ function preview() {
           }
         };
       }, errorCallback);
-}
+};
 
-function errorCallback(error) {
-  statusElement.innerHTML = error;
-}
-
-resolutionSelect.onchange = preview;
+stopButton.onclick = function(e) {
+  if (previewStream) {
+    // Remove listeners as we don't care about the events.
+    photoCapture.onerror = null;
+    photoCapture.ondepthquality = null;
+    previewStream.getTracks().forEach(function(track) {
+      track.stop();
+    });
+    previewing = false;
+  }
+};
 
 takePhotoButton.onclick = function(e) {
   if (photoCapture) {
