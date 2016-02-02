@@ -180,9 +180,10 @@ var Measurement = function(objectId) {
   }
 
   this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
-  this._addMethodWithPromise('measureUADistance', wrapPhotoArgs);
-  this._addMethodWithPromise('queryUADataSize');
-  this._addMethodWithPromise('queryUAData');
+  // Mark following APIs as experimental according to RSSDK WM6.
+  this._addMethodWithPromise('measureUADistance', wrapPhotoArgs, null, null, true);
+  this._addMethodWithPromise('queryUADataSize', null, null, null, true);
+  this._addMethodWithPromise('queryUAData', null, null, null, true);
 };
 
 Measurement.prototype = new common.EventTargetPrototype();
