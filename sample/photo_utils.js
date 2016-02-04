@@ -132,7 +132,7 @@ function depthEnhance() {
   photoUtils.enhanceDepth(currentPhoto, 'low').then(
       function(photo) {
         savePhoto = photo;
-        photo.queryDepthImage().then(
+        photo.queryDepth().then(
             function(image) {
               fillCanvasUsingDepthImage(image);
               statusElement.innerHTML = 'enhanceDepth success.';
@@ -146,7 +146,7 @@ function depthResize() {
   photoUtils.depthResize(currentPhoto, 640).then(
       function(photo) {
         savePhoto = photo;
-        photo.queryDepthImage().then(
+        photo.queryDepth().then(
             function(image) {
               fillCanvasUsingDepthImage(image);
               statusElement.innerHTML = 'depthResize success.';
