@@ -4,8 +4,6 @@ var saveButton = document.getElementById('save');
 var fileInput = document.getElementById('fileInput');
 var measureRadio = document.getElementById('measure');
 var refocusRadio = document.getElementById('refocus');
-var depthEnhanceRadio = document.getElementById('depthEnhance');
-var depthUpscaleRadio = document.getElementById('depthUpscale');
 var pasteOnPlaneRadio = document.getElementById('pastOnPlane');
 var popColorRadio = document.getElementById('popColor');
 var imageCanvas = document.getElementById('image');
@@ -24,46 +22,6 @@ var endX = 0, endY = 0;
 var hasImage = false;
 var sticker;
 var hasSelectPoints = false;
-
-function ConvertDepthToRGBUsingHistogram(
-    depthImage, nearColor, farColor, rgbImage) {
-  var depthImageData = depthImage.data;
-  var imageSize = depthImage.width * depthImage.height;
-  for (var l = 0; l < imageSize; ++l) {
-    rgbImage[l * 4] = 0;
-    rgbImage[l * 4 + 1] = 0;
-    rgbImage[l * 4 + 2] = 0;
-    rgbImage[l * 4 + 3] = 255;
-  }
-  // Produce a cumulative histogram of depth values
-  var histogram = new Int32Array(256 * 256);
-  for (var i = 0; i < imageSize; ++i) {
-    if (depthImageData[i]) {
-      ++histogram[depthImageData[i]];
-    }
-  }
-  for (var j = 1; j < 256 * 256; ++j) {
-    histogram[j] += histogram[j - 1];
-  }
-
-  // Remap the cumulative histogram to the range 0..256
-  for (var k = 1; k < 256 * 256; k++) {
-    histogram[k] = (histogram[k] << 8) / histogram[256 * 256 - 1];
-  }
-
-  // Produce RGB image by using the histogram to interpolate between two colors
-  for (var l = 0; l < imageSize; ++l) {
-    if (depthImageData[l]) { // For valid depth values (depth > 0)
-      // Use the histogram entry (in the range of 0..256) to interpolate between nearColor and
-      // farColor
-      var t = histogram[depthImageData[l]];
-      rgbImage[l * 4] = ((256 - t) * nearColor[0] + t * farColor[0]) >> 8;
-      rgbImage[l * 4 + 1] = ((256 - t) * nearColor[1] + t * farColor[1]) >> 8;
-      rgbImage[l * 4 + 2] = ((256 - t) * nearColor[2] + t * farColor[2]) >> 8;
-      rgbImage[l * 4 + 3] = 255;
-    }
-  }
-}
 
 function getDateString() {
   var date = new Date();
@@ -93,8 +51,6 @@ function drawCross(x, y) {
 function resetRadioButtons() {
   measureRadio.checked = false;
   refocusRadio.checked = false;
-  depthEnhanceRadio.checked = false;
-  depthUpscaleRadio.checked = false;
   pasteOnPlaneRadio.checked = false;
   popColorRadio.checked = false;
 }
@@ -160,46 +116,6 @@ function depthRefocus(e) {
                         'Depth refocus success. Please select focus point again.';
                     overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
                     imageData.data.set(image.data);
-                    imageContext.putImageData(imageData, 0, 0);
-                  },
-                  function(e) { statusElement.innerHTML = e.message; });
-            },
-            function(e) { statusElement.innerHTML = e.message; });
-      },
-      function(e) { statusElement.innerHTML = e.message; });
-}
-
-function depthEnhance() {
-  photoUtils.enhanceDepth(currentPhoto, 'high').then(
-      function(photo) {
-        savePhoto = photo;
-        photo.queryDepthImage().then(
-            function(image) {
-              imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
-              imageData = imageContext.createImageData(image.width, image.height);
-              statusElement.innerHTML = 'Finished depth enhancing.';
-              ConvertDepthToRGBUsingHistogram(
-                  image, [255, 255, 255], [0, 0, 0], imageData.data);
-              imageContext.putImageData(imageData, 0, 0);
-            },
-            function(e) { statusElement.innerHTML = e.message; });
-      },
-      function(e) { statusElement.innerHTML = e.message; });
-}
-
-function depthUpscale() {
-  currentPhoto.queryContainerImage().then(
-      function(curImage) {
-        photoUtils.depthResize(currentPhoto, curImage.width).then(
-            function(photo) {
-              savePhoto = photo;
-              photo.queryDepthImage().then(
-                  function(image) {
-                    imageContext.clearRect(0, 0, canvasWidth, canvasHeight);
-                    imageData = imageContext.createImageData(image.width, image.height);
-                    statusElement.innerHTML = 'Finished depth upscaling.';
-                    ConvertDepthToRGBUsingHistogram(
-                        image, [255, 255, 255], [0, 0, 0], imageData.data);
                     imageContext.putImageData(imageData, 0, 0);
                   },
                   function(e) { statusElement.innerHTML = e.message; });
@@ -423,28 +339,6 @@ function main() {
             imageContext.putImageData(imageData, 0, 0);
           },
           function(e) { statusElement.innerHTML = e.message; });
-    }
-  }, false);
-
-  depthEnhanceRadio.addEventListener('click', function(e) {
-    if (depthEnhanceRadio.checked) {
-      if (hasImage == false) {
-        statusElement.innerHTML = 'Please load a photo first.';
-        return;
-      }
-      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
-      depthEnhance();
-    }
-  }, false);
-
-  depthUpscaleRadio.addEventListener('click', function(e) {
-    if (depthUpscaleRadio.checked) {
-      if (hasImage == false) {
-        statusElement.innerHTML = 'Please load a photo first.';
-        return;
-      }
-      overlayContext.clearRect(0, 0, canvasWidth, canvasHeight);
-      depthUpscale();
     }
   }, false);
 
