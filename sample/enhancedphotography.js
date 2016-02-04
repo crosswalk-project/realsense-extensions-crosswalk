@@ -1,6 +1,7 @@
 var statusElement = document.getElementById('status');
 var loadPhoto = document.getElementById('loadPhoto');
 var saveButton = document.getElementById('save');
+var stickerButton = document.getElementById('sticker');
 var fileInput = document.getElementById('fileInput');
 var measureRadio = document.getElementById('measure');
 var refocusRadio = document.getElementById('refocus');
@@ -353,9 +354,12 @@ function main() {
         paster = new realsense.DepthEnabledPhotography.Paster();
       }
 
+      stickerButton.disabled = false;
+      fileInput.disabled = false;
+
       if (!sticker) {
         statusElement.innerHTML =
-            'Please click [Choose file] button to load the pasted image.';
+            'Please click [Set Sticker] button to load the pasted image.';
       } else {
         statusElement.innerHTML =
             'Select two points on the image to paste the sticker.';
