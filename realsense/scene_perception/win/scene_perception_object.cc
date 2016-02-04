@@ -173,8 +173,8 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("getSample",
                     base::Bind(&ScenePerceptionObject::OnGetSample,
                                base::Unretained(this)));
-  handler_.Register("getVolumePreview",
-                    base::Bind(&ScenePerceptionObject::OnGetVolumePreview,
+  handler_.Register("queryVolumePreview",
+                    base::Bind(&ScenePerceptionObject::OnQueryVolumePreview,
                                base::Unretained(this)));
   handler_.Register("getVertices",
                     base::Bind(&ScenePerceptionObject::OnGetVertices,
@@ -1374,18 +1374,18 @@ void ScenePerceptionObject::DoCopySample(
   info->PostResult(result.Pass());
 }
 
-void ScenePerceptionObject::DoGetVolumePreview(
+void ScenePerceptionObject::DoQueryVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
-  scoped_ptr<GetVolumePreview::Params> params(
-      GetVolumePreview::Params::Create(*info->arguments()));
+  scoped_ptr<QueryVolumePreview::Params> params(
+      QueryVolumePreview::Params::Create(*info->arguments()));
   Image image;
 
   if (!params) {
     info->PostResult(
-        GetVolumePreview::Results::Create(
-          image, "Malformed parameters for getVolumePreview"));
+        QueryVolumePreview::Results::Create(
+          image, "Malformed parameters for queryVolumePreview"));
     return;
   }
   pxcF32 pose[12];
@@ -1424,17 +1424,17 @@ void ScenePerceptionObject::DoGetVolumePreview(
   info->PostResult(result.Pass());
 }
 
-void ScenePerceptionObject::OnGetVolumePreview(
+void ScenePerceptionObject::OnQueryVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   Image image;
   if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
-    info->PostResult(GetVolumePreview::Results::Create(
+    info->PostResult(QueryVolumePreview::Results::Create(
         image, std::string("Wrong state to get volume preview.")));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&ScenePerceptionObject::DoGetVolumePreview,
+      base::Bind(&ScenePerceptionObject::DoQueryVolumePreview,
                  base::Unretained(this),
                  base::Passed(&info)));
 }

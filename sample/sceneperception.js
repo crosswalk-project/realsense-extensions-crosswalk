@@ -158,7 +158,7 @@ function main() {
       if (getting_volumePreview_image)
         return;
       getting_volumePreview_image = true;
-      sp.getVolumePreview(e.data.cameraPose).then(function(volumePreview) {
+      sp.queryVolumePreview(e.data.cameraPose).then(function(volumePreview) {
         volumePreview_image_data.data.set(volumePreview.data);
         volumePreview_context.putImageData(volumePreview_image_data, 0, 0);
         getting_volumePreview_image = false;
