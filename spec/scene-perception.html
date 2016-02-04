@@ -188,7 +188,7 @@
             Promise&lt;float&gt; getVoxelSize()
           </dt>
           <dd>
-            Allows user to get length of voxel side in meters.
+            Allows user to get length of side of voxel cube in meters.
           </dd>
           <dt>
             Promise&lt;MeshingThresholds&gt; getMeshingThresholds()
@@ -402,14 +402,14 @@
           </dt>
           <dd>
             <p>
-              a positive value between 0 and 1 to indicate the scene quality,
-              0 representing an unsuitable scene for starting scene perception and
-              1 representing an ideal scene for starting scene perception.
+              a positive value between 0 and 1 to indicate how good is scene for starting, tracking or resetting scene perception.<br/>
+              1.0 -> represents ideal scene for starting scene perception.<br/>
+              0.0 -> represents unsuitable scene for starting scene perception.<br/>
             </p>
             <p>
-              a negative value to indicate potential reasons of a tracking failure.
-              -1.0 represents the scene lacks of structural/geometry information.
-              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.)
+              a negative value to indicate potential reasons of a tracking failure.<br/>
+              -1.0 -> represents the scene lacks of structural/geometry information.<br/>
+              -2.0 -> represents The scene lacks enough depth data (too far away from or close to the camera.)<br/>
             </p>
           </dd>
         </dl>
@@ -424,14 +424,14 @@
           </dt>
           <dd>
             <p>
-              a positive value between 0 and 1 to indicate the scene quality,
-              0 representing an unsuitable scene for starting scene perception and
-              1 representing an ideal scene for starting scene perception.
+              a positive value between 0 and 1 to indicate how good is scene for starting, tracking or resetting scene perception.<br/>
+              1.0 -> represents ideal scene for starting scene perception.<br/>
+              0.0 -> represents unsuitable scene for starting scene perception.<br/>
             </p>
             <p>
-              a negative value to indicate potential reasons of a tracking failure.
-              -1.0 represents the scene lacks of structural/geometry information.
-              -2.0 represents The scene lacks enough depth data (too far away from or close to the camera.)
+              a negative value to indicate potential reasons of a tracking failure.<br/>
+              -1.0 -> represents the scene lacks of structural/geometry information.<br/>
+              -2.0 -> represents The scene lacks enough depth data (too far away from or close to the camera.)<br/>
             </p>
           </dd>
           <dt>
@@ -579,7 +579,7 @@
             VoxelResolution? voxelResolution;
           </dt>
           <dd>
-            The initial voxel resolution. The voxelResolution is locked when <code><a>init</a></code>is called, afterwards it will remains same throughout the runtime of scene perception module.
+            The initial voxel resolution. The voxelResolution is locked when <code><a>init</a></code> is called, afterwards it will remains same throughout the runtime of scene perception module. The default value of voxel resolution is LOW_RESOLUTION.
           </dd>
           <dt>
             sequence&lt;float&gt;? initialCameraPose;
