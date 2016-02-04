@@ -30,6 +30,8 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   void StopEvent(const std::string& type) override;
 
  private:
+  void OnSetCamera(
+      scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnStart(
       scoped_ptr<xwalk::common::XWalkExtensionFunctionInfo> info);
   void OnStop(
@@ -75,7 +77,7 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   void Destroy();
 
   // Run on face_module_thread_
-  bool CreateProcessedSampleImages();
+  void CreateProcessedSampleImages();
   void ReleasePipelineResources();
 
   // Run on face_module_thread_
@@ -83,7 +85,7 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   // Run on face extension thread
   void OnStopFaceModuleThread();
 
-  size_t CalculateBinaryMessageSize();
+  size_t CalculateBinaryMessageSize(bool get_color, bool get_depth);
   void DispatchErrorEvent(const ErrorCode& error, const std::string& message);
 
   enum State {
@@ -107,6 +109,7 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   PXCImage* latest_color_image_;
   PXCImage* latest_depth_image_;
 
+  std::string camera_name_;
   scoped_ptr<uint8[]> binary_message_;
   size_t binary_message_size_;
 };

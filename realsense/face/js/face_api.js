@@ -21,9 +21,36 @@ var Recognition = function(faceModuleObjId) {
 Recognition.prototype = new common.BindingObjectPrototype();
 Recognition.prototype.constructor = Recognition;
 
-var FaceModule = function(object_id) {
+var FaceModule = function(previewStream, object_id) {
+  if (!((previewStream instanceof webkitMediaStream) ||
+      (previewStream instanceof MediaStream)))
+    throw 'Argument is not a MediaStream instance';
+
   common.BindingObject.call(this, object_id ? object_id : common.getUniqueId());
   common.EventTarget.call(this);
+
+  var videoTracks = previewStream.getVideoTracks();
+  if (videoTracks.length == 0)
+    throw 'no valid video track';
+  var videoTrack = videoTracks[0];
+  if (videoTrack.readyState == 'ended')
+    throw 'vdieo track is ended';
+
+  var videoElement = document.createElement('video');
+  videoElement.autoplay = true;
+  videoElement.srcObject = previewStream;
+
+  var that = this;
+  videoTrack.onended = function() {
+    that.dispatchEvent(
+        {type: 'error', data: {error: 'exec_failed', message: 'Video stream ended.'}});
+    that.stop().then(
+        function() { that.dispatchEvent({type: 'ended'});},
+        function(e) { that.dispatchEvent({type: 'ended'});});
+  };
+  videoElement.onplay = function() {
+    that._postMessage('setCamera', [videoTrack.label]);
+  };
 
   if (object_id == undefined)
     internal.postMessage('faceModuleConstructor', [this._id]);
@@ -158,12 +185,15 @@ var FaceModule = function(object_id) {
       face_array.push(facedata);
     }
 
-    var color_image_value = {
-      format: color_format,
-      width: color_width,
-      height: color_height,
-      data: color_data
-    };
+    var color_image_value = undefined;
+    if (color_width > 0 && color_height > 0) {
+      color_image_value = {
+        format: color_format,
+        width: color_width,
+        height: color_height,
+        data: color_data
+      };
+    }
     var depth_image_value = undefined;
     if (depth_width > 0 && depth_height > 0) {
       depth_image_value = {
@@ -196,11 +226,19 @@ var FaceModule = function(object_id) {
   this._addEvent('error', FaceErrorEvent);
 
   this._addEvent('processedsample');
+  this._addEvent('ready');
+  this._addEvent('ended');
 
   var faceConfObj = new FaceConfiguration(this._id);
   var recognitionObj = new Recognition(this._id);
 
   Object.defineProperties(this, {
+    'previewStream': {
+      value: previewStream,
+      configurable: false,
+      writable: false,
+      enumerable: true,
+    },
     'configuration': {
       value: faceConfObj,
       configurable: false,

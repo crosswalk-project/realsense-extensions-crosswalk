@@ -9,6 +9,7 @@
 
 #include "base/bind.h"
 #include "base/logging.h"
+#include "base/strings/sys_string_conversions.h"
 #include "realsense/common/win/common_utils.h"
 #include "third_party/libpxc/include/pxcfaceconfiguration.h"
 
@@ -215,6 +216,9 @@ FaceModuleObject::FaceModuleObject()
       latest_color_image_(NULL),
       latest_depth_image_(NULL),
       binary_message_size_(0) {
+  handler_.Register("setCamera",
+                    base::Bind(&FaceModuleObject::OnSetCamera,
+                               base::Unretained(this)));
   handler_.Register("start",
                     base::Bind(&FaceModuleObject::OnStart,
                                base::Unretained(this)));
@@ -263,6 +267,24 @@ void FaceModuleObject::StopEvent(const std::string& type) {
   }
 }
 
+void FaceModuleObject::OnSetCamera(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK(!face_module_thread_.IsRunning());
+
+  scoped_ptr<SetCamera::Params> params(
+      SetCamera::Params::Create(*info->arguments()));
+  if (!params) {
+    DispatchErrorEvent(ERROR_CODE_PARAM_UNSUPPORTED,
+        "Failed to get setCamera parameters.");
+    return;
+  }
+  camera_name_ = params->camera;
+  DLOG(INFO) << "setCamera name: " << camera_name_;
+
+  // Dispatch "ready" event to indicate ready to start.
+  DispatchEvent("ready");
+}
+
 void FaceModuleObject::OnStart(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (face_module_thread_.IsRunning()) {
@@ -270,6 +292,14 @@ void FaceModuleObject::OnStart(
         CreateErrorResult(ERROR_CODE_EXEC_FAILED,
             "Face module is already started"));
     return;  // Wrong state.
+  }
+
+  // In case that camera name has not been set, yet.
+  if (camera_name_.empty()) {
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_INIT_FAILED,
+            "Camera has not been set yet"));
+    return;
   }
 
   if (!Init()) {
@@ -447,6 +477,43 @@ void FaceModuleObject::OnStartPipeline(
   DCHECK_EQ(face_module_thread_.message_loop(), base::MessageLoop::current());
   DCHECK(state_ == IDLE);
 
+  // Filter the camera.
+  // TODO(leonhsl): Seems base::SysUTF8ToWide() can't work well for now,
+  // otherwise we can simply call CaptureManager's FilterByDeviceInfo() instead.
+  PXCSession::ImplDesc templat = {};
+  templat.group = PXCSession::IMPL_GROUP_SENSOR;
+  templat.subgroup = PXCSession::IMPL_SUBGROUP_VIDEO_CAPTURE;
+  PXCSession::ImplDesc desc;
+  PXCCapture* capture;
+  int module_index = 0;
+  bool found = false;
+  while (session_->QueryImpl(&templat, module_index, &desc)
+      >= PXC_STATUS_NO_ERROR) {
+    if (session_->CreateImpl<PXCCapture>(&desc, &capture) < PXC_STATUS_NO_ERROR)
+      continue;
+
+    DLOG(INFO) << "RSSDK capture module: " << desc.friendlyName;
+
+    for (int i = 0; i < capture->QueryDeviceNum(); i++) {
+      PXCCapture::DeviceInfo device_info;
+      if ((capture->QueryDeviceInfo(i, &device_info)) < PXC_STATUS_NO_ERROR)
+        break;
+
+      if (camera_name_ == base::SysWideToUTF8(device_info.name)) {
+        found = true;
+        sense_manager_->QueryCaptureManager()->FilterByDeviceInfo(&device_info);
+        DLOG(INFO) << "Found capture device: "
+          << base::SysWideToUTF8(device_info.name) << " "
+          << base::SysWideToUTF8(device_info.did);
+        break;
+      }
+    }
+    capture->Release();
+    if (found)
+      break;
+    module_index++;
+  }
+
   // Init sense manager.
   pxcStatus status = sense_manager_->Init();
   if (status < PXC_STATUS_NO_ERROR) {
@@ -487,17 +554,8 @@ void FaceModuleObject::OnStartPipeline(
     return;
   }
 
-  // As we called EnableFace(),
-  // SDK will enable the corresponding streams implicitly.
   // We create color/depth images according current stream profiles.
-  if (!CreateProcessedSampleImages()) {
-    info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to create processed sample images"));
-    ReleasePipelineResources();
-    StopFaceModuleThread();
-    return;
-  }
+  CreateProcessedSampleImages();
 
   DLOG(INFO) << "Start, State transit from IDLE to TRACKING";
   state_ = TRACKING;
@@ -529,17 +587,6 @@ void FaceModuleObject::OnRunPipeline() {
   face_output_->Update();
   PXCCapture::Sample* face_sample = sense_manager_->QueryFaceSample();
   if (face_sample) {
-    // At least we should have color image!
-    if (!face_sample->color) {
-      if (on_error_) {
-        DispatchErrorEvent(ERROR_CODE_EXEC_FAILED, "Fail to query face sample");
-      }
-
-      ReleasePipelineResources();
-      StopFaceModuleThread();
-      return;
-    }
-
     if (on_processedsample_) {
       latest_color_image_->CopyImage(face_sample->color);
       if (latest_depth_image_ && face_sample->depth) {
@@ -585,10 +632,27 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
     return;
   }
 
+  scoped_ptr<GetProcessedSample::Params> params(
+      GetProcessedSample::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    return;
+  }
+  // Do not transmit color/depth image data by default.
+  bool get_color = false;
+  bool get_depth = false;
+  if (params->get_color) {
+    get_color = *(params->get_color.get());
+  }
+  if (params->get_depth) {
+    get_depth = *(params->get_depth.get());
+  }
+
   PXCImage* color = latest_color_image_;
   PXCImage* depth = latest_depth_image_;
 
-  const size_t post_data_size = CalculateBinaryMessageSize();
+  const size_t post_data_size =
+      CalculateBinaryMessageSize(get_color, get_depth);
   if (binary_message_size_ < post_data_size) {
     binary_message_.reset(new uint8[post_data_size]);
     binary_message_size_ = post_data_size;
@@ -597,46 +661,54 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
   size_t offset = 0;
   int* int_array = reinterpret_cast<int*>(binary_message_.get());
   // Fill ProcessedSample::color image.
-  PXCImage::ImageInfo color_info = color->QueryInfo();
-  int_array[1] = 1;  // 1 for PixelFormat::PIXEL_FORMAT_RGB32
-  int_array[2] = color_info.width;
-  int_array[3] = color_info.height;
-  offset += 4 * sizeof(int);
-  PXCImage::ImageData color_data;
-  pxcStatus status = color->AcquireAccess(
-      PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_RGB32, &color_data);
-  uint8_t* uint8_array =
-      reinterpret_cast<uint8_t*>(binary_message_.get() + offset);
-  if (status >= PXC_STATUS_NO_ERROR) {
-    int k = 0;
-    uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
-    for (int y = 0; y < color_info.height; ++y) {
-      for (int x = 0; x < color_info.width; ++x) {
-        int i = (x + color_info.width * y) * 4;
-        uint8_array[k++] = rgb32[i + 2];
-        uint8_array[k++] = rgb32[i + 1];
-        uint8_array[k++] = rgb32[i];
-        uint8_array[k++] = rgb32[i + 3];
+  if (get_color && color) {
+    PXCImage::ImageInfo color_info = color->QueryInfo();
+    int_array[1] = 1;  // 1 for PixelFormat::PIXEL_FORMAT_RGB32
+    int_array[2] = color_info.width;
+    int_array[3] = color_info.height;
+    offset += 4 * sizeof(int);
+    PXCImage::ImageData color_data;
+    pxcStatus status = color->AcquireAccess(
+        PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_RGB32, &color_data);
+    uint8_t* uint8_array =
+        reinterpret_cast<uint8_t*>(binary_message_.get() + offset);
+    if (status >= PXC_STATUS_NO_ERROR) {
+      int k = 0;
+      uint8_t* rgb32 = reinterpret_cast<uint8_t*>(color_data.planes[0]);
+      for (int y = 0; y < color_info.height; ++y) {
+        for (int x = 0; x < color_info.width; ++x) {
+          int i = (x + color_info.width * y) * 4;
+          uint8_array[k++] = rgb32[i + 2];
+          uint8_array[k++] = rgb32[i + 1];
+          uint8_array[k++] = rgb32[i];
+          uint8_array[k++] = rgb32[i + 3];
+        }
       }
+      offset += color_info.width * color_info.height * 4;
+      color->ReleaseAccess(&color_data);
+    } else {
+      fail = true;
+      DLOG(INFO) << "Failed to access color image data: " << status;
     }
-    offset += color_info.width * color_info.height * 4;
-    color->ReleaseAccess(&color_data);
   } else {
-    fail = true;
-    DLOG(INFO) << "Failed to access color image data: " << status;
+    // If no color image to send, set color width and height as 0.
+    int_array[1] = 1;
+    int_array[2] = 0;
+    int_array[3] = 0;
+    offset += 4 * sizeof(int);
   }
 
   int_array = reinterpret_cast<int*>(binary_message_.get() + offset);
   // Fill ProcessedSample::depth image.
   if (!fail) {
-    if (depth) {
+    if (get_depth && depth) {
       PXCImage::ImageInfo depth_info = depth->QueryInfo();
       int_array[0] = 2;  // 2 for PixelFormat::PIXEL_FORMAT_DEPTH
       int_array[1] = depth_info.width;
       int_array[2] = depth_info.height;
       offset += 3 * sizeof(int);
       PXCImage::ImageData depth_data;
-      status = depth->AcquireAccess(
+      pxcStatus status = depth->AcquireAccess(
           PXCImage::ACCESS_READ, PXCImage::PIXEL_FORMAT_DEPTH, &depth_data);
       uint16_t* uint16_array = reinterpret_cast<uint16_t*>(
           binary_message_.get() + offset);
@@ -657,7 +729,7 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
         DLOG(INFO) << "Failed to access depth image data: " << status;
       }
     } else {
-      // If no depth stream, only set depth width and height as 0.
+      // If no depth image to send, set depth width and height as 0.
       int_array[0] = 2;
       int_array[1] = 0;
       int_array[2] = 0;
@@ -1035,7 +1107,7 @@ void FaceModuleObject::Destroy() {
   state_ = NOT_READY;
 }
 
-bool FaceModuleObject::CreateProcessedSampleImages() {
+void FaceModuleObject::CreateProcessedSampleImages() {
   DCHECK(!latest_color_image_);
   DCHECK(!latest_depth_image_);
 
@@ -1046,40 +1118,43 @@ bool FaceModuleObject::CreateProcessedSampleImages() {
   // color image.
   if (profiles.color.imageInfo.format) {
     // Only support color stream PIXEL_FORMAT_RGB32.
-    if (profiles.color.imageInfo.format != PXCImage::PIXEL_FORMAT_RGB32) {
+    if (profiles.color.imageInfo.format == PXCImage::PIXEL_FORMAT_RGB32) {
+      DLOG(INFO) << "color.imageInfo: width is "
+          << profiles.color.imageInfo.width
+          << ", height is " << profiles.color.imageInfo.height
+          << ", format is "
+          << PXCImage::PixelFormatToString(profiles.color.imageInfo.format);
+      PXCImage::ImageInfo image_info = profiles.color.imageInfo;
+      image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
+      latest_color_image_ = sense_manager_->QuerySession()
+          ->CreateImage(&image_info);
+    } else {
       DLOG(ERROR) << "Device color stream format is not RGB32: "
           << profiles.color.imageInfo.format;
-      return false;
     }
-    DLOG(INFO) << "color.imageInfo: width is " << profiles.color.imageInfo.width
-        << ", height is " << profiles.color.imageInfo.height
-        << ", format is "
-        << PXCImage::PixelFormatToString(profiles.color.imageInfo.format);
-    PXCImage::ImageInfo image_info = profiles.color.imageInfo;
-    image_info.format = PXCImage::PIXEL_FORMAT_RGB32;
-    latest_color_image_ = sense_manager_->QuerySession()
-        ->CreateImage(&image_info);
+  } else {
+    DLOG(ERROR) << "Device color stream format undefined";
   }
   // depth image.
   if (profiles.depth.imageInfo.format) {
     // Only support depth stream PIXEL_FORMAT_DEPTH.
-    if (profiles.depth.imageInfo.format != PXCImage::PIXEL_FORMAT_DEPTH) {
+    if (profiles.depth.imageInfo.format == PXCImage::PIXEL_FORMAT_DEPTH) {
+      DLOG(INFO) << "depth.imageInfo: width is "
+          << profiles.depth.imageInfo.width
+          << ", height is " << profiles.depth.imageInfo.height
+          << ", format is "
+          << PXCImage::PixelFormatToString(profiles.depth.imageInfo.format);
+      PXCImage::ImageInfo image_info = profiles.depth.imageInfo;
+      image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
+      latest_depth_image_ = sense_manager_->QuerySession()
+          ->CreateImage(&image_info);
+    } else {
       DLOG(ERROR) << "Device depth stream format is not DEPTH: "
           << profiles.depth.imageInfo.format;
-      return false;
     }
-    DLOG(INFO) << "depth.imageInfo: width is " << profiles.depth.imageInfo.width
-        << ", height is " << profiles.depth.imageInfo.height
-        << ", format is "
-        << PXCImage::PixelFormatToString(profiles.depth.imageInfo.format);
-    PXCImage::ImageInfo image_info = profiles.depth.imageInfo;
-    image_info.format = PXCImage::PIXEL_FORMAT_DEPTH;
-    latest_depth_image_ = sense_manager_->QuerySession()
-        ->CreateImage(&image_info);
+  } else {
+    DLOG(ERROR) << "Device depth stream format undefined";
   }
-
-  // At least should have color image!
-  return latest_color_image_ != NULL;
 }
 
 void FaceModuleObject::ReleasePipelineResources() {
@@ -1104,6 +1179,7 @@ void FaceModuleObject::ReleasePipelineResources() {
     face_config_->Release();
     face_config_ = NULL;
   }
+
   sense_manager_->Close();
 
   DLOG(INFO) << "Release pipeline, State transit from "
@@ -1143,13 +1219,18 @@ void FaceModuleObject::OnStopFaceModuleThread() {
 //                                               world point x, y, z (float32),
 //                                               image point x, y (float32),
 //                    recognition data: recognition ID (int32),
-size_t FaceModuleObject::CalculateBinaryMessageSize() {
+size_t FaceModuleObject::CalculateBinaryMessageSize(
+    bool get_color, bool get_depth) {
   const int image_header_size = 3 * sizeof(int);  // format, width, height
-  PXCImage::ImageInfo color_info = latest_color_image_->QueryInfo();
-  const int color_image_size = color_info.width * color_info.height * 4;
+
+  int color_image_size = 0;
+  if (get_color && latest_color_image_) {
+    PXCImage::ImageInfo color_info = latest_color_image_->QueryInfo();
+    color_image_size = color_info.width * color_info.height * 4;
+  }
 
   int depth_image_size = 0;
-  if (latest_depth_image_) {
+  if (get_depth && latest_depth_image_) {
     PXCImage::ImageInfo depth_info = latest_depth_image_->QueryInfo();
     depth_image_size = depth_info.width * depth_info.height * 2;
   }

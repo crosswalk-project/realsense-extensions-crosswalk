@@ -155,7 +155,7 @@ namespace face_module {
   };
 
   dictionary ProcessedSample {
-    Image color;
+    Image? color;
     Image? depth;
     FaceData[] faces;
   };
@@ -165,14 +165,18 @@ namespace face_module {
   callback LongPromise = void (long value);
 
   interface Events {
+    void onready();
+    void onended();
     void onerror();
     void onprocessedsample();
   };
 
   interface Functions {
+    void setCamera(DOMString camera);
+
     void start();
     void stop();
-    void getProcessedSample(ProcessedSamplePromise promise);
+    void getProcessedSample(optional boolean getColor, optional boolean getDepth, ProcessedSamplePromise promise);
 
     void set(FaceConfigurationData faceConf);
     void getDefaults(FaceConfigurationDataPromise promise);
