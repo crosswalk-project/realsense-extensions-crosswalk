@@ -242,6 +242,7 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
   chain.ele('MsiPackage', {
     'SourceFile': msiFile,
     'ForcePerMachine': 'yes',
+    'Visible': 'yes',
     'Vital': 'yes'
   });
   var xml_str = root.end({ pretty: true });
