@@ -166,7 +166,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('setMeshingRegion');
 
   this._addMethodWithPromise('getSample', null, wrapSampleReturns);
-  this._addMethodWithPromise('getVolumePreview', null, wrapVolumePreviewReturn);
+  this._addMethodWithPromise('queryVolumePreview', null, wrapVolumePreviewReturn);
   this._addMethodWithPromise('getVertices', null, wrapVerticesOrNormalsReturn);
   this._addMethodWithPromise('getNormals', null, wrapVerticesOrNormalsReturn);
   this._addMethodWithPromise('isReconstructionEnabled');

@@ -180,7 +180,7 @@ namespace scene_perception {
     static void getSample(SamplePromise promise);
     static void getVertices(VerticesPromise vertices);
     static void getNormals(NormalsPromise normals);
-    static void getVolumePreview(double[] pose, ImagePromise promise);
+    static void queryVolumePreview(double[] pose, ImagePromise promise);
     static void isReconstructionEnabled(BoolPromise promise);
     static void getVoxelResolution(VoxelResolutionPromise promise);
     static void getVoxelSize(DoublePromise promise);
