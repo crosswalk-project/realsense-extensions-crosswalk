@@ -7,11 +7,25 @@ init:
 - cmd: git config --global core.autocrlf input
 environment:
   DEPOT_TOOLS_WIN_TOOLCHAIN: 0
+  XWALK_CHANNEL: canary
+  XWALK_VERSION: 18.48.475.0
 install:
 - cmd: >-
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
 
     set PATH=%PATH%;c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
+
+    mkdir c:\projects\xwalk
+
+    cd c:\projects\xwalk
+
+    curl -fsS -o crosswalk-%XWALK_VERSION%.zip https://download.01.org/crosswalk/releases/crosswalk/windows/%XWALK_CHANNEL%/%XWALK_VERSION%/crosswalk-%XWALK_VERSION%.zip
+
+    set XWALK_HOME=c:\projects\xwalk\crosswalk-%XWALK_VERSION%.zip
+
+    npm install -g https://github.com/crosswalk-project/crosswalk-app-tools.git
+
+    set PATH=%PATH%;C:\Program Files (x86)\WiX Toolset v3.10\bin
 
     cd c:\projects\realsense-extensions-crosswalk
 
@@ -37,22 +51,32 @@ build_script:
 
     gn gen out\Release_x64_gn --args="is_debug=false"
 
-    ninja -C out\Release_x64_gn :all_extensions
+    ninja -C out\Release_x64_gn sample_app
 after_build:
 - cmd: >-
     cd c:\projects\realsense-extensions-crosswalk\src\out\Release_x64_gn
 
-    7z a rec.zip *.dll -x!dbghelp.dll
+    7z a realsense_extensions.zip realsense_extensions
 
-    appveyor PushArtifact rec.zip
+    appveyor PushArtifact realsense_extensions.zip
+
+    7z a sample_installers.zip org.crosswalk_project.rs_sample*
+
+    appveyor PushArtifact sample_installers.zip
 deploy:
   description: 'Release Description'
   provider: GitHub
   auth_token:
     secure: x7Q/400f4Ng1G+6j+c70wrgd866E3lDV1buKeHZPdftRo/cog1kP3CFE612n/kP5
-  artifact: rec.zip
   draft: true
   prerelease: true
   on:
     appveyor_repo_tag: true
 test: off
+
+artifacts:
+    - path: realsense_extensions.zip
+      name: RealSense Extensions for crosswalk
+
+    - path: sample_installers.zip
+      name: Sample App Installers

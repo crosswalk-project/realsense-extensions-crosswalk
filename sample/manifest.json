@@ -1,7 +1,7 @@
 {
   "name": "Crosswalk RealSense Sample App",
   "start_url": "index.html",
-  "xwalk_package_id": "org.xwalk.rs_sample",
+  "xwalk_package_id": "org.crosswalk_project.rs_sample",
   "xwalk_command_line": "--use-rs-video-capture",
   "xwalk_extensions": [
     "realsense_extensions/enhanced_photography",
