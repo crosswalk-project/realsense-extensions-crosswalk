@@ -129,13 +129,16 @@ function commonFOV() {
 }
 
 function depthEnhance() {
-  photoUtils.enhanceDepth(currentPhoto, 'low').then(
+  var before = new Date().getTime();
+  photoUtils.enhanceDepth(currentPhoto, 'high').then(
       function(photo) {
+        var after = new Date().getTime();
+        var diff = after - before;
         savePhoto = photo;
         photo.queryDepth().then(
             function(image) {
               fillCanvasUsingDepthImage(image);
-              statusElement.innerHTML = 'enhanceDepth success.';
+              statusElement.innerHTML = 'enhanceDepth success. It costs ' + diff + ' milliseconds.';
             },
             function(e) { statusElement.innerHTML = e.message; });
       },
