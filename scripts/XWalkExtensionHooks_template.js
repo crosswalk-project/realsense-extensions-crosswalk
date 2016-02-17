@@ -218,7 +218,12 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
   var root = this._util.XmlBuilder.create('Wix')
              .att('xmlns', 'http://schemas.microsoft.com/wix/2006/wi');
   var version = getWindowsVersion(this._app.manifest.appVersion);
+  //TODO(Donna): Enable 'copyRight' or 'license' keys supported in AppTools.
+  //             Then move this string to the manifest.json.
+  var copyRight = 'Copyright (c) 2016 Intel Corporation. All rights reserved.';
   var bundle = root.ele('Bundle', {
+    'Name': this._app.manifest.name,
+    'Copyright': copyRight,
     'Version': version,
     'IconSourceFile': this.selectIcon(),
     'UpgradeCode': this._util.NodeUuid.v1()
