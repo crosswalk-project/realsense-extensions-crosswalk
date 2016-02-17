@@ -4,9 +4,12 @@ var fs = require('fs');
 var OS = require('os');
 var Path = require('path');
 
-var RS_RUNTIME_URL =
-    'http://registrationcenter-download.intel.com/akdlm/irc_nas/8516/' +
+var RS_RUNTIME_URL_BASE =
+    'http://registrationcenter-download.intel.com/akdlm/irc_nas/8516/';
+var RS_RUNTIME_URL = RS_RUNTIME_URL_BASE +
     'intel_rs_sdk_runtime_websetup_8.0.24.6528.exe';
+var RS_LICENSE_URL = RS_RUNTIME_URL_BASE +
+    'Intel%20RealSense%20SDK%20RT%20EULA.rtf';
 var FeatureNameMap = {
   'RS_R200_DEP': 'epv',
   'RS_R200_SP': 'scene_perception',
@@ -88,17 +91,23 @@ RsRuntimePackagingHooks.prototype.postPackage = function(platform, callback) {
   function bundleCbk(success) {
     if (callback instanceof Function) callback(success ? 0 : 1);
   }
-  if (this._util.ShellJS.test('-f', runtimeFile)) {
-    this.bundleThemAll(msiFile, runtimeFile, modules, bundleCbk);
-    return;
-  }
-  this.downloadFromUrl(RS_RUNTIME_URL, '.', 10, function(runtimeFile, errorMsg) {
-    if (this._util.ShellJS.test('-f', runtimeFile)) {
-      this.bundleThemAll(msiFile, runtimeFile, modules, bundleCbk);
-    } else {
-      this._output.error('Failed to download runtime installer, ' + errorMsg);
-      callback(1);
+  var tryTimes = 10;
+  this.downloadFromUrl(RS_LICENSE_URL, '.', tryTimes, function(licenseFile, errorMsg) {
+    if (!this._util.ShellJS.test('-f', licenseFile)) {
+      this._output.warning('Failed to download license file, ' + errorMsg);
     }
+    if (this._util.ShellJS.test('-f', runtimeFile)) {
+      this.bundleThemAll(msiFile, runtimeFile, licenseFile, modules, bundleCbk);
+      return;
+    }
+    this.downloadFromUrl(RS_RUNTIME_URL, '.', tryTimes, function(runtimeFile, errorMsg) {
+      if (this._util.ShellJS.test('-f', runtimeFile)) {
+        this.bundleThemAll(msiFile, runtimeFile, licenseFile, modules, bundleCbk);
+      } else {
+        this._output.error('Failed to download runtime installer, ' + errorMsg);
+        callback(1);
+      }
+    }.bind(this));
   }.bind(this));
 };
 
@@ -210,11 +219,12 @@ RsRuntimePackagingHooks.prototype.selectIcon = function() {
 // This callback of this function:
 // function ([Boolean] success) {}
 RsRuntimePackagingHooks.prototype.bundleThemAll =
-    function(msiFile, runtimeFile, modules, callback) {
+    function(msiFile, runtimeFile, licenseFile, modules, callback) {
   this._output.info('Create a bundle with following files:');
   this._output.info('msiFile:' + msiFile);
-  this._output.info('modules:' + modules);
   this._output.info('runtimeFile:' + runtimeFile);
+  this._output.info('licenseFile:' + licenseFile);
+  this._output.info('modules:' + modules);
   var root = this._util.XmlBuilder.create('Wix')
              .att('xmlns', 'http://schemas.microsoft.com/wix/2006/wi');
   var version = getWindowsVersion(this._app.manifest.appVersion);
@@ -231,10 +241,19 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
   var bootStrapper = bundle.ele('BootstrapperApplicationRef', {
     'Id': 'WixStandardBootstrapperApplication.HyperlinkLicense'
   });
-  bootStrapper.ele('bal:WixStandardBootstrapperApplication', {
+  var bal = bootStrapper.ele('bal:WixStandardBootstrapperApplication', {
     'xmlns:bal': 'http://schemas.microsoft.com/wix/BalExtension',
+    'ShowVersion': 'yes',
     'LicenseUrl': ''
   });
+  if (licenseFile && this._util.ShellJS.test('-f', licenseFile)) {
+    bootStrapper.att('Id', 'WixStandardBootstrapperApplication.RtfLargeLicense');
+    bal.att('LicenseFile', licenseFile);
+  } else {
+    this._output.warning('No license File for the bundle.');
+    bootStrapper.att('Id', 'WixStandardBootstrapperApplication.HyperlinkLicense');
+    bal.att('LicenseUrl', '');
+  }
   var chain = bundle.ele('Chain');
   var rtCmdLine = getRuntimeCmdOptions(modules);
   this._output.info('RealSense runtime intall command:' + rtCmdLine);
@@ -278,7 +297,7 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
 };
 
 function getRuntimeCmdOptions(modules) {
-  var features = ' --fnone=all --finstall=';
+  var features = ' --passive --fnone=all --finstall=';
   modules.forEach(function(m, i) {
     if (FeatureNameMap.hasOwnProperty(m)) {
       features += FeatureNameMap[m];
