@@ -229,6 +229,8 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
              .att('xmlns', 'http://schemas.microsoft.com/wix/2006/wi');
   var version = getWindowsVersion(this._app.manifest.appVersion);
   var bundle = root.ele('Bundle', {
+    'Name': '!(bind.packageName.MainApp)',
+    'Manufacturer': '!(bind.packageManufacturer.MainApp)',
     'Version': version,
     'IconSourceFile': this.selectIcon(),
     'UpgradeCode': this._util.NodeUuid.v1()
@@ -259,9 +261,9 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
   });
   chain.ele('RollbackBoundary');
   chain.ele('MsiPackage', {
+    'Id': 'MainApp',
     'SourceFile': msiFile,
     'ForcePerMachine': 'yes',
-    'Visible': 'yes',
     'Vital': 'yes'
   });
   var xml_str = root.end({ pretty: true });
