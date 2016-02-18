@@ -294,7 +294,7 @@ RsRuntimePackagingHooks.prototype.bundleThemAll =
 };
 
 function getRuntimeCmdOptions(modules) {
-  var features = ' --passive --fnone=all --finstall=';
+  var features = ' --passive --acceptlicense=yes --fnone=all --finstall=';
   modules.forEach(function(m, i) {
     if (FeatureNameMap.hasOwnProperty(m)) {
       features += FeatureNameMap[m];
