@@ -2,7 +2,7 @@
 
 | Windows | Android |
 |---------|---------|
-| [![Build status](https://ci.appveyor.com/api/projects/status/d1xdjhjbun3ixvs7?svg=true)](https://ci.appveyor.com/project/recbuilder/realsense-extensions-crosswalk) | [![Build Status](https://magnum.travis-ci.com/otcshare/realsense-extensions-crosswalk.svg?token=dnUEgJ1tAUrKkVskK7Ro)](https://magnum.travis-ci.com/otcshare/realsense-extensions-crosswalk) |
+| [![Build status](https://ci.appveyor.com/api/projects/status/8g9rk4krvir7v2b3?svg=true)](https://ci.appveyor.com/project/recbuilder/realsense-extensions-crosswalk-a87d8) | Coming soon. |
 
 ## Introduction
 The Crosswalk Project Extensions for RealSense implement the Intel RealSense SDK API in
