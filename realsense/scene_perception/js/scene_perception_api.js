@@ -13,7 +13,7 @@ var ScenePerception = function(objectId) {
   function wrapSampleReturns(data) {
     const BYTES_PER_INT = 4;
     const BYTES_OF_RGBA = 4;
-    var int32Array = new Int32Array(data);
+    var int32Array = new Int32Array(data, 0, 5);
     var cWidth = int32Array[1];
     var cHeight = int32Array[2];
     var dWidth = int32Array[3];
@@ -29,7 +29,7 @@ var ScenePerception = function(objectId) {
   function wrapVolumePreviewReturn(data) {
     const BYTES_PER_INT = 4;
     const BYTES_OF_RGBA = 4;
-    var int32Array = new Int32Array(data);
+    var int32Array = new Int32Array(data, 0, 3);
     var width = int32Array[1];
     var height = int32Array[2];
     var headerOffset = 3 * BYTES_PER_INT;
@@ -53,10 +53,9 @@ var ScenePerception = function(objectId) {
     // NumVertices: int32
     // FaceStartIndex: int32
     // NumFaces: int32
-    console.log('MeshingEvent');
     const BYTES_PER_INT = 4;
     const BYTES_PER_FLOAT = 4;
-    var int32Array = new Int32Array(data);
+    var int32Array = new Int32Array(data, 0, 4);
     var numberOfBlockMesh = int32Array[1];
     var numberOfVertices = int32Array[2];
     var numberOfFaces = int32Array[3];
@@ -139,7 +138,7 @@ var ScenePerception = function(objectId) {
 
   function wrapVerticesOrNormalsReturn(data) {
     const BYTES_PER_FLOAT = 4;
-    var int32Array = new Int32Array(data);
+    var int32Array = new Int32Array(data, 0, 3);
     var width = int32Array[1];
     var height = int32Array[2];
     var data = new Float32Array(data, 3 * BYTES_PER_FLOAT);
