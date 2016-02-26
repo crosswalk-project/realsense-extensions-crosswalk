@@ -2,25 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-action_foreach("pickup_dll") {
-  script = "//extensions/scripts/pickup_dll.py"
-  sources = [
-    "$root_build_dir/enhanced_photography.dll",
-    "$root_build_dir/scene_perception.dll",
-    "$root_build_dir/face.dll",
-  ]
-  inputs = [
-    "//extensions/scripts/XWalkExtensionHooks_template.js",
-  ]
-  dist_dir = "$root_build_dir/realsense_extensions"
-  outputs = [
-    "$dist_dir/{{source_name_part}}/{{source_file_part}}",
-    "$dist_dir/{{source_name_part}}/XWalkExtensionHooks.js",
-    "$dist_dir/{{source_name_part}}",
-  ]
-  args = ["{{source}}", "{{output}}"]
-}
-
 group("all_extensions") {
   deps = [
     "//extensions/benchmarks/bench_image/win:bench_image",
@@ -35,14 +16,14 @@ group("all_extensions") {
 
 group("dist") {
   deps = [
-    ":all_extensions",
-    ":pickup_dll",
+    "//extensions/realsense/enhanced_photography/win:make_dist",
+    "//extensions/realsense/face/win:make_dist",
+    "//extensions/realsense/scene_perception/win:make_dist",
   ]
 }
 
 group("sample_app") {
   deps = [
-    ":dist",
     "//extensions/sample:package_sample_app",
   ]
 }
