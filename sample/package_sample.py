@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+#
+# Copyright (c) 2016 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
 
 ''' This script is used to generate extension hooks
     for each module from the template js hooks.
@@ -11,11 +15,13 @@ import shutil
 import subprocess
 import sys
 
+
 def getAppToolsVersion():
   cmd = "crosswalk-pkg --version"
   version = subprocess.Popen(cmd, shell=True,
-              stdout=subprocess.PIPE).stdout.read()
+                             stdout=subprocess.PIPE).stdout.read()
   return version
+
 
 def addAppVersion(version, app_root):
   key = "xwalk_app_version"
@@ -24,10 +30,12 @@ def addAppVersion(version, app_root):
   manifest[key] = version
   open(m_path, 'w').write(json.dumps(manifest))
 
+
 def packageSampleApp(appRoot, platform, xwalkPath):
   cmd = "crosswalk-pkg -p %s -c %s %s" % (platform, xwalkPath, appRoot)
   print "cmd:" + cmd
   subprocess.Popen(cmd, shell=True)
+
 
 def main():
   parser = optparse.OptionParser()
@@ -35,7 +43,7 @@ def main():
   parser.add_option('-w', '--web_content', help='Dietory to the web staff.')
   parser.add_option('-o', '--out', help='Output directory of the sample app.')
   parser.add_option('-p', '--platform',
-                      help='The target platform for the sample.')
+                    help='The target platform for the sample.')
   parser.add_option('-v', '--version', help='The application version.')
 
   (options, _) = parser.parse_args()
@@ -43,7 +51,7 @@ def main():
     print "Error: no extensions in " + options.extensions
     sys.exit(2)
   if not os.path.isdir(options.web_content):
-    print "Error: no web staff in " + options.web_content;
+    print "Error: no web staff in " + options.web_content
     sys.exit(2)
 
   # Clean the output directory.
@@ -81,6 +89,6 @@ def main():
                    options.platform,
                    os.path.abspath(os.environ[xwalkEnv]))
 
+
 if __name__ == '__main__':
   main()
-
