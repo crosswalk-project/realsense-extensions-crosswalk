@@ -7,9 +7,6 @@ action("package_sample_app") {
   script = "package_sample.py"
   sources = [
     "//extensions/sample/src",
-    "$dist_dir/enhanced_photography",
-    "$dist_dir/scene_perception",
-    "$dist_dir/face",
   ]
   hasRuntime = getenv("NO_RS_RUNTIME_HOOKS")
   v = read_file("../VERSION", "scope")
@@ -37,5 +34,8 @@ action("package_sample_app") {
           "-o", rebase_path("$root_build_dir/sample_app"),
           "-p", "$platform",
           "-v", "$version",
-         ]
+  ]
+  deps = [
+    "//extensions:dist",
+  ]
 }

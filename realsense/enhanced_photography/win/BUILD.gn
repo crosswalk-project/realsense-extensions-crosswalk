@@ -68,3 +68,21 @@ shared_library("enhanced_photography") {
     "$target_gen_dir",
   ]
 }
+
+action("make_dist") {
+  script = "//extensions/realsense/common/dist.py"
+  dll_file = "enhanced_photography.dll"
+  sources = [
+    "../../common/XWalkExtensionHooks_template.js"
+  ]
+  dist_dir = "$root_build_dir/realsense_extensions/enhanced_photography"
+  outputs = [
+    "$dist_dir/$dll_file",
+    "$dist_dir/XWalkExtensionHooks.js",
+  ]
+  args = [
+    "--extension-dll", rebase_path("$root_build_dir/$dll_file"),
+    "--target-dir", rebase_path("$dist_dir"),
+  ]
+  deps = [ ":enhanced_photography" ]
+}
