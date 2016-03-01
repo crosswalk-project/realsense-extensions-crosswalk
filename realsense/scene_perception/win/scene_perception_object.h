@@ -117,11 +117,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoCopySample(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void DoCopyVertices(
+  void DoGetVerticesOrNormals(bool isGettingVertices,
       scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void DoCopyNormals(
-      scoped_ptr<XWalkExtensionFunctionInfo> info);
-  void DoCopyVerticesOrNormals(scoped_ptr<uint8[]> data);
 
   void DoCheckReconstructionFlag(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
@@ -225,20 +222,9 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
 
   PXCImage* latest_color_image_;
   PXCImage* latest_depth_image_;
-  scoped_ptr<uint8[]> latest_vertices_;
-  scoped_ptr<uint8[]> latest_normals_;
 
   scoped_ptr<uint8[]> sample_message_;
   size_t sample_message_size_;
-
-  scoped_ptr<uint8[]> volume_preview_message_;
-  size_t volume_preview_message_size_;
-
-  scoped_ptr<uint8[]> vertices_normals_message_;
-  size_t vertices_normals_message_size_;
-
-  scoped_ptr<uint8[]> meshing_data_message_;
-  size_t meshing_data_message_size_;
 };
 
 }  // namespace scene_perception
