@@ -69,20 +69,28 @@ shared_library("enhanced_photography") {
   ]
 }
 
+copy("npm_package") {
+  sources = [ "../npm/README.md", "../npm/package.json" ]
+  dist_dir = "$root_build_dir/realsense_extensions/enhanced_photography"
+  outputs = [ "$dist_dir/{{source_file_part}}" ]
+}
+
 action("make_dist") {
   script = "//extensions/realsense/common/dist.py"
   dll_file = "enhanced_photography.dll"
   sources = [
-    "../../common/XWalkExtensionHooks_template.js"
+    "../../common/XWalkExtensionHooks_template.js",
+    "../../common/npm_install_template.js",
   ]
   dist_dir = "$root_build_dir/realsense_extensions/enhanced_photography"
   outputs = [
     "$dist_dir/$dll_file",
     "$dist_dir/XWalkExtensionHooks.js",
+    "$dist_dir/npm_install.js",
   ]
   args = [
     "--extension-dll", rebase_path("$root_build_dir/$dll_file"),
     "--target-dir", rebase_path("$dist_dir"),
   ]
-  deps = [ ":enhanced_photography" ]
+  deps = [ ":enhanced_photography", ":npm_package" ]
 }

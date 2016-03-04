@@ -1,0 +1,28 @@
+{
+  "name": "crosswalk-extension-sp",
+  "version": "19.6.0",
+  "description": "The Crosswalk Project Extension for Scene Perception",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crosswalk-project/realsense-extensions-crosswalk.git"
+  },
+  "keywords": [
+    "crosswalk",
+    "extension",
+    "realsense",
+    "scene perception"
+  ],
+  "scripts": {
+    "postinstall": "node npm_install.js",
+    "postuninstall": "node npm_install.js --uninstall"
+  },
+  "dependencies": {
+    "format-json": "~1.0.3"
+  },
+  "author": "",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://crosswalk-project.org/jira"
+  },
+  "homepage": "https://github.com/crosswalk-project/realsense-extensions-crosswalk"
+}
