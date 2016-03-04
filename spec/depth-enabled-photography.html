@@ -2180,7 +2180,7 @@ function gotMedia(stream) {
     console.log('Photo capture failure: ' + e.data.message);
   };
   photoCapture.ondepthquality = function(e) {
-    consoloe.log('Depth quality: ' + e.data.quality);
+    console.log('Depth quality: ' + e.data.quality);
   };
 }
 
@@ -2193,6 +2193,87 @@ function gotPhoto(photo) {
   // Got a photo instance.
   console.log('Got a photo');
 }
+      </pre>
+      <h3>
+        Load a Depth Photo from File System
+      </h3>
+      <pre class='example highlight'>
+        // Access an &lt;input&gt; element with type='file' by using getElementById()
+        var loadPhoto = document.getElementById('loadPhoto');
+        var XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
+        loadPhoto.addEventListener('change', function(e) {
+        var file = loadPhoto.files[0];
+        XDMUtils.isXDM(file).then(
+            function(success) {
+              if (success) {
+                XDMUtils.loadXDM(file).then(
+                    function(photo) {
+                      // Got a photo instance
+                      console.log('Got a photo');
+                    },
+                    function(e) { console.log(e.message); });
+              } else {
+                console.log ('This is not a XDM file. Load failed.');
+              }
+            },
+           function(e) { console.log(e.message); });
+        });
+      </pre>
+      <h3>
+        Load a Depth Photo from Network
+      </h3>
+      <pre class='example highlight'>
+        var url= 'http://path/to/depth/photo/test.jpg';
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.responseType = 'blob';
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+            var blob = xhr.response;
+            XDMUtils.isXDM(blob).then(
+                function(success) {
+                  if (success) {
+                    XDMUtils.loadXDM(blob).then(
+                        function(photo) {
+                          // Got a photo instance
+                          console.log('Got a photo');
+                        },
+                        function(e) { console.log(e.message); });
+                  } else {
+                    console.log('This is not a XDM file. Load failed.');
+                  }
+                },
+                function(e) { console.log(e.message); });
+          }
+        };
+        xhr.send();
+      </pre>
+      <h3>
+        Refocus a Depth Photo
+      </h3>
+      <pre class='example highlight'>
+        var refocus;
+        try {
+          refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
+        } catch (e) {
+          console.log(e.message);
+          return;
+        }
+
+        // photo is the instance of DepthPhoto
+        // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
+        refocus.init(photo).then(
+            function() {
+              // [x, y] is the focusing point that you set.
+              // Here, the optional parameter aperture is omitted. The default is 50.0
+              refocus.apply({ x: x, y: y }).then(
+                  function(refocusedPhoto) {
+                    // Got the refocused photo
+                    console.log('Got the refocused photo');
+                  },
+                  function(e) { console.log(e.message); });
+            },
+            function(e) { console.log(e.message); });
       </pre>
     </section>
     <section class='appendix'>
