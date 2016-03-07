@@ -225,6 +225,17 @@ var FaceModule = function(previewStream, object_id) {
   };
   this._addEvent('error', FaceErrorEvent);
 
+  var AlertEvent = function(type, data) {
+    this.type = type;
+
+    if (data) {
+      this.typeLabel = data.typeLabel;
+      this.timeStamp = data.timeStamp;
+      this.faceId = data.faceId;
+    }
+  };
+  this._addEvent('alert', AlertEvent);
+
   this._addEvent('processedsample');
   this._addEvent('ready');
   this._addEvent('ended');

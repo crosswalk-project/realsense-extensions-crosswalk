@@ -11,16 +11,21 @@
 #include "base/logging.h"
 #include "base/strings/sys_string_conversions.h"
 #include "realsense/common/win/common_utils.h"
-#include "third_party/libpxc/include/pxcfaceconfiguration.h"
 
 namespace {
 
 using NativeModeType = PXCFaceConfiguration::TrackingModeType;
 using NativeStrategyType = PXCFaceConfiguration::TrackingStrategyType;
+using NativeAlertType = PXCFaceData::AlertData::AlertType;
+
 using JSModeType = realsense::jsapi::face_module::TrackingModeType;
 using JSStrategyType = realsense::jsapi::face_module::TrackingStrategyType;
+using JSAlertType = realsense::jsapi::face_module::AlertType;
+
 using JSFaceConfigurationData =
     realsense::jsapi::face_module::FaceConfigurationData;
+using JSAlertConfiguration =
+    realsense::jsapi::face_module::AlertConfiguration;
 using JSDetectionConfiguration =
     realsense::jsapi::face_module::DetectionConfiguration;
 using JSLandmarksConfiguration =
@@ -106,6 +111,45 @@ JSStrategyType TrackingStrategyNative2JS(NativeStrategyType strategy) {
   return strategy_js;
 }
 
+JSAlertType AlertTypeNative2JS(NativeAlertType params_type) {
+  JSAlertType type;
+  switch (params_type) {
+    case NativeAlertType::ALERT_NEW_FACE_DETECTED:
+      type = JSAlertType::ALERT_TYPE_NEW_FACE_DETECTED;
+      break;
+    case JSAlertType::ALERT_TYPE_FACE_OUT_OF_FOV:
+      type = JSAlertType::ALERT_TYPE_FACE_OUT_OF_FOV;
+      break;
+    case JSAlertType::ALERT_TYPE_FACE_BACK_TO_FOV:
+      type = JSAlertType::ALERT_TYPE_FACE_BACK_TO_FOV;
+      break;
+    case JSAlertType::ALERT_TYPE_FACE_OCCLUDED:
+      type = JSAlertType::ALERT_TYPE_FACE_OCCLUDED;
+      break;
+    case JSAlertType::ALERT_TYPE_FACE_NO_LONGER_OCCLUDED:
+      type = JSAlertType::ALERT_TYPE_FACE_NO_LONGER_OCCLUDED;
+      break;
+    case JSAlertType::ALERT_TYPE_FACE_LOST:
+      type = JSAlertType::ALERT_TYPE_FACE_LOST;
+      break;
+    default:
+      type = JSAlertType::ALERT_TYPE_NONE;
+      break;
+  }
+
+  return type;
+}
+
+#define SET_ENABLE_DISABLE_ONE_ALERT(_JSFIELD, _NATIVEFIELD) \
+    if (config_data.alert->_JSFIELD) { \
+      DLOG(INFO) << "ApplyChangesConfig: Enable alert " << #_JSFIELD << ": " \
+          << *(config_data.alert->_JSFIELD.get()); \
+      if (*(config_data.alert->_JSFIELD.get())) \
+        config->EnableAlert(NativeAlertType::_NATIVEFIELD); \
+      else  \
+        config->DisableAlert(NativeAlertType::_NATIVEFIELD); \
+    } \
+
 pxcStatus ApplyChangesConfig(
     PXCFaceConfiguration* config, const JSFaceConfigurationData& config_data) {
   if (config_data.mode != JSModeType::TRACKING_MODE_TYPE_NONE) {
@@ -120,6 +164,16 @@ pxcStatus ApplyChangesConfig(
         TrackingStrategyJS2Native(config_data.strategy);
     config->strategy = strategy;
     DLOG(INFO) << "ApplyChangesConfig: TrackingStrategy is " << strategy;
+  }
+
+  if (config_data.alert) {
+    SET_ENABLE_DISABLE_ONE_ALERT(new_face_detected, ALERT_NEW_FACE_DETECTED)
+    SET_ENABLE_DISABLE_ONE_ALERT(face_out_of_fov, ALERT_FACE_OUT_OF_FOV)
+    SET_ENABLE_DISABLE_ONE_ALERT(face_back_to_fov, ALERT_FACE_BACK_TO_FOV)
+    SET_ENABLE_DISABLE_ONE_ALERT(face_occluded, ALERT_FACE_OCCLUDED)
+    SET_ENABLE_DISABLE_ONE_ALERT(face_no_longer_occluded,
+                                 ALERT_FACE_NO_LONGER_OCCLUDED)
+    SET_ENABLE_DISABLE_ONE_ALERT(face_lost, ALERT_FACE_LOST)
   }
 
   if (config_data.detection) {
@@ -168,11 +222,27 @@ pxcStatus ApplyChangesConfig(
   return config->ApplyChanges();
 }
 
+#define GET_ENABLE_DISABLE_ONE_ALERT(_JSFIELD, _NATIVEFIELD) \
+  out_data->alert->_JSFIELD.reset( \
+      new bool( \
+          config->IsAlertEnabled(NativeAlertType::_NATIVEFIELD) \
+              != 0)); \
+
 void RetrieveConfig(
     PXCFaceConfiguration* config, JSFaceConfigurationData* out_data) {
   // Fill JS FaceConfiguration structure out_data.
   out_data->mode = TrackingModeNative2JS(config->GetTrackingMode());
   out_data->strategy = TrackingStrategyNative2JS(config->strategy);
+
+  // AlertConfiguration.
+  out_data->alert.reset(new JSAlertConfiguration());
+  GET_ENABLE_DISABLE_ONE_ALERT(new_face_detected, ALERT_NEW_FACE_DETECTED)
+  GET_ENABLE_DISABLE_ONE_ALERT(face_out_of_fov, ALERT_FACE_OUT_OF_FOV)
+  GET_ENABLE_DISABLE_ONE_ALERT(face_back_to_fov, ALERT_FACE_BACK_TO_FOV)
+  GET_ENABLE_DISABLE_ONE_ALERT(face_occluded, ALERT_FACE_OCCLUDED)
+  GET_ENABLE_DISABLE_ONE_ALERT(face_no_longer_occluded,
+                               ALERT_FACE_NO_LONGER_OCCLUDED)
+  GET_ENABLE_DISABLE_ONE_ALERT(face_lost, ALERT_FACE_LOST)
 
   // DetectionConfiguration.
   out_data->detection.reset(new JSDetectionConfiguration());
@@ -207,6 +277,7 @@ FaceModuleObject::FaceModuleObject()
     : state_(NOT_READY),
       on_processedsample_(false),
       on_error_(false),
+      on_alert_(false),
       face_module_thread_("FaceModulePreviewThread"),
       message_loop_(base::MessageLoopProxy::current()),
       session_(NULL),
@@ -256,6 +327,8 @@ void FaceModuleObject::StartEvent(const std::string& type) {
     on_processedsample_ = true;
   } else if (type == std::string("error")) {
     on_error_ = true;
+  } else if (type == std::string("alert")) {
+    on_alert_ = true;
   }
 }
 
@@ -264,7 +337,21 @@ void FaceModuleObject::StopEvent(const std::string& type) {
     on_processedsample_ = false;
   } else if (type == std::string("error")) {
     on_error_ = false;
+  } else if (type == std::string("alert")) {
+    on_alert_ = false;
   }
+}
+
+void FaceModuleObject::OnFiredAlert(const PXCFaceData::AlertData *alert) {
+  if (!on_alert_) return;
+
+  AlertEventData eventData;
+  eventData.type_label = AlertTypeNative2JS(alert->label);
+  eventData.time_stamp = alert->timeStamp;
+  eventData.face_id = alert->faceId;
+  scoped_ptr<base::ListValue> data(new base::ListValue);
+  data->Append(eventData.ToValue().release());
+  DispatchEvent("alert", data.Pass());
 }
 
 void FaceModuleObject::OnSetCamera(
@@ -541,6 +628,9 @@ void FaceModuleObject::OnStartPipeline(
           ->SetDepthConfidenceThreshold(0);
     }
   }
+
+  face_config_->SubscribeAlert(this);
+  face_config_->ApplyChanges();
 
   // Create face module output.
   face_output_ = sense_manager_->QueryFace()->CreateOutput();
@@ -1176,6 +1266,7 @@ void FaceModuleObject::ReleasePipelineResources() {
     face_output_ = NULL;
   }
   if (face_config_) {
+    face_config_->UnsubscribeAlert(this);
     face_config_->Release();
     face_config_ = NULL;
   }

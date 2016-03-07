@@ -75,6 +75,17 @@
           </div>
           <div style='margin-bottom:5px;'>
             <fieldset>
+              <legend>Alert:</legend>
+              <input type='checkbox' id='enableNewFace'>new_face_detected</input>
+              <input type='checkbox' id='enableFaceOutFov'>face_out_of_fov</input>
+              <input type='checkbox' id='enableFaceBackFov'>face_back_to_fov</input>
+              <input type='checkbox' id='enableFaceOccluded'>face_occluded</input>
+              <input type='checkbox' id='enableFaceNoLongerOccluded'>face_no_longer_occluded</input>
+              <input type='checkbox' id='enableFaceLost'>face_lost</input>
+            </fieldset>
+          </div>
+          <div style='margin-bottom:5px;'>
+            <fieldset>
               <legend>Detection:</legend>
               <div>
                 <input type='checkbox' id='enableDetection'>Enable</input>
@@ -130,7 +141,8 @@
           <input type='number' id='recognition_recog_id' min='0' style='width: 4em;'></input>
         </div>
       </fieldset>
-      <p id='status'>Status</p>
+      <p id='status'>Status: </p>
+      <p id='alert'>Alert: </p>
     </div>
 
     <div style='margin-bottom:5px;' class='center' id='viewer'>

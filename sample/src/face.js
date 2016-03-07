@@ -27,6 +27,13 @@ var strategyFarCloseRadio = document.getElementById('strategy_far_close');
 var strategyLeftRightRadio = document.getElementById('strategy_left_right');
 var strategyRightLeftRadio = document.getElementById('strategy_right_left');
 
+var alertNewFaceCheckbox = document.getElementById('enableNewFace');
+var alertFaceOutFovCheckbox = document.getElementById('enableFaceOutFov');
+var alertFaceBackFovCheckbox = document.getElementById('enableFaceBackFov');
+var alertFaceOccludedCheckbox = document.getElementById('enableFaceOccluded');
+var alertFaceNoLongerOccludedCheckbox = document.getElementById('enableFaceNoLongerOccluded');
+var alertFaceLostCheckbox = document.getElementById('enableFaceLost');
+
 var detectionCheckbox = document.getElementById('enableDetection');
 var detectionMaxFacesNum = document.getElementById('detection_max_faces');
 
@@ -38,6 +45,7 @@ var recognitionCheckbox = document.getElementById('enableRecognition');
 
 var resolutionTextElement = document.getElementById('resolutionText');
 var statusElement = document.getElementById('status');
+var AlertElement = document.getElementById('alert');
 var recognitionDataElement = document.getElementById('recognitionData');
 
 var processedSampleFps = new Stats();
@@ -123,6 +131,15 @@ function getConf() {
   } else if (strategyRightLeftRadio.checked) {
     faceModuleConf.strategy = 'right_left';
   }
+  // Alert
+  faceModuleConf.alert = {};
+  faceModuleConf.alert.newFaceDetected = alertNewFaceCheckbox.checked;
+  faceModuleConf.alert.faceOutOfFov = alertFaceOutFovCheckbox.checked;
+  faceModuleConf.alert.faceBackToFov = alertFaceBackFovCheckbox.checked;
+  faceModuleConf.alert.faceOccluded = alertFaceOccludedCheckbox.checked;
+  faceModuleConf.alert.faceNoLongerOccluded = alertFaceNoLongerOccludedCheckbox.checked;
+  faceModuleConf.alert.faceLost = alertFaceLostCheckbox.checked;
+
   // detection
   faceModuleConf.detection = {};
   faceModuleConf.detection.enable = detectionCheckbox.checked;
@@ -163,6 +180,14 @@ function setConf(faceModuleConf) {
   } else if (faceModuleConf.strategy == 'right_left') {
     strategyRightLeftRadio.checked = true;
   }
+  // Alert
+  alertNewFaceCheckbox.checked = faceModuleConf.alert.newFaceDetected;
+  alertFaceOutFovCheckbox.checked = faceModuleConf.alert.faceOutOfFov;
+  alertFaceBackFovCheckbox.checked = faceModuleConf.alert.faceBackToFov;
+  alertFaceOccludedCheckbox.checked = faceModuleConf.alert.faceOccluded;
+  alertFaceNoLongerOccludedCheckbox.checked = faceModuleConf.alert.faceNoLongerOccluded;
+  alertFaceLostCheckbox.checked = faceModuleConf.alert.faceLost;
+
   // detection
   detectionCheckbox.checked = faceModuleConf.detection.enable;
   detectionMaxFacesNum.value = faceModuleConf.detection.maxFaces;
@@ -403,6 +428,26 @@ startButton.onclick = function(e) {
             processedSampleFps.update();
           }, function(e) {
             statusElement.innerHTML = 'Status: ' + e.message; console.log(e.message);});
+        };
+
+        ft.onalert = function(e) {
+          var text = '';
+          if (e.typeLabel == 'new_face_detected') {
+            text = 'New face No. ' + e.faceId + ' detected at timestamp ' + e.timeStamp;
+          } else if (e.typeLabel == 'face_out_of_fov') {
+            text = 'Face No. ' + e.faceId + ' out of view at timestamp ' + e.timeStamp;
+          } else if (e.typeLabel == 'face_back_to_fov') {
+            text = 'Face No. ' + e.faceId + ' back to view at timestamp ' + e.timeStamp;
+          } else if (e.typeLabel == 'face_occluded') {
+            text = 'Face No. ' + e.faceId +
+                ' is occluded by some objects at timestamp ' + e.timeStamp;
+          } else if (e.typeLabel == 'face_no_longer_occluded') {
+            text = 'Face No. ' + e.faceId + ' is no longer occluded at timestamp ' + e.timeStamp;
+          } else if (e.typeLabel == 'face_lost') {
+            text = 'Face No. ' + e.faceId + ' lost at timestamp ' + e.timeStamp;
+          }
+
+          AlertElement.innerHTML = 'Alert: ' + text;
         };
 
         ft.onerror = function(e) {
