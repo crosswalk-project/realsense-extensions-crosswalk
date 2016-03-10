@@ -220,11 +220,6 @@ ScenePerceptionObject::~ScenePerceptionObject() {
   }
 
   sample_message_.reset();
-  volume_preview_message_.reset();
-  vertices_normals_message_.reset();
-  meshing_data_message_.reset();
-  latest_vertices_.reset();
-  latest_normals_.reset();
 }
 
 void ScenePerceptionObject::ReleaseResources() {
@@ -571,24 +566,6 @@ void ScenePerceptionObject::OnRunPipeline() {
         && scene_perception_->IsReconstructionUpdated()) {
       DispatchEvent("meshupdated");
     }
-
-    // Keep vertices from current camera pose.
-    // PXCPoint3DF32 * internalWidth * internalHeight.
-    // PXCPoint3DF32 = [float x, float y, float z]
-    if (!latest_vertices_) {
-      latest_vertices_.reset(new uint8[3 * sizeof(float) *
-          sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height]);
-    }
-    scene_perception_->GetVertices(
-        reinterpret_cast<PXCPoint3DF32*>(latest_vertices_.get()));
-
-    // Keep normals from current camera pose.
-    if (!latest_normals_) {
-      latest_normals_.reset(new uint8[3 * sizeof(float) *
-          sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height]);
-    }
-    scene_perception_->GetNormals(
-        reinterpret_cast<PXCPoint3DF32*>(latest_normals_.get()));
   }
 
   sense_manager_->ReleaseFrame();
@@ -820,54 +797,51 @@ void ScenePerceptionObject::OnGetVertices(
 
   sensemanager_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&ScenePerceptionObject::DoCopyVertices,
+      base::Bind(&ScenePerceptionObject::DoGetVerticesOrNormals,
                  base::Unretained(this),
+                 true,
                  base::Passed(&info)));
 }
 
-void ScenePerceptionObject::DoCopyVertices(
+void ScenePerceptionObject::DoGetVerticesOrNormals(bool isGettingVertices,
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
-  if (!latest_vertices_) {
+  if (state_ != STARTED) {
     VerticesOrNormals data;
     info->PostResult(GetVertices::Results::Create(
-        data, std::string("No available vertices or in wrong state.")));
+        data, std::string("Wrong state.")));
     return;
   }
-
-  DoCopyVerticesOrNormals(latest_vertices_.Pass());
-
-  scoped_ptr<base::ListValue> result(new base::ListValue());
-  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-        reinterpret_cast<const char*>(vertices_normals_message_.get()),
-        vertices_normals_message_size_));
-  info->PostResult(result.Pass());
-}
-
-void ScenePerceptionObject::DoCopyVerticesOrNormals(scoped_ptr<uint8[]> data) {
-  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   // Format of vertices or normals:
   // Call id(int),
   // width(int), height(int),
   // data buffer (PXCPoint3DF32 buffer)
   //     [float x, float y, float z] * width * height
-  size_t headLength = 3 * sizeof(int);
-  size_t width = sp_intrinsics_.imageSize.width;
-  size_t height = sp_intrinsics_.imageSize.height;
-  size_t dataLength = 3 * sizeof(float) * width * height;
-  if (!vertices_normals_message_) {
-    vertices_normals_message_size_ = headLength + dataLength;
-    vertices_normals_message_.reset(
-        new uint8[vertices_normals_message_size_]);
-  }
-  int* int_array = reinterpret_cast<int*>(vertices_normals_message_.get());
+  size_t head_length = 3 * sizeof(int);
+  size_t data_length = 3 * sizeof(float) * sp_intrinsics_.imageSize.width
+      * sp_intrinsics_.imageSize.height;
+  size_t message_size = head_length + data_length;
+  scoped_ptr<uint8[]> message(new uint8[message_size]);
+  int* int_array = reinterpret_cast<int*>(message.get());
   int_array[1] = sp_intrinsics_.imageSize.width;
   int_array[2] = sp_intrinsics_.imageSize.height;
   char* data_offset =
-      reinterpret_cast<char*>(vertices_normals_message_.get()) + headLength;
-  memcpy(data_offset, reinterpret_cast<char*>(data.get()), dataLength);
+      reinterpret_cast<char*>(message.get()) + head_length;
+  if (isGettingVertices) {
+    scene_perception_->GetVertices(
+        reinterpret_cast<PXCPoint3DF32*>(data_offset));
+  } else {
+    scene_perception_->GetNormals(
+        reinterpret_cast<PXCPoint3DF32*>(data_offset));
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(message.get()),
+        message_size));
+  info->PostResult(result.Pass());
 }
 
 void ScenePerceptionObject::OnGetNormals(
@@ -881,29 +855,10 @@ void ScenePerceptionObject::OnGetNormals(
 
   sensemanager_thread_.message_loop()->PostTask(
       FROM_HERE,
-      base::Bind(&ScenePerceptionObject::DoCopyNormals,
+      base::Bind(&ScenePerceptionObject::DoGetVerticesOrNormals,
                  base::Unretained(this),
+                 false,
                  base::Passed(&info)));
-}
-
-void ScenePerceptionObject::DoCopyNormals(
-    scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
-
-  if (!latest_normals_) {
-    VerticesOrNormals data;
-    info->PostResult(GetVertices::Results::Create(
-        data, std::string("No available vertices or in wrong state.")));
-    return;
-  }
-
-  DoCopyVerticesOrNormals(latest_normals_.Pass());
-
-  scoped_ptr<base::ListValue> result(new base::ListValue());
-  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-        reinterpret_cast<const char*>(vertices_normals_message_.get()),
-        vertices_normals_message_size_));
-  info->PostResult(result.Pass());
 }
 
 void ScenePerceptionObject::OnGetMeshData(
@@ -982,16 +937,16 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
   const int faces_byte_length = num_of_faces * 3 * sizeof(int);
   const int colors_byte_length = num_of_vertices * 3 * sizeof(unsigned char);
 
-  meshing_data_message_size_ =
+  size_t meshing_data_message_size =
       header_byte_length
       + num_of_blockmeshes * blockmesh_byte_length
       + vertices_byte_length
       + faces_byte_length
       + colors_byte_length;
 
-  meshing_data_message_.reset(
-      new uint8[meshing_data_message_size_]);
-  int* int_array = reinterpret_cast<int*>(meshing_data_message_.get());
+  scoped_ptr<uint8[]> meshing_data_message(
+      new uint8[meshing_data_message_size]);
+  int* int_array = reinterpret_cast<int*>(meshing_data_message.get());
   int_array[1] = num_of_blockmeshes;
   int_array[2] = num_of_vertices;
   int_array[3] = num_of_faces;
@@ -999,7 +954,7 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
   PXCBlockMeshingData::PXCBlockMesh *block_mesh_data =
       block_meshing_data_->QueryBlockMeshes();
   char* block_meshes_offset =
-      reinterpret_cast<char*>(meshing_data_message_.get()) +
+      reinterpret_cast<char*>(meshing_data_message.get()) +
       header_byte_length;
   int* block_meshes_array = reinterpret_cast<int*>(block_meshes_offset);
   for (int i = 0; i < num_of_blockmeshes; ++i, ++block_mesh_data) {
@@ -1027,8 +982,8 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
 
   scoped_ptr<base::ListValue> result(new base::ListValue());
   result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-        reinterpret_cast<const char*>(meshing_data_message_.get()),
-        meshing_data_message_size_));
+        reinterpret_cast<const char*>(meshing_data_message.get()),
+        meshing_data_message_size));
   info->PostResult(result.Pass());
 
   // Notice the scenemanager thread that mesh data updating done.
@@ -1399,28 +1354,27 @@ void ScenePerceptionObject::DoQueryVolumePreview(
   // RGBA_data (int8 buffer)
   PXCImage::ImageInfo imageInfo = vPreview->QueryInfo();
   int dataOffset = 3 * sizeof(int);
-  // Allocate the buffer if needed.
-  if (!volume_preview_message_) {
-    size_t internalSize =
-      sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height;
-    volume_preview_message_size_ = dataOffset + internalSize * 4;
-    volume_preview_message_.reset(
-        new uint8[volume_preview_message_size_]);
-  }
-  int* int_array = reinterpret_cast<int*>(volume_preview_message_.get());
+
+  size_t internalSize =
+    sp_intrinsics_.imageSize.width * sp_intrinsics_.imageSize.height;
+  size_t volume_preview_message_size = dataOffset + internalSize * 4;
+  scoped_ptr<uint8[]> volume_preview_message(
+      new uint8[volume_preview_message_size]);
+
+  int* int_array = reinterpret_cast<int*>(volume_preview_message.get());
   int_array[1] = imageInfo.width;
   int_array[2] = imageInfo.height;
 
   copyImageRGB32(vPreview,
          reinterpret_cast<uint8_t*>(
-         volume_preview_message_.get() + dataOffset));
+         volume_preview_message.get() + dataOffset));
 
   // Need to release to image.
   vPreview->Release();
   scoped_ptr<base::ListValue> result(new base::ListValue());
   result->Append(base::BinaryValue::CreateWithCopiedBuffer(
-        reinterpret_cast<const char*>(volume_preview_message_.get()),
-        volume_preview_message_size_));
+        reinterpret_cast<const char*>(volume_preview_message.get()),
+        volume_preview_message_size));
   info->PostResult(result.Pass());
 }
 
