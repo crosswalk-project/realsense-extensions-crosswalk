@@ -13,14 +13,7 @@ var volumePreviewRadio = document.getElementById('volumePreviewRadio');
 var meshingRadio = document.getElementById('meshingRadio');
 var volumePreviewRender = document.getElementById('volumePreviewRender');
 var meshingRender = document.getElementById('meshingRender');
-
-var blockMeshMap = {};
-var totalMesh = null;
-var totalMaterials;
-var totalGeom;
-
-var scene, renderer, stats, controls, camera;
-var z_axis, y_axis, x_axis;
+var meshingCanvas = document.getElementById('meshingCanvas');
 
 // color_size, depth_size, frameRate can be specified.
 // But the size of volume preview is fixed to be {320, 240}.
@@ -45,6 +38,10 @@ var volumePreview_image_data = volumePreview_context.createImageData(
 var getting_volumePreview_image = false;
 
 var sp;
+
+var gl, cameraMatrix, modelViewMatrix, volumePreviewMatrix, translationMatrix;
+var currentMeshes, meshToDraw;
+var program;
 
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
@@ -153,36 +150,38 @@ function main() {
     //Update the left render view.
     updateSampleView();
 
+    updateCameraPose(e.data.cameraPose, e.data.accuracy);
+
     //Update right render view.
     if (volumePreviewRender.style.display != 'none') {
       if (getting_volumePreview_image)
         return;
       getting_volumePreview_image = true;
-      sp.queryVolumePreview(e.data.cameraPose).then(function(volumePreview) {
+      sp.queryVolumePreview(Array.from(volumePreviewMatrix.elements)).then(function(volumePreview) {
         volumePreview_image_data.data.set(volumePreview.data);
         volumePreview_context.putImageData(volumePreview_image_data, 0, 0);
         getting_volumePreview_image = false;
       }, function(e) {console.log(e);});
-    } else {
-      updateCameraPose(e.data.cameraPose, e.data.accuracy);
     }
   };
 
+  var onmeshupdatedTime = 0;
   sp.onmeshupdated = function(e) {
     thisObj = this;
+    onmeshupdatedTime = performance.now();
     sp.getMeshData().then(function(meshes) {
+      var getMeshDataTime = performance.now() - onmeshupdatedTime;
+      console.log('getMeshData succeeds ' + getMeshDataTime.toFixed(2) + 'ms');
       var func = updateMeshes.bind(thisObj, meshes);
       // do the updateMeshes asynchronously
       setTimeout(func, 0);
     }, function(e) {console.log(e);});
   };
 
-  var meshesCreated = false;
-
   initButton.onclick = function(e) {
     sampleFlowController.reset();
     var initConfig = {
-      useOpenCVCoordinateSystem: true,
+      useOpenCVCoordinateSystem: false,
       colorCaptureSize: color_size,
       depthCaptureSize: depth_size,
       captureFramerate: unifiedFrameRate
@@ -195,7 +194,7 @@ function main() {
 
   resetButton.onclick = function(e) {
     sp.reset().then(function() {console.log('reset succeeds');}, function(e) {console.log(e);});
-    removeAllMeshes();
+    resetMeshes();
   };
 
   destroyButton.onclick = function(e) {
@@ -221,7 +220,6 @@ function main() {
       startButton.disabled = false;
       stopButton.disabled = true;
       accuracyElement.innerHTML = 'Accuracy: ';
-      showCamera(false);
     }, function(e) {console.log(e);});
   };
 
@@ -271,10 +269,7 @@ function main() {
     }
   }, false);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setClearColor(0x000000, 1);
-  renderer.setSize(640, 480);
-  meshingRender.appendChild(renderer.domElement);
+  initWebGL();
 
   stats = new Stats();
   stats.domElement.style.position = 'absolute';
@@ -282,211 +277,260 @@ function main() {
   stats.domElement.style.right = '0px';
   meshingRender.appendChild(stats.domElement);
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
-  camera.position.set(0, 0, 3);
-  camera.lookAt(new THREE.Vector3(0, 0, 0));
-  scene = new THREE.Scene();
-
-  controls = new THREE.TrackballControls(camera);
-
-  var x_material = new THREE.LineBasicMaterial({
-    color: new THREE.Color(1, 0, 0), linewidth: 4
-  });
-
-  var y_material = new THREE.LineBasicMaterial({
-    color: new THREE.Color(0, 1, 0), linewidth: 4
-  });
-
-  var z_material = new THREE.LineBasicMaterial({
-    color: new THREE.Color(0, 0, 1), linewidth: 4
-  });
-
-  var x_geometry = new THREE.Geometry();
-  x_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-  x_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-
-  var y_geometry = new THREE.Geometry();
-  y_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-  y_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-
-  var z_geometry = new THREE.Geometry();
-  z_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-  z_geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-
-  z_axis = new THREE.Line(z_geometry, z_material);
-  y_axis = new THREE.Line(y_geometry, y_material);
-  x_axis = new THREE.Line(x_geometry, x_material);
-
-  scene.add(z_axis);
-  scene.add(y_axis);
-  scene.add(x_axis);
-
   animate();
 }
 
-function removeAllMeshes() {
-  for (var id in blockMeshMap) {
-    scene.remove(blockMeshMap[id]);
-    delete blockMeshMap[id];
+function updateCameraPose(cameraPose, accuracy) {
+  if (accuracy == 'low' || accuracy == 'failed') {
+    return;
   }
-  if (totalMesh)
-    scene.remove(totalMesh);
-  delete totalMesh;
-  totalMesh = null;
+
+  updateVolumePreviewMatrix(cameraPose);
+  updateMeshingModelViewMatrix(cameraPose);
 }
 
-var timeout = null;
+function resetMeshes() {
+  currentMeshes = {};
+  meshToDraw = {numberOfVertices: 0, numberOfFaces: 0};
+}
+
+function updateVolumePreviewMatrix(cameraPose) {
+  volumePreviewMatrix.set(
+      cameraPose[0], cameraPose[1], cameraPose[2], cameraPose[3],
+      cameraPose[4], cameraPose[5], cameraPose[6], cameraPose[7],
+      cameraPose[8], cameraPose[9], cameraPose[10], cameraPose[11],
+      0.0, 0.0, 0.0, 1.0);
+
+  volumePreviewMatrix.multiply(translationMatrix);
+  volumePreviewMatrix.transpose();
+}
+
+function updateMeshingModelViewMatrix(cameraPose) {
+  modelViewMatrix.identity();
+
+  var rotZMatrix = new THREE.Matrix4();
+  rotZMatrix.makeRotationZ(180 * Math.PI / 180);
+  modelViewMatrix.multiply(rotZMatrix);
+
+  modelViewMatrix.multiply(translationMatrix);
+
+  cameraMatrix.set(
+      -cameraPose[0], cameraPose[1], -cameraPose[2], cameraPose[3],
+      -cameraPose[4], cameraPose[5], -cameraPose[6], cameraPose[7],
+      -cameraPose[8], cameraPose[9], -cameraPose[10], -cameraPose[11],
+      0, 0, 0, 1.0);
+
+  cameraMatrix.transpose();
+
+  modelViewMatrix.multiply(cameraMatrix);
+}
+
+function setProjectionMatrix(cameraIntrinsic) {
+  // TODO: compute from GetInternalCameraIntrinsics
+  var fov = 74;
+  var aspect = 320 / 240;
+  projectionMatrix.makePerspective(fov, aspect, 0.001, 1000);
+}
+
+function initWebGL() {
+  gl = meshingCanvas.getContext('webgl');
+
+  var ext = gl.getExtension('OES_element_index_uint');
+  if (ext === null) {
+    throw 'OES_element_index_uint is not supported';
+  }
+
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  var vstr =
+      'attribute vec3 position;' +
+      'attribute vec3 color;' +
+      'uniform mat4 modelViewMatrix ;' +
+      'uniform mat4 projectionMatrix ;' +
+      'varying vec3 vColor;' +
+      'void main() {' +
+      '  gl_Position = projectionMatrix  * modelViewMatrix  * vec4(position, 1.0);' +
+      '  vColor = color;' +
+      '}';
+  var fstr =
+      'precision mediump float;' +
+      'varying vec3 vColor;' +
+      'void main() { gl_FragColor = vec4(vColor, 1.0); }';
+
+  program = gl.createProgram();
+
+  var vshader = gl.createShader(gl.VERTEX_SHADER);
+  gl.shaderSource(vshader, vstr);
+  gl.compileShader(vshader);
+
+  var fshader = gl.createShader(gl.FRAGMENT_SHADER);
+  gl.shaderSource(fshader, fstr);
+  gl.compileShader(fshader);
+
+  gl.attachShader(program, vshader);
+  gl.attachShader(program, fshader);
+
+  gl.linkProgram(program);
+
+  gl.enable(gl.DEPTH_TEST);
+
+  // Matrices for volumePreview
+  volumePreviewMatrix = new THREE.Matrix4();
+
+  // Matrices for meshingRenderer
+  cameraMatrix = new THREE.Matrix4();
+  modelViewMatrix = new THREE.Matrix4();
+  projectionMatrix = new THREE.Matrix4();
+
+  // For both
+  translationMatrix = new THREE.Matrix4();
+  translationMatrix.makeTranslation(0, 0, -2);
+
+  setProjectionMatrix();
+
+  resetMeshes();
+
+  indexBuffer = gl.createBuffer();
+  vertexPosBuffer = gl.createBuffer();
+  vertexColorBuffer = gl.createBuffer();
+
+  program.vertexPosAttrib = gl.getAttribLocation(program, 'position');
+  gl.enableVertexAttribArray(program.vertexPosAttrib);
+
+  program.vertexColorAttribute = gl.getAttribLocation(program, 'color');
+  gl.enableVertexAttribArray(program.vertexColorAttribute);
+
+  program.mvMatrixUniform = gl.getUniformLocation(program, 'modelViewMatrix');
+  program.pMatrixUniform = gl.getUniformLocation(program, 'projectionMatrix');
+
+}
+
+var indexBuffer, vertexPosBuffer, vertexColorBuffer;
+
+function upateBuffers() {
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, meshToDraw.faces, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, meshToDraw.vertices, gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, meshToDraw.colors, gl.STATIC_DRAW);
+}
+
+function drawScene() {
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  if (meshToDraw.numberOfFaces == 0) {
+    return;
+  }
+
+  gl.useProgram(program);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+  gl.vertexAttribPointer(program.vertexPosAttrib, 3, gl.FLOAT, false, 16, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+  gl.vertexAttribPointer(program.vertexColorAttribute, 3, gl.UNSIGNED_BYTE, true, 0, 0);
+
+  gl.uniformMatrix4fv(program.mvMatrixUniform, false, modelViewMatrix.elements);
+  gl.uniformMatrix4fv(program.pMatrixUniform, false, projectionMatrix.elements);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.drawElements(gl.TRIANGLES, meshToDraw.numberOfFaces * 3, gl.UNSIGNED_INT, 0);
+}
 
 function mergeMeshes() {
-  if (blockMeshMap.length == 0)
-    return;
   console.time('mergeMeshes');
-  totalMaterials = [];
-  totalGeom = new THREE.Geometry();
-  for (var id in blockMeshMap) {
-    var m = blockMeshMap[id];
-    m.updateMatrix();
-    totalGeom.merge(m.geometry, m.matrix);
-    totalMaterials.push(m.material);
+  meshToDraw.numberOfVertices = 0;
+  meshToDraw.numberOfFaces = 0;
+  var mergedMeshes = 0;
+  for (var id in currentMeshes) {
+    var mesh = currentMeshes[id];
+    meshToDraw.numberOfVertices += mesh.numberOfVertices;
+    meshToDraw.numberOfFaces += mesh.numberOfFaces;
+    mergedMeshes++;
   }
-  if (totalMesh)
-    scene.remove(totalMesh);
-  totalMesh = new THREE.Mesh(totalGeom, new THREE.MeshFaceMaterial(totalMaterials));
-  scene.add(totalMesh);
-  timeout = null;
+  console.log('mergedMeshes: ' + mergedMeshes);
+  console.log('meshToDraw.numberOfVertices: ' + meshToDraw.numberOfVertices);
+  console.log('meshToDraw.numberOfFaces: ' + meshToDraw.numberOfFaces);
+
+  meshToDraw.vertices = new Float32Array(meshToDraw.numberOfVertices * 4);
+  meshToDraw.faces = new Uint32Array(meshToDraw.numberOfFaces * 3);
+  meshToDraw.colors = new Uint8Array(meshToDraw.numberOfVertices * 3);
+
+  var vertexOffset = 0;
+  var faceOffset = 0;
+  for (var id in currentMeshes) {
+    var mesh = currentMeshes[id];
+    meshToDraw.vertices.set(mesh.vertices, vertexOffset * 4);
+    meshToDraw.colors.set(mesh.colors, vertexOffset * 3);
+    for (var i = 0; i < mesh.numberOfFaces * 3; faceOffset++, i++) {
+      meshToDraw.faces[faceOffset] = mesh.faces[i] + vertexOffset;
+    }
+    vertexOffset += mesh.numberOfVertices;
+  }
+
   console.timeEnd('mergeMeshes');
-}
-
-function render() {
-  controls.update();
-  renderer.render(scene, camera);
-}
-
-function poseMultiplyVect(out, pose, vect) {
-  out.x = pose[0] * vect.x + pose[1] * vect.y + pose[2] * vect.z + pose[3] * vect.w;
-  out.y = pose[4] * vect.x + pose[5] * vect.y + pose[6] * vect.z + pose[7] * vect.w;
-  out.z = pose[8] * vect.x + pose[9] * vect.y + pose[10] * vect.z + pose[11] * vect.w;
-  out.w = vect.w;
-}
-
-function showCamera(show) {
-  x_axis.material.visible = show;
-  y_axis.material.visible = show;
-  z_axis.material.visible = show;
-}
-
-function updateCameraPose(cameraPoseArray, accuracy) {
-  if (accuracy == 'low' || accuracy == 'failed') {
-    showCamera(false);
-    return;
-  } else {
-    showCamera(true);
-  }
-  cameraPoseArray[7] = -cameraPoseArray[7];
-  var cameraCenter = new THREE.Vector3(cameraPoseArray[3], cameraPoseArray[7], cameraPoseArray[11]);
-  var cameraXAxis = new THREE.Vector4(0, 0, 0, 0);
-  var xVect = new THREE.Vector4(0.16, 0.0, 0.0, 1.0);
-  poseMultiplyVect(cameraXAxis, cameraPoseArray, xVect);
-  var cameraYAxis = new THREE.Vector4(0, 0, 0, 0);
-  var yVect = new THREE.Vector4(0.0, 0.16, 0.0, 1.0);
-  poseMultiplyVect(cameraYAxis, cameraPoseArray, yVect);
-  var cameraZAxis = new THREE.Vector4(0, 0, 0, 0);
-  var zVect = new THREE.Vector4(0.0, 0.0, 0.16, 1.0);
-  poseMultiplyVect(cameraZAxis, cameraPoseArray, zVect);
-
-  z_axis.geometry.dynamic = true;
-  z_axis.geometry.vertices[0] = cameraCenter;
-  z_axis.geometry.vertices[1] = new THREE.Vector3(cameraZAxis.x, cameraZAxis.y, cameraZAxis.z);
-  z_axis.geometry.verticesNeedUpdate = true;
-
-  y_axis.geometry.dynamic = true;
-  y_axis.geometry.vertices[0] = cameraCenter;
-  y_axis.geometry.vertices[1] = new THREE.Vector3(cameraYAxis.x, cameraYAxis.y, cameraYAxis.z);
-  y_axis.geometry.verticesNeedUpdate = true;
-
-  x_axis.geometry.dynamic = true;
-  x_axis.geometry.vertices[0] = cameraCenter;
-  x_axis.geometry.vertices[1] = new THREE.Vector3(cameraXAxis.x, cameraXAxis.y, cameraXAxis.z);
-  x_axis.geometry.verticesNeedUpdate = true;
 }
 
 function updateMeshes(meshes) {
   console.time('updateMeshes');
+  console.log('numberOfVertices: ' + meshes.numberOfVertices);
+  console.log('numberOfFaces: ' + meshes.numberOfFaces);
+
   var vertices = meshes.vertices;
   var colors = meshes.colors;
   var faces = meshes.faces;
   var blockMeshes = meshes.blockMeshes;
+
+  var updated = 0;
   for (var j = 0; j < blockMeshes.length; ++j) {
     var blockMesh = blockMeshes[j];
     if (blockMesh.numVertices == 0 || blockMesh.numFaces == 0)
       continue;
-    if (blockMesh.meshId in blockMeshMap) {
-      delete blockMeshMap[blockMesh.meshId];
-    }
-    var geometry = new THREE.Geometry();
-    var elements = blockMesh.numVertices;
-    var vertexStartIndex = blockMesh.vertexStartIndex;
-    for (var i = 0; i < elements; i++) {
-      var index = i * 4;
-      geometry.vertices.push(
-          new THREE.Vector3(vertices[vertexStartIndex + index],
-                            vertices[vertexStartIndex + index + 1],
-                            vertices[vertexStartIndex + index + 2]));
-    }
-    var elements = blockMesh.numFaces;
-    var faceStartIndex = blockMesh.faceStartIndex;
-    for (var i = 0; i < elements; i++) {
-      var index = i * 3;
-      var vertexOffset = vertexStartIndex / 4;
-      geometry.faces.push(
-          new THREE.Face3(faces[faceStartIndex + index] - vertexOffset,
-                          faces[faceStartIndex + index + 1] - vertexOffset,
-                          faces[faceStartIndex + index + 2] - vertexOffset));
-      var face = faces[faceStartIndex + index] * 3;
-      geometry.faces[i].vertexColors[0] =
-          new THREE.Color(
-              'rgb(' + colors[face] + ',' + colors[face + 1] + ',' + colors[face + 2] + ')');
-      var face = faces[faceStartIndex + index + 1] * 3;
-      geometry.faces[i].vertexColors[1] =
-          new THREE.Color(
-              'rgb(' + colors[face] + ',' + colors[face + 1] + ',' + colors[face + 2] + ')');
-      var face = faces[faceStartIndex + index + 2] * 3;
-      geometry.faces[i].vertexColors[2] =
-          new THREE.Color(
-              'rgb(' + colors[face] + ',' + colors[face + 1] + ',' + colors[face + 2] + ')');
+    if (blockMesh.meshId in currentMeshes) {
+      delete currentMeshes[blockMesh.meshId];
+      updated++;
     }
 
-    var material = new THREE.MeshBasicMaterial({
-      vertexColors: THREE.VertexColors, side: THREE.BackSide});
-    geometry.computeFaceNormals();
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.x = 0;
-    mesh.position.y = 0;
-    mesh.position.z = 0;
-    mesh.rotation.z += 180 * (Math.PI / 180);
-    mesh.rotation.y += 180 * (Math.PI / 180);
-    var wire_material = new THREE.MeshLambertMaterial({
-      color: 0xffffff, visible: true, wireframe: true, transparent: true, opacity: 0.15
-    });
-    var wire_mesh = new THREE.Mesh(geometry, wire_material);
-    wire_mesh.position.x = 0;
-    wire_mesh.position.y = 0;
-    wire_mesh.position.z = 0;
-    wire_mesh.rotation.z += 180 * (Math.PI / 180);
-    wire_mesh.rotation.y += 180 * (Math.PI / 180);
+    const floatsPerVertex = 4;
+    const uint16PerFace = 3;
+    var verticesBuffer = vertices.slice(
+        blockMesh.vertexStartIndex,
+        blockMesh.vertexStartIndex + blockMesh.numVertices * floatsPerVertex);
+    var facesBuffer = faces.slice(
+        blockMesh.faceStartIndex,
+        blockMesh.faceStartIndex + blockMesh.numFaces * uint16PerFace);
+    var colorsBuffer = colors.slice(
+        3 * blockMesh.vertexStartIndex / 4,
+        3 * blockMesh.vertexStartIndex / 4 + blockMesh.numVertices * 3);
 
-    blockMeshMap[blockMesh.meshId] = mesh;
+    currentMeshes[blockMesh.meshId] = {
+      numberOfVertices: blockMesh.numVertices,
+      vertices: verticesBuffer,
+      numberOfFaces: blockMesh.numFaces,
+      faces: facesBuffer,
+      colors: colorsBuffer
+    };
   }
 
-  if (timeout === null) {
-    timeout = setTimeout(mergeMeshes, 250);
-  }
+  console.log('blockMeshes.length: ' + blockMeshes.length);
+  console.log('updated blockMeshes: ' + updated);
+
   console.timeEnd('updateMeshes');
+
+  mergeMeshes();
+
+  upateBuffers();
 }
 
 function animate() {
   requestAnimationFrame(animate);
 
-  render();
+  drawScene();
+
   stats.update();
 }

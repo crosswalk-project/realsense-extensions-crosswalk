@@ -82,10 +82,10 @@ var ScenePerception = function(objectId) {
                          numberOfVertices * 4);
     var facesOffset = verticesOffset + numberOfVertices * 4 * BYTES_PER_FLOAT;
     var faces =
-        new Int32Array(data,
-                       facesOffset,
-                       numberOfFaces * 3);
-    var colorsOffset = facesOffset + numberOfFaces * 3 * BYTES_PER_FLOAT;
+        new Uint32Array(data,
+                        facesOffset,
+                        numberOfFaces * 3);
+    var colorsOffset = facesOffset + numberOfFaces * 3 * BYTES_PER_INT;
     var colors =
         new Uint8Array(data,
                        colorsOffset,

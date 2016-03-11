@@ -934,7 +934,7 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
   const int blockmesh_int_length = 5;
   const int blockmesh_byte_length = blockmesh_int_length * sizeof(int);
   const int vertices_byte_length = num_of_vertices * 4 * sizeof(float);
-  const int faces_byte_length = num_of_faces * 3 * sizeof(int);
+  const int faces_byte_length = num_of_faces * 3 * sizeof(unsigned int);
   const int colors_byte_length = num_of_vertices * 3 * sizeof(unsigned char);
 
   size_t meshing_data_message_size =
@@ -967,6 +967,14 @@ void ScenePerceptionObject::DoMeshingUpdateOnMeshingThread(
         block_mesh_data->faceStartIndex;
     block_meshes_array[i * blockmesh_int_length + 4] =
         block_mesh_data->numFaces;
+
+    if ((block_mesh_data->numVertices > 0) && (block_mesh_data->numFaces > 0)) {
+      // Set face indices relative to vertex buffer
+      for (int j = 0; j < block_mesh_data->numFaces * 3; j++) {
+        faces[block_mesh_data->faceStartIndex + j] -=
+            block_mesh_data->vertexStartIndex / 4;
+      }
+    }
   }
 
   char* vertices_offset = block_meshes_offset
