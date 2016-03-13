@@ -179,6 +179,33 @@
             </dl>
           </dd>
           <dt>
+            Promise&lt;VolumePreviewData&gt; getVolumePreview(sequence&lt;float&gt; cameraPose)
+          </dt>
+          <dd>
+            Returns the volume datails as a 2D projection image by reconstructing the volume with ray-casting, surface volume normals and surface volume faces for the specified camera pose.
+            <br/>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the VolumePreviewData instance if there are no errors.
+              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+            </p>
+            <dl class='parameters'>
+              <dt>optional sequence&lt;float&gt; cameraPose</dt>
+              <dd>
+              This is a sequence of 12 float that stores the camera pose, which user wishes to set in row-major order. Camera pose is specified in a 3 by 4 matrix:<br/>
+              <code>
+              [R | T] = [Rotation Matrix | Translation Vector]<br/>
+              where R = [ r11 r12 r13  ]<br/>
+                        [ r21 r22 r23  ]<br/>
+                        [ r31 r32 r33  ]<br/>
+                        T = [ tx ty tz  ]<br/>
+              </code>
+              Camera pose sequense layout should be: <code>[r11 r12 r13 tx r21 r22 r23 ty r31 r32 r33 tz]</code><br/>
+              Translation vector is in meters.
+              </dd>
+            </dl>
+          </dd>
+          <dt>
             Promise&lt;VoxelResolution&gt; getVoxelResolution()
           </dt>
           <dd>
@@ -900,6 +927,46 @@
           <dd>
             The array of color channels for voxels which contains the three RGB channels for each voxel.
             The data type of this array is Byte and the length is 3 * <code>numberOfSurfaceVoxels</code>.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>VolumePreviewData</a></code>
+        </h2>
+        <dd>
+          Represents the volume preview data, including volume preview image dimensions, volume prview image data, vertices and normals.
+        </dd>
+        <dl title='dictionary VolumePreviewData' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+            Width of the volume preview data.
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+            Height of the volume preview data.
+          </dd>
+          <dt>
+            Uint32Array imageData
+          </dt>
+          <dd>
+            Raw data of the projected volume image. Each pixel is a 4 byte RGBA data (a, r, g, b).
+          </dd>
+          <dt>
+            Float32Array vertices
+          </dt>
+          <dd>
+            Raw data of a sequence of vertices. Each vertex consists of 3 float values (x, y, z).
+          </dd>
+          <dt>
+            Float32Array normals
+          </dt>
+          <dd>
+            Raw data of a sequence of normals. Each normal consists of 3 float values (x, y, z).
           </dd>
         </dl>
       </section>

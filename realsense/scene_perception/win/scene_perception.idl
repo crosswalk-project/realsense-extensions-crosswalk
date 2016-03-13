@@ -131,12 +131,21 @@ namespace scene_perception {
     boolean dataPending;
   };
 
+  dictionary VolumePreviewData {
+    long width;
+    long height;
+    long[] imageData;
+    double[] vertices;
+    double[] normals;
+  };
+
   dictionary ErrorEvent {
     DOMString status;
   };
 
   callback Promise = void (DOMString success, DOMString error);
   callback SamplePromise = void (Sample sample, DOMString error);
+  callback VolumePreviewPromise = void (VolumePreviewData data, DOMString error);
   callback ImagePromise = void (Image image, DOMString error);
   callback VerticesPromise = void (VerticesOrNormals vertices, DOMString error);
   callback NormalsPromise = void (VerticesOrNormals normals, DOMString error);
@@ -181,6 +190,7 @@ namespace scene_perception {
     static void getSample(SamplePromise promise);
     static void getVertices(VerticesPromise vertices);
     static void getNormals(NormalsPromise normals);
+    static void getVolumePreview(double[] pose, VolumePreviewPromise promise);
     static void queryVolumePreview(double[] pose, ImagePromise promise);
     static void isReconstructionEnabled(BoolPromise promise);
     static void getVoxelResolution(VoxelResolutionPromise promise);

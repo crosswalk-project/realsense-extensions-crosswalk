@@ -173,6 +173,9 @@ ScenePerceptionObject::ScenePerceptionObject() :
   handler_.Register("getSample",
                     base::Bind(&ScenePerceptionObject::OnGetSample,
                                base::Unretained(this)));
+  handler_.Register("getVolumePreview",
+                    base::Bind(&ScenePerceptionObject::OnGetVolumePreview,
+                               base::Unretained(this)));
   handler_.Register("queryVolumePreview",
                     base::Bind(&ScenePerceptionObject::OnQueryVolumePreview,
                                base::Unretained(this)));
@@ -1329,6 +1332,74 @@ void ScenePerceptionObject::DoCopySample(
   info->PostResult(result.Pass());
 }
 
+void ScenePerceptionObject::OnGetVolumePreview(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
+    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                                       "Wrong state to get volume preview."));
+    return;  // Wrong state.
+  }
+  sensemanager_thread_.message_loop()->PostTask(
+      FROM_HERE,
+      base::Bind(&ScenePerceptionObject::DoGetVolumePreview,
+                 base::Unretained(this),
+                 base::Passed(&info)));
+}
+
+void ScenePerceptionObject::DoGetVolumePreview(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
+  scoped_ptr<GetVolumePreview::Params> params(
+      GetVolumePreview::Params::Create(*info->arguments()));
+  if (!params) {
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                          "Malformed parameters for getVolumePreview"));
+    return;
+  }
+  pxcF32 pose[12];
+  for (int i = 0; i < 12; i++) {
+    pose[i] = static_cast<float>((params->pose)[i]);
+  }
+
+  int image_dimension = sp_intrinsics_.imageSize.width
+      * sp_intrinsics_.imageSize.height;
+  int image_data_size = 4 * image_dimension * sizeof(pxcBYTE);
+  int vertices_or_normals_data_size = 3 * image_dimension * sizeof(pxcF32);
+
+  int data_offset = 3 * sizeof(int);
+  size_t message_size = data_offset + image_data_size
+      + 2 * vertices_or_normals_data_size;
+  scoped_ptr<uint8[]> message(new uint8[message_size]);
+
+  int* int_array = reinterpret_cast<int*>(message.get());
+  int_array[1] = sp_intrinsics_.imageSize.width;
+  int_array[2] = sp_intrinsics_.imageSize.height;
+
+  pxcBYTE* image_data_position =
+      reinterpret_cast<pxcBYTE*>(message.get()) + data_offset;
+  data_offset += image_data_size;
+  pxcF32* vertices_position = reinterpret_cast<pxcF32*>(message.get())
+      + data_offset;
+  data_offset += vertices_or_normals_data_size;
+  pxcF32* normals_position = reinterpret_cast<pxcF32*>(message.get())
+      + data_offset;
+
+
+  if (scene_perception_->GetVolumePreview(pose, image_data_position,
+                                          vertices_position, normals_position)
+    != PXC_STATUS_NO_ERROR) {
+    info->PostResult(
+        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
+                          "Failed to execute getVolumePreview"));
+  }
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::BinaryValue::CreateWithCopiedBuffer(
+        reinterpret_cast<const char*>(message.get()), message_size));
+  info->PostResult(result.Pass());
+}
+
 void ScenePerceptionObject::DoQueryVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
@@ -1383,7 +1454,7 @@ void ScenePerceptionObject::OnQueryVolumePreview(
   Image image;
   if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
     info->PostResult(QueryVolumePreview::Results::Create(
-        image, std::string("Wrong state to get volume preview.")));
+        image, std::string("Wrong state to query volume preview.")));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
