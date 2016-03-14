@@ -1098,6 +1098,155 @@
         </dl>
       </section>
     </section>
+    <section class='informative'>
+      <h2>
+        Examples
+      </h2>
+      <h3>
+        Start/Stop face module
+      </h3>
+      <pre class='example highlight'>
+        var previewStream;
+        var ft;
+        var startButton = document.getElementById('startButton');
+        var stopButton = document.getElementById('stopButton');
+
+        function errorCallback(error) {
+          console.log('getUserMedia failed: ' + error); 
+        }
+
+        // Start stream firstly, then start face module.
+        startButton.onclick = function(e) {
+          navigator.mediaDevices.getUserMedia(constraints)
+              .then(function(stream) {
+                // Wire the media stream into a &lt;video&gt; element for preview.
+                previewStream = stream;
+                var previewVideo = document.querySelector('#previewVideo');
+                previewVideo.srcObject = stream;
+                previewVideo.play();
+  
+                try {
+                  ft = new realsense.Face.FaceModule(stream);
+                } catch (e) {
+                  console.log('Failed to create face module: ' + e.message);
+                  return;
+                }
+        
+                ft.onready = function(e) {
+                  console.log('Face module ready to start');
+                  // The stream got ready, we can start face module now.
+                  ft.start().then(
+                      function() {
+                        console.log('Face module start succeeds');},
+                      function(e) {
+                        console.log('Face module start failed: ' + e.message);}); 
+                };
+        
+                ft.onprocessedsample = function(e) {
+                  console.log('Got face module processedsample event.');
+                  ft.getProcessedSample(false, false).then(function(processedSample) {
+                    console.log('Got face module processedsample data.');
+                    // Use processedSample.faces data to work for you.
+                    console.log('Detected faces number: ' + processedSample.faces.length);
+                    // You can get all avaiable detection/landmarks/recognition data
+                    // of every face from processedSample.faces.
+                    // Please refer to <code><a>FaceData</a></code> interface.
+                  }, function(e) {
+                    console.log('Failed to get processed sample: ' + e.message);});
+                };
+        
+                ft.onerror = function(e) {
+                  console.log('Got face module error event: ' + e.message);
+                };
+        
+                ft.onended = function(e) {
+                  console.log('Face module ends without stop');
+                };
+        
+                ft.ready = false;
+                ftStarted = false;
+                onGetConfButton();
+              }, errorCallback);
+        };
+
+        function stopPreviewStream() {
+          if (previewStream) {
+            previewStream.getTracks().forEach(function(track) {
+              track.stop();
+            });
+            if (ft) {
+              // Remove listeners as we don't care about the events.
+              ft.onerror = null;
+              ft.onprocessedsample = null;
+              ft = null;
+            }
+          }
+          previewStream = null;
+        }
+
+        // Stop face module and stream.
+        stopButton.onclick = function(e) {
+          if (!ft) return;
+          ft.stop().then(
+              function() {
+                console.log('Face module stop succeeds');
+                stopPreviewStream();},
+              function(e) {
+                console.log('Face module stop failed');
+                stopPreviewStream();});
+        };
+      </pre>
+      <h3>
+        Face module configuration.
+      </h3>
+      <pre class='example highlight'>
+        var setConfButton = document.getElementById('setConfButton');
+        var getConfButton = document.getElementById('getConfButton');
+        var getDefaultConfButton = document.getElementById('getDefaultConfButton');
+
+        // Set configuration. Simple configuration example as bellow.
+        // Please refer to <code><a>FaceConfigurationData</a></code> interface for confData details.
+        var confData = {
+          // Set face tracking strategy.
+          strategy: 'right_left',
+          // Disable landmarks.
+          landmarks: {
+            enable: false
+          }, 
+          // Enable recognition.
+          recognition: {
+            enable: true
+          }
+        };
+        setConfButton.onclick = function(e) {
+          ft.configuration.set(confData).then(
+              function() {
+                console.log('set configuration succeeds');},
+              function(e) {
+                console.log(e.message);});
+        };
+
+        // Get current configuration.
+        getConfButton.onclick = function(e) {
+          ft.configuration.get().then(
+              function(confData) {
+                // Use confData values to work for you.
+                console.log('get current configuration succeeds');},
+              function(e) {
+                console.log('get configuration failed: ' + e.message);});
+        };
+  
+        // Get default configuration.
+        getDefaultConfButton.onclick = function(e) {
+          ft.configuration.getDefaults().then(
+              function(confData) {
+                // Use confData values to work for you.
+                console.log('get default configuration succeeds');},
+              function(e) {
+                console.log('get default configuration failed: ' + e.message);});
+        };
+      </pre>
+    </section>
     <section class='appendix'>
       <h2>Acknowledgements</h2>
       <p>
