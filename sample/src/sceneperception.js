@@ -43,6 +43,8 @@ var gl, cameraMatrix, modelViewMatrix, volumePreviewMatrix, translationMatrix;
 var currentMeshes, meshToDraw;
 var program;
 
+var camera, controls, cameraControlEnabled = false;
+
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage) {
   var imageSize = depth_size.width * depth_size.height;
@@ -201,6 +203,7 @@ function main() {
     sp.destroy().then(function() {
       console.log('stop succeeds');
       resetButtonState(true);
+      enableCameraControl(true);
       qualityElement.innerHTML = 'Quality: ';
     }, function(e) {console.log(e);});
   };
@@ -210,6 +213,8 @@ function main() {
       startButton.disabled = true;
       stopButton.disabled = false;
       saveButton.disabled = false;
+      resetMeshes();
+      enableCameraControl(false);
       console.log('SP started successfully');
     }, function(e) {console.log(e);});
   };
@@ -220,6 +225,7 @@ function main() {
       startButton.disabled = false;
       stopButton.disabled = true;
       accuracyElement.innerHTML = 'Accuracy: ';
+      enableCameraControl(true);
     }, function(e) {console.log(e);});
   };
 
@@ -325,10 +331,11 @@ function updateMeshingModelViewMatrix(cameraPose) {
   modelViewMatrix.multiply(cameraMatrix);
 }
 
+var fov = 74;
+var aspect = 320 / 240;
+
 function setProjectionMatrix(cameraIntrinsic) {
   // TODO: compute from GetInternalCameraIntrinsics
-  var fov = 74;
-  var aspect = 320 / 240;
   projectionMatrix.makePerspective(fov, aspect, 0.001, 1000);
 }
 
@@ -404,6 +411,26 @@ function initWebGL() {
   program.mvMatrixUniform = gl.getUniformLocation(program, 'modelViewMatrix');
   program.pMatrixUniform = gl.getUniformLocation(program, 'projectionMatrix');
 
+  enableCameraControl(false);
+}
+
+function enableCameraControl(enabled) {
+  if (!cameraControlEnabled && enabled) {
+    camera = new THREE.PerspectiveCamera(fov, aspect, 0.001, 1000);
+    camera.position.set(0, 0, 2);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    controls = new THREE.TrackballControls(camera, meshingCanvas);
+  }
+  cameraControlEnabled = enabled;
+}
+
+function updateCameraControl() {
+  controls.update();
+  camera.updateMatrixWorld();
+  camera.matrixWorldInverse.getInverse(camera.matrixWorld);
+  modelViewMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  modelViewMatrix.identity();
+  modelViewMatrix.multiply(camera.matrixWorldInverse);
 }
 
 var indexBuffer, vertexPosBuffer, vertexColorBuffer;
@@ -533,4 +560,8 @@ function animate() {
   drawScene();
 
   stats.update();
+
+  if (cameraControlEnabled) {
+    updateCameraControl();
+  }
 }
