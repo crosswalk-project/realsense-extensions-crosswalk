@@ -1,0 +1,12 @@
+
+/* Style for an "Unofficial Draft" */
+
+@import "base.css";
+
+body {
+  background-color: transparent;
+}
+
+html {
+  background: white;
+}
