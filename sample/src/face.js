@@ -40,11 +40,11 @@ var resolutionTextElement = document.getElementById('resolutionText');
 var statusElement = document.getElementById('status');
 var recognitionDataElement = document.getElementById('recognitionData');
 
-var processed_sample_fps = new Stats();
-processed_sample_fps.domElement.style.position = 'absolute';
-processed_sample_fps.domElement.style.top = '0px';
-processed_sample_fps.domElement.style.left = '0px';
-document.body.appendChild(processed_sample_fps.domElement);
+var processedSampleFps = new Stats();
+processedSampleFps.domElement.style.position = 'absolute';
+processedSampleFps.domElement.style.top = '0px';
+processedSampleFps.domElement.style.left = '0px';
+document.body.appendChild(processedSampleFps.domElement);
 
 const cameraName = 'Intel(R) RealSense(TM) 3D Camera R200';
 var cameraId = '';
@@ -189,7 +189,6 @@ function gotDevices(deviceInfos) {
   }
   if (cameraId !== '') {
     cameraLabel.innerHTML = cameraName;
-    preview();
   } else {
     cameraLabel.innerHTML = cameraName + ' is not available';
     cameraLabel.style.color = 'red';
@@ -204,20 +203,81 @@ function main() {
   navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
 }
 
-function preview() {
-  if (cameraId === '') {
-    return;
-  }
+function clearAfterStopped() {
+  ftStarted = false;
+  overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
+  depthMapCheckBox.checked = false;
+  depthMapCheckBox.onchange();
+  depthMapCheckBox.disabled = true;
+  trackingColorModeRadio.disabled = false;
+  trackingColorDepthModeRadio.disabled = false;
+}
 
+setConfButton.onclick = function(e) {
+  if (!ft) return;
+  // Call configuration.set API.
+  ft.configuration.set(getConf()).then(
+      function() {
+        statusElement.innerHTML = 'Status: set configuration succeeds';
+        console.log('set configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
+
+getDefaultsButton.onclick = function(e) {
+  if (!ft) return;
+  // Call configuration.getDefaults API, will get back default FaceConfiguration value.
+  ft.configuration.getDefaults().then(
+      function(confData) {
+        // Show FaceConfiguration values onto UI.
+        setConf(confData);
+        statusElement.innerHTML = 'Status: get default configuration succeeds';
+        console.log('get default configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+};
+
+function onGetConfButton(e) {
+  if (!ft) return;
+  // Call configuration.get API, will get back current FaceConfiguration value.
+  ft.configuration.get().then(
+      function(confData) {
+        // Show FaceConfiguration values onto UI.
+        setConf(confData);
+        statusElement.innerHTML = 'Status: get current configuration succeeds';
+        console.log('get current configuration succeeds');},
+      function(e) {
+        statusElement.innerHTML = 'Status: ' + e.message;
+        console.log(e.message);});
+}
+
+getConfButton.onclick = onGetConfButton;
+
+function stopPreviewStream() {
   if (previewStream) {
     previewStream.getTracks().forEach(function(track) {
       track.stop();
     });
-    // Remove listeners as we don't care about the events.
-    ft.onerror = null;
-    ft.onprocessedsample = null;
-    ft = null;
+    if (ft) {
+      // Remove listeners as we don't care about the events.
+      ft.onerror = null;
+      ft.onprocessedsample = null;
+      ft = null;
+    }
   }
+  previewStream = null;
+}
+
+startButton.onclick = function(e) {
+  if (ftStarted) return;
+  if (cameraId === '') {
+    return;
+  }
+
+  stopPreviewStream();
 
   var resolution = constraintsMap[resolutionSelect.value];
   var constraints = {video: {
@@ -237,7 +297,7 @@ function preview() {
         }
 
         ft.onprocessedsample = function(e) {
-          ft.getProcessedSample(false, depthMapCheckBox.checked).then(function(processed_sample) {
+          ft.getProcessedSample(false, depthMapCheckBox.checked).then(function(processedSample) {
             if (overlayCanvas.width != videoElement.clientWidth ||
                 overlayCanvas.height != videoElement.clientHeight) {
               overlayCanvas.width = videoElement.clientWidth;
@@ -247,14 +307,13 @@ function preview() {
 
             overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-            var resolution = constraintsMap[resolutionSelect.value];
             var xScale = overlayCanvas.width / resolution.width;
             var yScale = overlayCanvas.height / resolution.height;
 
             var recogData = '';
             // Get traced faces.
-            for (var i = 0; i < processed_sample.faces.length; ++i) {
-              var face = processed_sample.faces[i];
+            for (var i = 0; i < processedSample.faces.length; ++i) {
+              var face = processedSample.faces[i];
               // Draw rect on every tracked face.
               if (face.detection) {
                 var rect = face.detection.boundingRect;
@@ -311,30 +370,30 @@ function preview() {
 
             if (!depthMapCheckBox.checked) {
               resolutionTextElement.innerHTML = '';
-            } else if (processed_sample.depth) {
+            } else if (processedSample.depth) {
               resolutionTextElement.innerHTML =
-                  'Depth Map (' + processed_sample.depth.width + 'x' +
-                  processed_sample.depth.height + ')';
-              if (depthCanvas.width != processed_sample.depth.width ||
-                  depthCanvas.height != processed_sample.depth.height) {
-                depthCanvas.width = processed_sample.depth.width;
-                depthCanvas.height = processed_sample.depth.height;
+                  'Depth Map (' + processedSample.depth.width + 'x' +
+                  processedSample.depth.height + ')';
+              if (depthCanvas.width != processedSample.depth.width ||
+                  depthCanvas.height != processedSample.depth.height) {
+                depthCanvas.width = processedSample.depth.width;
+                depthCanvas.height = processedSample.depth.height;
                 depthContext = depthCanvas.getContext('2d');
               }
               depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
 
               var depth_image_data = depthContext.createImageData(
-                  processed_sample.depth.width, processed_sample.depth.height);
+                  processedSample.depth.width, processedSample.depth.height);
 
               ConvertDepthToRGBUsingHistogram(
-                  processed_sample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data,
-                  processed_sample.depth.width, processed_sample.depth.height);
+                  processedSample.depth.data, [255, 0, 0], [20, 40, 255], depth_image_data.data,
+                  processedSample.depth.width, processedSample.depth.height);
               depthContext.putImageData(depth_image_data, 0, 0);
             } else {
               resolutionTextElement.innerHTML = 'No Depth Map';
             }
 
-            processed_sample_fps.update();
+            processedSampleFps.update();
           }, function(e) {
             statusElement.innerHTML = 'Status: ' + e.message; console.log(e.message);});
         };
@@ -346,6 +405,18 @@ function preview() {
         ft.onready = function(e) {
           console.log('Face module ready to start');
           ft.ready = true;
+          ft.start().then(
+              function() {
+                ftStarted = true;
+                statusElement.innerHTML = 'Status: start succeeds';
+                console.log('start succeeds');
+                depthMapCheckBox.disabled = false;
+                trackingColorModeRadio.disabled = true;
+                trackingColorDepthModeRadio.disabled = true;
+                onGetConfButton();},
+              function(e) {
+                statusElement.innerHTML = 'Status: ' + e.message;
+                console.log(e.message);});
         };
 
         ft.onended = function(e) {
@@ -355,101 +426,7 @@ function preview() {
 
         ft.ready = false;
         ftStarted = false;
-        onGetConfButton();
       }, errorCallback);
-
-}
-
-function clearAfterStopped() {
-  ftStarted = false;
-  overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
-  depthMapCheckBox.checked = false;
-  depthMapCheckBox.onchange();
-  depthMapCheckBox.disabled = true;
-  trackingColorModeRadio.disabled = false;
-  trackingColorDepthModeRadio.disabled = false;
-  onGetConfButton();
-}
-
-resolutionSelect.onchange = function(e) {
-  if (ft && ftStarted) {
-    ft.stop().then(
-        function() {
-          statusElement.innerHTML = 'Status: stop succeeds';
-          console.log('stop succeeds');
-          clearAfterStopped();
-          preview();},
-        function(e) {
-          statusElement.innerHTML = 'Status: stop fails';
-          console.log('stop fails');
-          clearAfterStopped();
-          preview();});
-  } else {
-    preview();
-  }
-};
-
-setConfButton.onclick = function(e) {
-  if (!ft) return;
-  // Call configuration.set API.
-  ft.configuration.set(getConf()).then(
-      function() {
-        statusElement.innerHTML = 'Status: set configuration succeeds';
-        console.log('set configuration succeeds');},
-      function(e) {
-        statusElement.innerHTML = 'Status: ' + e.message;
-        console.log(e.message);});
-};
-
-getDefaultsButton.onclick = function(e) {
-  if (!ft) return;
-  // Call configuration.getDefaults API, will get back default FaceConfiguration value.
-  ft.configuration.getDefaults().then(
-      function(confData) {
-        // Show FaceConfiguration values onto UI.
-        setConf(confData);
-        statusElement.innerHTML = 'Status: get default configuration succeeds';
-        console.log('get default configuration succeeds');},
-      function(e) {
-        statusElement.innerHTML = 'Status: ' + e.message;
-        console.log(e.message);});
-};
-
-function onGetConfButton(e) {
-  if (!ft) return;
-  // Call configuration.get API, will get back current FaceConfiguration value.
-  ft.configuration.get().then(
-      function(confData) {
-        // Show FaceConfiguration values onto UI.
-        setConf(confData);
-        statusElement.innerHTML = 'Status: get current configuration succeeds';
-        console.log('get current configuration succeeds');},
-      function(e) {
-        statusElement.innerHTML = 'Status: ' + e.message;
-        console.log(e.message);});
-}
-
-getConfButton.onclick = onGetConfButton;
-
-startButton.onclick = function(e) {
-  if (!ft) return;
-  if (!ft.ready) {
-    statusElement.innerHTML = 'Status: face module is not ready to start';
-    return;
-  }
-  ft.start().then(
-      function() {
-        ftStarted = true;
-        statusElement.innerHTML = 'Status: start succeeds';
-        console.log('start succeeds');
-        depthMapCheckBox.disabled = false;
-        trackingColorModeRadio.disabled = true;
-        trackingColorDepthModeRadio.disabled = true;
-        onGetConfButton();},
-      function(e) {
-        statusElement.innerHTML = 'Status: ' + e.message;
-        console.log(e.message);});
 };
 
 stopButton.onclick = function(e) {
@@ -458,11 +435,13 @@ stopButton.onclick = function(e) {
       function() {
         statusElement.innerHTML = 'Status: stop succeeds';
         console.log('stop succeeds');
-        clearAfterStopped();},
+        clearAfterStopped();
+        stopPreviewStream();},
       function(e) {
         statusElement.innerHTML = 'Status: stop fails';
         console.log('stop fails');
-        clearAfterStopped()});
+        clearAfterStopped();
+        stopPreviewStream();});
 };
 
 registerButton.onclick = function(e) {
