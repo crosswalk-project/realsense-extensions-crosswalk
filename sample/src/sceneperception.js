@@ -232,11 +232,7 @@ function main() {
   saveButton.onclick = function(e) {
     sp.saveMesh().then(function(blob) {
       xwalk.experimental.native_file_system.requestNativeFileSystem('documents', function(fs) {
-        var fileName = '/documents/savedMesh';
-        var d = new Date();
-        fileName += '_' + d.getFullYear() + '_' + d.getMonth() + '_' + d.getDate();
-        fileName += '_' + d.getHours() + '_' + d.getMinutes() + '_' + d.getSeconds();
-        fileName += '_' + d.getMilliseconds() + '.obj';
+        var fileName = '/documents/savedMesh_' + RSUtils.getDateString() + '.obj';
         fs.root.getFile(fileName, { create: true }, function(entry) {
           entry.createWriter(function(writer) {
             writer.onwriteend = function(e) {
