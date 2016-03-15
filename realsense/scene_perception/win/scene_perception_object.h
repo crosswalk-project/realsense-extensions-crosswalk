@@ -62,6 +62,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
   // Data and configurations getting APIs.
   void OnGetSample(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
+  void OnGetVolumePreview(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnQueryVolumePreview(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnGetVertices(
@@ -128,6 +130,8 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void OnMeshingResult();
   void ReleaseResources();
+  void DoGetVolumePreview(
+      scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoQueryVolumePreview(
       scoped_ptr<XWalkExtensionFunctionInfo> info);
   void DoGetMeshData(
