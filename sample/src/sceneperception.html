@@ -34,10 +34,12 @@
   <div id="rightRender" style='width: 640px; height: 480px; position: absolute; left: 350px; top: 90px'>
     <input type="radio" id="volumePreviewRadio" name="renderRadio">Volume Preview</input>
     <input type="radio" id="meshingRadio" name="renderRadio" checked>Meshing Reconstruction</input>
-    <div id='volumePreviewRender' style='position:absolut; left: 0px; top: 20px; display: none'>
-      <canvas id='volumePreview' width='320' height='240'></canvas>
+    <div id='volumePreviewRender' style='width: 640px; height: 480px; position: absolute; left: 0px; top: 20px; display: none; background-color: black;'>
+      <canvas id='volumePreview' width='320' height='240' style='position: absolute; left: 160px; top: 120px;'></canvas>
     </div>
-    <div id='meshingRender' style='width: 640px; height: 480px; position: absolute; left: 0px; top: 20px'></div>
+    <div id='meshingRender' style='width: 640px; height: 480px; position: absolute; left: 0px; top: 20px'>
+      <canvas id='meshingCanvas' width='640' height='480' style='width:640px; height:480px;'></canvas>
+    </div>
   </div>
   </body>
   <script src='libs/three.js'></script>
