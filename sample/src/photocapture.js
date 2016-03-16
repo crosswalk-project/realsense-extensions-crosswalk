@@ -100,7 +100,14 @@ function gotDevices(deviceInfos) {
 }
 
 function main() {
-  navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
+  // Trigger the user permission prompt by a getUserMedia
+  navigator.mediaDevices.getUserMedia({video: true})
+      .then(function(stream) {
+        stream.getTracks().forEach(function(track) {
+          track.stop();
+        });
+        navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
+      }, errorCallback);
 }
 
 function errorCallback(error) {
