@@ -24,18 +24,6 @@ var hasImage = false;
 var sticker;
 var hasSelectPoints = false;
 
-function getDateString() {
-  var date = new Date();
-  var dateString =
-      date.getFullYear() +
-      ('0' + (date.getMonth() + 1)).slice(-2) +
-      ('0' + date.getDate()).slice(-2) +
-      ('0' + date.getHours()).slice(-2) +
-      ('0' + date.getMinutes()).slice(-2) +
-      ('0' + date.getSeconds()).slice(-2);
-  return dateString;
-}
-
 function drawCross(x, y) {
   overlayContext.beginPath();
   overlayContext.strokeStyle = 'blue';
@@ -421,7 +409,7 @@ function main() {
         function(blob) {
           xwalk.experimental.native_file_system.requestNativeFileSystem('pictures',
               function(fs) {
-                var fileName = '/pictures/depthphoto_' + getDateString() + '.jpg';
+                var fileName = '/pictures/depthphoto_' + RSUtils.getDateString() + '.jpg';
                 fs.root.getFile(fileName, { create: true }, function(entry) {
                   entry.createWriter(function(writer) {
                     writer.onwriteend = function(e) {
