@@ -159,12 +159,12 @@ ScenePerceptionObject::ScenePerceptionObject() :
                                base::Unretained(this)));
   handler_.Register("setMeshingUpdateConfigs",
                     base::Bind(
-                      &ScenePerceptionObject::OnSetMeshingUpdateConfigs,
-                      base::Unretained(this)));
+                        &ScenePerceptionObject::OnSetMeshingUpdateConfigs,
+                        base::Unretained(this)));
   handler_.Register("configureSurfaceVoxelsData",
                     base::Bind(
-                      &ScenePerceptionObject::OnConfigureSurfaceVoxelsData,
-                      base::Unretained(this)));
+                        &ScenePerceptionObject::OnConfigureSurfaceVoxelsData,
+                        base::Unretained(this)));
   handler_.Register("setMeshingRegion",
                     base::Bind(&ScenePerceptionObject::OnSetMeshingRegion,
                                base::Unretained(this)));
@@ -187,14 +187,18 @@ ScenePerceptionObject::ScenePerceptionObject() :
                                base::Unretained(this)));
   handler_.Register("isReconstructionEnabled",
                     base::Bind(
-                      &ScenePerceptionObject::OnIsReconstructionEnabled,
-                      base::Unretained(this)));
+                        &ScenePerceptionObject::OnIsReconstructionEnabled,
+                        base::Unretained(this)));
   handler_.Register("getVoxelResolution",
                     base::Bind(&ScenePerceptionObject::OnGetVoxelResolution,
                                base::Unretained(this)));
   handler_.Register("getVoxelSize",
                     base::Bind(&ScenePerceptionObject::OnGetVoxelSize,
                                base::Unretained(this)));
+  handler_.Register("getInternalCameraIntrinsics",
+                    base::Bind(
+                        &ScenePerceptionObject::OnGetInternalCameraIntrinsics,
+                        base::Unretained(this)));
   handler_.Register("getMeshingThresholds",
                     base::Bind(&ScenePerceptionObject::OnGetMeshingThresholds,
                                base::Unretained(this)));
@@ -459,12 +463,12 @@ void ScenePerceptionObject::applyInitialConfigs(
       triggerError("Invalid parameter [meshingThresholds].");
     }
   }
-  if (jsConfig->color_capture_size) {
-    color_image_width_ = jsConfig->color_capture_size->width;
-    color_image_height_ = jsConfig->color_capture_size->height;
+  if (jsConfig->color_image_size) {
+    color_image_width_ = jsConfig->color_image_size->width;
+    color_image_height_ = jsConfig->color_image_size->height;
   }
-  if (jsConfig->depth_capture_size) {
-    CaptureSize* ds = jsConfig->depth_capture_size.get();
+  if (jsConfig->depth_image_size) {
+    ImageSize* ds = jsConfig->depth_image_size.get();
     depth_image_width_ = ds->width;
     depth_image_height_ = ds->height;
   }
@@ -1538,6 +1542,26 @@ void ScenePerceptionObject::OnGetVoxelSize(
   }
   info->PostResult(GetVoxelSize::Results::Create(
       scene_perception_->QueryVoxelSize(), std::string()));
+}
+
+void ScenePerceptionObject::OnGetInternalCameraIntrinsics(
+    scoped_ptr<XWalkExtensionFunctionInfo> info) {
+  CameraIntrinsics intrinsics;
+  if (state_ == IDLE) {
+    info->PostResult(GetInternalCameraIntrinsics::Results::Create(
+        intrinsics,
+        std::string("Wrong state, start the process first.")));
+    return;  // wrong state.
+  }
+  intrinsics.image_size.width = sp_intrinsics_.imageSize.width;
+  intrinsics.image_size.height = sp_intrinsics_.imageSize.height;
+  intrinsics.focal_length.x = sp_intrinsics_.focalLength.x;
+  intrinsics.focal_length.y = sp_intrinsics_.focalLength.y;
+  intrinsics.principal_point.x = sp_intrinsics_.principalPoint.x;
+  intrinsics.principal_point.y = sp_intrinsics_.principalPoint.y;
+
+  info->PostResult(GetInternalCameraIntrinsics::Results::Create(
+      intrinsics, std::string()));
 }
 
 void ScenePerceptionObject::OnGetMeshingThresholds(

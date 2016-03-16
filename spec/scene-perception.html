@@ -142,7 +142,7 @@
             Promise&lt;Sample&gt; getSample()
           </dt>
           <dd>
-            Allows user to access the surface's capture sample that are within view from camera's current pose asynchronously.
+            Allows user to access the surface's captured sample that are within view from camera's current pose asynchronously.
           </dd>
           <dt>
             Promise&lt;Vertices&gt; getVertices()
@@ -185,9 +185,9 @@
             Returns the volume datails as a 2D projection image by reconstructing the volume with ray-casting, surface volume normals and surface volume faces for the specified camera pose.
             <br/>
             <p>
-              This method returns a promise.
-              The promise will be fulfilled with the VolumePreviewData instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              This method returns a promise.<br/>
+              The promise will be fulfilled with the VolumePreviewData instance if there are no errors.<br/>
+              The promise will be rejected with the <code><a>SPError</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>optional sequence&lt;float&gt; cameraPose</dt>
@@ -216,6 +216,18 @@
           </dt>
           <dd>
             Allows user to get length of side of voxel cube in meters.
+          </dd>
+          <dt>
+            Promise&lt;CameraIntrinsics&gt; getInternalCameraIntrinsics()
+          </dt>
+          <dd>
+            Allows user to get the module working intrinsic parameters.
+            <br/>
+            <p>
+              This method returns a promise.<br/>
+              The promise will be fulfilled with the CameraIntrinsics instance if there are no errors.</br>
+              The promise will be rejected with the error message if there is a failure.
+            </p>
           </dd>
           <dt>
             Promise&lt;MeshingThresholds&gt; getMeshingThresholds()
@@ -543,20 +555,20 @@
       </section>
       <section>
         <h2>
-          <code><a>CaptureSize</a></code>
+          <code><a>ImageSize</a></code>
         </h2>
-        <dl title='dictionary CaptureSize' class='idl'>
+        <dl title='dictionary ImageSize' class='idl'>
           <dt>
             unsigned long width
           </dt>
           <dd>
-            Width of the capture size in pixels.
+            Width of the image size in pixels.
           </dd>
           <dt>
             unsigned long height
           </dt>
           <dd>
-            Height of the capture size in pixels.
+            Height of the image size in pixels.
           </dd>
         </dl>
       </section>
@@ -630,16 +642,16 @@
             The meshing threshold of scene perception.
           </dd>
           <dt>
-            CaptureSize? colorCaptureSize;
+            ImageSize? colorImageSize;
           </dt>
           <dd>
-            Indicates the color image capture size in pixel, default is 320 x 240.
+            Indicates the captured color image size in pixel, default is 320 x 240.
           </dd>
           <dt>
-            CaptureSize? depthCaptureSize;
+            ImageSize? depthImageSize;
           </dt>
           <dd>
-            Indicates the depth image capture size in pixel, default value is 320 x 240.
+            Indicates the captured depth image size in pixel, default value is 320 x 240.
           </dd>
           <dt>
             float? captureFramerate;
@@ -856,7 +868,7 @@
           <code><a>Sample</a></code>
         </h2>
         <dd>
-          The capture sample that contains multiple streams.
+          The captured sample that contains multiple streams.
         </dd>
         <dl title='dictionary Sample' class='idl'>
           <dt>
@@ -1016,6 +1028,50 @@
           <dd>
             Indicate if color should be returned per voxel when you call
             <code>getSurfaceVoxels</code> function.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>CameraIntrinsics</a></code>
+        </h2>
+        <dl title='dictionary CameraIntrinsics' class='idl'>
+          <dt>
+            ImageSize imageSize
+          </dt>
+          <dd>
+            The image size in pixels.
+          </dd>
+          <dt>
+            Point2D focalLength
+          </dt>
+          <dd>
+            The color focal length in pixels.
+          </dd>
+          <dt>
+            Point2D principalPoint;
+          </dt>
+          <dd>
+            The color focal length in pixels.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point2D</a></code>
+        </h2>
+        <dl title='dictionary Point2D' class='idl'>
+          <dt>
+            float x;
+          </dt>
+          <dd>
+            The x coordinate of the image pixel.
+          </dd>
+          <dt>
+            float y;
+          </dt>
+          <dd>
+            The y coordinate of the image pixel.
           </dd>
         </dl>
       </section>

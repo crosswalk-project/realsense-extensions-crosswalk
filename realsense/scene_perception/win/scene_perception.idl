@@ -32,7 +32,7 @@ namespace scene_perception {
     double avg;
   };
 
-  dictionary CaptureSize {
+  dictionary ImageSize {
     long width;
     long height;
   };
@@ -42,8 +42,8 @@ namespace scene_perception {
     VoxelResolution? voxelResolution;
     double[]? initialCameraPose;
     MeshingThresholds? meshingThresholds;
-    CaptureSize? colorCaptureSize;
-    CaptureSize? depthCaptureSize;
+    ImageSize? colorImageSize;
+    ImageSize? depthImageSize;
     double? captureFramerate;
   };
 
@@ -139,6 +139,17 @@ namespace scene_perception {
     double[] normals;
   };
 
+  dictionary Point2D {
+    double x;
+    double y;
+  };
+
+  dictionary CameraIntrinsics {
+    ImageSize imageSize;
+    Point2D focalLength;
+    Point2D principalPoint;
+  };
+
   dictionary ErrorEvent {
     DOMString status;
   };
@@ -153,6 +164,7 @@ namespace scene_perception {
   callback MeshingThresholdsPromise = void (MeshingThresholds mThresholds, DOMString error);
   callback MeshDataPromise = void (MeshData meshes, DOMString error);
   callback VoxelResolutionPromise = void (VoxelResolution resolution, DOMString error);
+  callback CameraIntrinsicsPromise = void (CameraIntrinsics intrinsics, DOMString error);
   callback MeshingResolutionPromise = void (MeshingResolution resolution, DOMString error);
   callback DoublePromise = void (double voxelSize, DOMString error);
   callback ArrayBufferPromise = void(ArrayBuffer buffer, DOMString error);
@@ -195,6 +207,7 @@ namespace scene_perception {
     static void isReconstructionEnabled(BoolPromise promise);
     static void getVoxelResolution(VoxelResolutionPromise promise);
     static void getVoxelSize(DoublePromise promise);
+    static void getInternalCameraIntrinsics(CameraIntrinsicsPromise promise);
     static void getMeshingThresholds(MeshingThresholdsPromise promise);
     static void getMeshingResolution(MeshingResolutionPromise promise);
     static void getMeshData(MeshDataPromise promise);

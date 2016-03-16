@@ -184,8 +184,8 @@ function main() {
     sampleFlowController.reset();
     var initConfig = {
       useOpenCVCoordinateSystem: false,
-      colorCaptureSize: color_size,
-      depthCaptureSize: depth_size,
+      colorImageSize: color_size,
+      depthImageSize: depth_size,
       captureFramerate: unifiedFrameRate
     };
     sp.init(initConfig).then(function() {

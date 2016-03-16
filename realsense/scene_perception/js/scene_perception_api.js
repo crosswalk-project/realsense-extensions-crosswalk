@@ -191,6 +191,7 @@ var ScenePerception = function(objectId) {
   this._addMethodWithPromise('isReconstructionEnabled');
   this._addMethodWithPromise('getVoxelResolution');
   this._addMethodWithPromise('getVoxelSize');
+  this._addMethodWithPromise('getInternalCameraIntrinsics');
   this._addMethodWithPromise('getMeshingThresholds');
   this._addMethodWithPromise('getMeshingResolution');
   this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn);
