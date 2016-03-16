@@ -2160,121 +2160,471 @@
       <h2>
         Examples
       </h2>
-      <h3>
-        Taking a Depth Photo
-      </h3>
-      <pre class='example highlight'>
-var photoCapture;
+      <section>
+        <h3>
+          Taking a Depth Photo
+        </h3>
+        <pre class='example highlight'>
+          var photoCapture;
 
-navigator.mediaDevices.getUserMedia({video: true}).then(gotMedia, failedToGetMedia);
+          navigator.mediaDevices.getUserMedia({video: true}).then(gotMedia, failedToGetMedia);
 
-function gotMedia(stream) {
-  // Wire the media stream into a &lt;video&gt; element for preview.
-  var previewVideo = document.querySelector('#previewVideo');
-  previewVideo.srcObject = stream;
-  previewVideo.play();
+          function gotMedia(stream) {
+            // Wire the media stream into a &lt;video&gt; element for preview.
+            var previewVideo = document.querySelector('#previewVideo');
+            previewVideo.srcObject = stream;
+            previewVideo.play();
 
-  // Construct a photo capture from the stream.
-  photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
-  photoCapture.onerror = function(e) {
-    console.log('Photo capture failure: ' + e.data.message);
-  };
-  photoCapture.ondepthquality = function(e) {
-    console.log('Depth quality: ' + e.data.quality);
-  };
-}
-
-var takePhotoButton = document.querySelector('#takePhoto');
-takePhotoButton.onclick = function () {
-  photoCapture.takePhoto().then(gotPhoto, failedToGetPhoto);
-};
-
-function gotPhoto(photo) {
-  // Got a photo instance.
-  console.log('Got a photo');
-}
-      </pre>
-      <h3>
-        Load a Depth Photo from File System
-      </h3>
-      <pre class='example highlight'>
-        // Access an &lt;input&gt; element with type='file' by using getElementById()
-        var loadPhoto = document.getElementById('loadPhoto');
-        var XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
-        loadPhoto.addEventListener('change', function(e) {
-        var file = loadPhoto.files[0];
-        XDMUtils.isXDM(file).then(
-            function(success) {
-              if (success) {
-                XDMUtils.loadXDM(file).then(
-                    function(photo) {
-                      // Got a photo instance
-                      console.log('Got a photo');
-                    },
-                    function(e) { console.log(e.message); });
-              } else {
-                console.log ('This is not a XDM file. Load failed.');
-              }
-            },
-           function(e) { console.log(e.message); });
-        });
-      </pre>
-      <h3>
-        Load a Depth Photo from Network
-      </h3>
-      <pre class='example highlight'>
-        var url= 'http://path/to/depth/photo/test.jpg';
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
-        xhr.responseType = 'blob';
-        xhr.onreadystatechange = function() {
-          if (xhr.readyState == 4 && xhr.status == 200) {
-            var blob = xhr.response;
-            XDMUtils.isXDM(blob).then(
-                function(success) {
-                  if (success) {
-                    XDMUtils.loadXDM(blob).then(
-                        function(photo) {
-                          // Got a photo instance
-                          console.log('Got a photo');
-                        },
-                        function(e) { console.log(e.message); });
-                  } else {
-                    console.log('This is not a XDM file. Load failed.');
-                  }
-                },
-                function(e) { console.log(e.message); });
+            // Construct a photo capture from the stream.
+            photoCapture = new realsense.DepthEnabledPhotography.PhotoCapture(stream);
+            photoCapture.onerror = function(e) {
+              console.log('Photo capture failure: ' + e.data.message);
+            };
+            photoCapture.ondepthquality = function(e) {
+              console.log('Depth quality: ' + e.data.quality);
+            };
           }
-        };
-        xhr.send();
-      </pre>
-      <h3>
-        Refocus a Depth Photo
-      </h3>
-      <pre class='example highlight'>
-        var refocus;
-        try {
-          refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
-        } catch (e) {
-          console.log(e.message);
-          return;
-        }
 
-        // photo is the instance of DepthPhoto
-        // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
-        refocus.init(photo).then(
-            function() {
-              // [x, y] is the focusing point that you set.
-              // Here, the optional parameter aperture is omitted. The default is 50.0
-              refocus.apply({ x: x, y: y }).then(
-                  function(refocusedPhoto) {
-                    // Got the refocused photo
-                    console.log('Got the refocused photo');
+          var takePhotoButton = document.querySelector('#takePhoto');
+          takePhotoButton.onclick = function () {
+            photoCapture.takePhoto().then(gotPhoto, failedToGetPhoto);
+          };
+
+          function gotPhoto(photo) {
+            // Got a photo instance.
+            console.log('Got a photo');
+          }
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Load a Depth Photo from File System
+        </h3>
+        <pre class='example highlight'>
+          // Access an &lt;input&gt; element with type='file' by using getElementById()
+          var loadPhoto = document.getElementById('loadPhoto');
+          var XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
+          loadPhoto.addEventListener('change', function(e) {
+          var file = loadPhoto.files[0];
+          XDMUtils.isXDM(file).then(
+              function(success) {
+                if (success) {
+                  XDMUtils.loadXDM(file).then(
+                      function(photo) {
+                        // Got a photo instance
+                        console.log('Got a photo');
+                      },
+                      function(e) { console.log(e.message); });
+                } else {
+                  console.log ('This is not a XDM file. Load failed.');
+                }
+              },
+             function(e) { console.log(e.message); });
+          });
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Load a Depth Photo from Network
+        </h3>
+        <pre class='example highlight'>
+          var url= 'http://path/to/depth/photo/test.jpg';
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", url, true);
+          xhr.responseType = 'blob';
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              var blob = xhr.response;
+              XDMUtils.isXDM(blob).then(
+                  function(success) {
+                    if (success) {
+                      XDMUtils.loadXDM(blob).then(
+                          function(photo) {
+                            // Got a photo instance
+                            console.log('Got a photo');
+                          },
+                          function(e) { console.log(e.message); });
+                    } else {
+                      console.log('This is not a XDM file. Load failed.');
+                    }
                   },
                   function(e) { console.log(e.message); });
-            },
-            function(e) { console.log(e.message); });
-      </pre>
+            }
+          };
+          xhr.send();
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Refocus a Depth Photo
+        </h3>
+        <pre class='example highlight'>
+          var refocus;
+          try {
+            refocus = new realsense.DepthEnabledPhotography.DepthRefocus();
+          } catch (e) {
+            console.log(e.message);
+            return;
+          }
+
+          // photo is the instance of DepthPhoto
+          // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
+          refocus.init(photo).then(
+              function() {
+                // [x, y] is the focusing point that you set.
+                // Here, the optional parameter aperture is omitted. The default is 50.0
+                refocus.apply({ x: x, y: y }).then(
+                    function(refocusedPhoto) {
+                      // Got the refocused photo
+                      console.log('Got the refocused photo');
+                    },
+                    function(e) { console.log(e.message); });
+              },
+              function(e) { console.log(e.message); });
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Access Photo Information
+        </h3>
+        <pre class='example highlight'>
+            // photo is the instance of DepthPhoto
+            // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
+
+            photo.queryContainerImage().then(
+                function(colorImage) {
+                  // The colorImage object follows the Image data structure, which could possibly
+                  // looks like this:
+                  // colorImage = { format: 'RGBA32',
+                  //                width: imageWidth,
+                  //                height: imageHeight,
+                  //                data: imageDataArrayBuffer
+                  //              };
+                  // The imageDataArrayBuffer is an ArrayBuffer with type of Uint32Array, and the byte
+                  // layout follows the Canvas Pixel ArrayBuffer defined in [CANVAS-2D].
+                },
+                function(error) { console.log(error.message); });
+
+            photo.checkSignature().then(
+                function(signature) {
+                  console.log("signature: " + signature);
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryNumberOfCameras().then(
+                function(number) {
+                  console.log("number of camera: " + number);
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryDeviceVendorInfo().then(
+                function(vendorInfo) {
+                  console.log('model: ' + venterInfo.model + ', manufacturer: ' + venterInfo.manufacturer +
+                      ', notes: ' + venterInfo.notes);
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryCameraVendorInfo(0).then(
+                function(vendorInfo) {
+                  console.log('model: ' + venterInfo.model + ', manufacturer: ' + venterInfo.manufacturer +
+                      ', notes: ' + venterInfo.notes);
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryCameraPerspectiveModel(0).then(
+                function(perspectiveModel) {
+                  console.log('model: ' + perspectiveModel.model +
+                      ', focalLength: (' + perspectiveModel.focalLength.x + ', ' +
+                                           perspectiveModel.focalLength.y + ')' +
+                      ', principalPoint: (' + perspectiveModel.principalPoint.x + ', ' +
+                                              perspectiveModel.principalPoint.y + ')' +
+                      ', skew: ' + perspectiveModel.skew +
+                      ', radialDistortion: [' + perspectiveModel.radialDistortion.k1 + ', ' +
+                                                perspectiveModel.radialDistortion.k2 + ', ' +
+                                                perspectiveModel.radialDistortion.k3 + ']' +
+                      ', tangentialDistortion: [' + perspectiveModel.tangentialDistortion.p1 + ', ' +
+                                                    perspectiveModel.tangentialDistortion.p2 + ']');
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryCameraPose(0).then(
+                function(pose) {
+                  console.log('transition: (' + pose.transition.x + ', ' +
+                                                pose.transition.y + ', ' +
+                                                pose.transition.z + ')' +
+                      ', rotation: (' + pose.rotation.rotationAngle + ', ' +
+                                        pose.rotation.rotationAxisX + ', ' +
+                                        pose.rotation.rotationAxisY + ', ' +
+                                        pose.rotation.rotationAxisZ + ')');
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryImage().then(
+                function(colorImage) {
+                  // Render the color image.
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryDepth().then(
+                function(depthImage) {
+                  // The depthImage object follows the Image data structure, which could possibly
+                  // looks like this:
+                  // depthImage = { format: 'DEPTH' / 'DEPTH_F32',
+                  //                width: imageWidth,
+                  //                height: imageHeight,
+                  //                data: imageDataArrayBuffer
+                  //              };
+                  // The imageDataArrayBuffer is an ArrayBuffer with type of Uint16Array(for DEPTH)
+                  // or Float32Array(for DEPTH_F32), and the value indicates the distance from an object
+                  // to the camera's XY plane or the Cartesian depth. The value precision is millimeters.
+                },
+                function(error) { console.log(error.message); });
+
+            photo.queryRawDepth().then(
+                function(rawDepthImage) {
+                  // Render the raw depth image.
+                },
+                function(error) { console.log(error.message); });
+
+            photo.resetContainerImage().then(
+                function() {
+                  // Cleanup work after reset.
+                },
+                function(error) { console.log(error.message); });
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Use PhotoUtils
+        </h3>
+        <pre class='example highlight'>
+          // photo is the instance of DepthPhoto
+          // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
+
+          var photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
+
+          function colorResize() {
+            // Resize photo's color image to 1280px width.
+            photoUtils.colorResize(photo, 1280).then(
+                function(resizedPhoto) {
+                  resizedPhoto.queryContainerImage().then(
+                      function(image) {
+                        // Render your resized image.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function commonEOV() {
+            photoUtils.commonFOV(photo).then(
+                function(processedPhoto) {
+                  processedPhoto.queryContainerImage().then(
+                      function(image) {
+                        // Render your commonFOV processed photo.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function depthEnhance() {
+            var before = new Date().getTime();
+            photoUtils.enhanceDepth(photo, 'high').then(
+                function(enhancedPhoto) {
+                  var after = new Date().getTime();
+                  var diff = after - before;
+                  enhancedPhoto.queryDepth().then(
+                      function(image) {
+                        // Render the depth enhanced photo image.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function depthResize() {
+            // Resize photo's depth image to 640px width.
+            photoUtils.depthResize(photo, 640).then(
+                function(resizedPhoto) {
+                  resizedPhoto.queryDepth().then(
+                      function(image) {
+                        // Render the resized depth photo image.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function depthQuality() {
+            photoUtils.getDepthQuality(photo).then(
+                function(quality) {
+                  console.log('Depth qulity = ' + quality);
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function photoCrop() {
+            // Use originX, originY, width, height to define the bounding rectangle of the crop area.
+            photoUtils.photoCrop(photo, { x: originX, y: originY, w: width, h: height}).then(
+                function(croppedPhoto) {
+                  croppedPhoto.queryContainerImage().then(
+                      function(image) {
+                        // Render the cropped photo image.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+
+          function photoRotate() {
+            // Rotate photo by 90 degree clockwise.
+            photoUtils.photoRotate(photo, 90.0).then(
+                function(rotatedPhoto) {
+                  rotatedPhoto.queryContainerImage().then(
+                      function(image) {
+                        // Render the rotated photo image.
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Measure Within a Depth Photo
+        </h3>
+        <pre class='example highlight'>
+          // photo is the instance of DepthPhoto
+          // which can be got from the camera [Example 1] or loaded from somewhere [Example 2 or 3]
+
+          var measurement;
+          try {
+            measurement = new realsense.DepthEnabledPhotography.Measurement();
+          } catch (error) {
+            console.log(error.message);
+            return;
+          }
+          // startX, startY, endX and endY defines the start and end point of the measurement respectively.
+          measurement.measureDistance(photo, { x: startX, y: startY }, { x: endX, y: endY }).then(
+              function(d) {
+                console.log(
+                    'Distance between(' + startX + ',' + startY +
+                    ') - (' + endX + ',' + endY + ') = ' +
+                    parseFloat(d.distance).toFixed(2) + ' millimeters, Confidence = ' +
+                    parseFloat(d.confidence).toFixed(2) + ', Precision=' +
+                    parseFloat(d.precision).toFixed(2) + 'mm');
+              },
+              function(error) { console.log(error.message); });
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Apply Motion Effect
+        </h3>
+        <pre class='example highlight'>
+          var motionEffect;
+          try {
+            motionEffect = new realsense.DepthEnabledPhotography.MotionEffect();
+          } catch (error) {
+            console.log(error.message);
+            return;
+          }
+          motionEffect.init(photo).then(
+              function() {
+                doMothionEffect();
+              },
+              function(error) { console.log(error.message); });
+
+          function doMothionEffect() {
+            // Set these motion parameters at your convenience. In this demo, we moved
+            // the photo 40px to the right and zoomed it out 1.5 times.
+            var right = 40.0, up = 0.0, forward = 0.0;
+            var yaw = 0.0, pitch = 0.0, roll = 0.0;
+            var zoom = 1.5;
+            motionEffect.apply({ horizontal: right, vertical: up, distance: forward },
+                               { pitch: pitch, yaw: yaw, roll: roll },
+                               zoom).then(
+                function(image) {
+                  // Render the motion effect applied photo image.
+                },
+                function(error) { console.log(error.message); });
+          }
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Photo Segmentation
+        </h3>
+        <pre class='example highlight'>
+          var segmentation;
+          try {
+            segmentation = new realsense.DepthEnabledPhotography.Segmentation();
+          } catch (error) {
+            console.log(error.message);
+            return;
+          }
+
+          var markupImageBuffer = []; // An ArrayBuffer for bounding mask image data
+                                      // (photo.width x photo.height), pixel value should be
+                                      // 255 for foreground and 0 for background.
+
+          // Cleanup the markupImageBuffer
+          var len = photo.with * photo.height;
+          for (var i = 0; i < len; i++) {
+            markupImageBuffer[i] = 0;
+          }
+
+          (function createInitialMask(topX, topY, bottomX, bottomY) {
+            var value = 255;
+            for (var y = topY; y != bottomY; y += (topY < bottomY) ? 1 : -1) {
+              for (var x = topX; x != bottomX; x += (topX < bottomX) ? 1 : -1) {
+                // Set the pixel value to 255 within the bounding area of (topX, topY, buttomX, buttomY).
+                markupImageBuffer[y * photo.width + x] = value;
+              }
+            }
+          })(10, 10, 100, 100); // Created a mask image with bounding rect of (10, 10, 100, 100).
+
+          var initialMarkupImage = {
+            format: 'Y8',
+            width: photo.width,
+            height: photo.height,
+            data: markupImageBuffer
+          };
+
+          segmentation.objectSegment(photo, initialMarkupImage).then(
+              function(maskImage) {
+                // As the segmentation.refineMask() needs to be called after a successful call of
+                // segmentation.objectSegment(), here we dispatch an event 'objectSegmentSucceed'
+                // to notify a successful calling.
+                window.dispatchEvent(new Event('objectSegmentSucceed'));
+                photo.queryContainerImage().then(
+                    function(colorImage) {
+                      // Blend and render the colorImage and maskImage.
+                    },
+                    function(error) { console.log(error.message); });
+              },
+              function(error) { console.log(error.message); });
+
+          window.addEventListener('objectSegmentSucceed', function(event) {
+            // The maskArea is always generated by user action (e.g. a serie of mouse click), you
+            // could use a event listener to capture the mouse click on your canvas.
+            var maskArea = [{x: 0, y: 0}, {x: 10, y: 10}, ...];
+
+            var isForeground = true; // Indicate if the refinement take place in forground or background.
+            segmentation.refineMask(maskArea, isForeground).then(
+                function(maskImage) {
+                  photo.queryContainerImage().then(
+                      function(colorImage) {
+                        // Blend and render the colorImage and maskImage;
+                      },
+                      function(error) { console.log(error.message); });
+                },
+                function(error) { console.log(error.message); });
+          }, false);
+        </pre>
+      </section>
     </section>
     <section class='appendix'>
       <h2>Acknowledgments</h2>
