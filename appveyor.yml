@@ -8,7 +8,7 @@ init:
 environment:
   DEPOT_TOOLS_WIN_TOOLCHAIN: 0
   XWALK_CHANNEL: canary
-  XWALK_VERSION: 18.48.475.0
+  XWALK_VERSION: 19.48.498.0
 install:
 - cmd: >-
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
@@ -19,11 +19,11 @@ install:
 
     cd c:\projects\xwalk
 
-    curl -fsS -o crosswalk-%XWALK_VERSION%.zip https://download.01.org/crosswalk/releases/crosswalk/windows/%XWALK_CHANNEL%/%XWALK_VERSION%/crosswalk-%XWALK_VERSION%.zip
+    curl -fsS -o crosswalk64-%XWALK_VERSION%.zip https://download.01.org/crosswalk/releases/crosswalk/windows/%XWALK_CHANNEL%/%XWALK_VERSION%/crosswalk64-%XWALK_VERSION%.zip
 
-    set XWALK_HOME=c:\projects\xwalk\crosswalk-%XWALK_VERSION%.zip
+    set XWALK_HOME=c:\projects\xwalk\crosswalk64-%XWALK_VERSION%.zip
 
-    npm install -g https://github.com/crosswalk-project/crosswalk-app-tools.git
+    npm install -g crosswalk-app-tools
 
     set PATH=%PATH%;C:\Program Files (x86)\WiX Toolset v3.10\bin
 
