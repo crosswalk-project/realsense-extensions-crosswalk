@@ -1250,6 +1250,164 @@
         </dl>
       </section>
     </section>
+    <section class='informative'>
+      <h2>
+        Examples
+      </h2>
+      <section>
+        <h3>
+          Configure and Control Scene Perception(SP) module
+        </h3>
+        <pre class='example highlight'>
+          // SP states and changing conditions.
+          // -- IDLE
+          // Before the pipeline is initialized.
+
+          // -- INITIALIZED
+          // Pipeline is initialized, SP module is paused.
+          // Possible output in this state:
+          //     checking event(depth quality)
+          //
+          //     getSample(raw color/depth image)
+
+          // -- STARTED
+          // SP module starts to work, receiving raw smaples and reconstructing the
+          // volume space according to them.
+          // Typically this state is triggerred when the depth quality
+          // is acceptable.
+          // SP module is on tracking, and on reconstructing if reconstruction
+          // flag enabled.
+          // Possible output in this state:
+          //     sampleProcessed event(quality, tracking accuracy, camera pose)
+          //     meshupdated event(no data)
+          //
+          //     getSample(processed sample including color/depth image)
+          //     getMeshData
+          //     get/query[XXX] interfaces to get configurations or data from SP module.
+
+          // The changing diagram.
+          // --sp.destory() from other states--> "IDEL" --sp.init()--> "INITIALIZED"
+          // "INITIALIZED" --sp.start()--> "STARTED"
+          // "STARTED" --sp.stop()--> "INITIALIZED"
+
+          // This example will show the skeleton frame to init and control SP module.
+
+          var sp = realsense.ScenePerception;
+
+          var initButton = document.getElementById('init');
+          var destroyButton = document.getElementById('destroy');
+          var startButton = document.getElementById('startSP');
+          var stopButton = document.getElementById('stopSP');
+
+          // Set the initial state of buttons.
+          resetButtonState(true);
+
+          function resetButtonState(beforeStart) {
+            initButton.disabled = !beforeStart;
+            destroyButton.disabled = beforeStart;
+            startButton.disabled = beforeStart;
+            stopButton.disabled = true;
+          }
+
+          initButton.onclick = function(e) {
+            // Please refer to InitialConfiguration for more info.
+            var initConfig = {
+              useOpenCVCoordinateSystem: true,
+              colorCaptureSize: {'width':320, 'height':240},
+              depthCaptureSize: {'width':320, 'height':240},
+              captureFramerate: 60
+            };
+            sp.init(initConfig).then(function() {
+              // Set the state of buttons.
+              resetButtonState(false);
+
+              // Other initialization work can be done here.
+              console.log('init succeeds');
+            }, function(e) {console.log(e);});
+          };
+
+          startButton.onclick = function(e) {
+            sp.start().then(function() {
+              startButton.disabled = true;
+              stopButton.disabled = false;
+              console.log('SP started successfully');
+            }, function(e) {console.log(e);});
+          };
+
+          stopButton.onclick = function(e) {
+            sp.stop().then(function() {
+              console.log('SP stops working.');
+              startButton.disabled = false;
+              stopButton.disabled = true;
+            }, function(e) {console.log(e);});
+          };
+
+          destroyButton.onclick = function(e) {
+            sp.destroy().then(function() {
+              console.log('stop succeeds');
+              resetButtonState(true);
+            }, function(e) {console.log(e);});
+          };
+        </pre>
+      </section>
+      <section>
+        <h3>
+          Handle events of SP module
+        </h3>
+        <pre class='example highlight'>
+          var qualityElement = document.getElementById('quality');
+          var accuracyElement = document.getElementById('accuracy');
+
+          sp.onchecking = function(e) {
+            var quality = e.data.quality;
+            qualityElement.innerHTML = 'Quality: ' + quality.toFixed(2);
+          };
+
+          // Please refer to SampleProcessedEvent inferface for event data.
+          sp.onsampleprocessed = function(e) {
+            accuracyElement.innerHTML = 'Accuracy: ' + e.data.accuracy;
+            qualityElement.innerHTML = 'Quality: ' + e.data.quality.toFixed(2);
+
+            sp.getSample().then(function(sample) {
+              // The sample object contains color image and depth image.
+              // The image data structure, which could possibly look like this:
+              // sample.color = {
+              //                  width: imageWidth,
+              //                  height: imageHeight,
+              //                  data: Uint8Array
+              //                };
+              // sample.depth = {
+              //                  width: imageWidth,
+              //                  height: imageHeight,
+              //                  data: Uint16Array
+              //                };
+              // Please refer to getSample interface for more details.
+            }, function(e) {console.log(e);});
+
+            sp.queryVolumePreview(e.data.cameraPose).then(function(volumePreview) {
+              // The volume preview image data structure is similar with color and depth image in sample.
+              // volumePreview = {
+              //                   width: imageWidth,
+              //                   height: imageHeight,
+              //                   data: Uint8Array
+              //                 };
+              // Please refer to VolumePreviewData interface for detail data format.
+            });
+          };
+
+          sp.onmeshupdated = function(e) {
+            thisObj = this;
+            sp.getMeshData().then(function(meshes) {
+              // In the meshes, there are information about vertices, faces and color.
+              // Meshes can be used to reconstruct the scanned scene by WebGL.
+              // Please refer to MeshData inferface for more details.
+            }, function(e) {console.log(e);});
+          };
+
+          sp.onerror = function(e) {console.log(e););
+        </pre>
+      </section>
+    </section>
     <section class='appendix'>
       <h2>Acknowledgments</h2>
       <p>
