@@ -9,6 +9,7 @@
 
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/threading/thread.h"
+#include "third_party/libpxc/include/pxcfaceconfiguration.h"
 #include "third_party/libpxc/include/pxcfacedata.h"
 #include "third_party/libpxc/include/pxcimage.h"
 #include "third_party/libpxc/include/pxcsensemanager.h"
@@ -20,7 +21,9 @@ namespace face {
 
 using realsense::jsapi::common::ErrorCode;
 
-class FaceModuleObject : public xwalk::common::EventTarget {
+class FaceModuleObject
+    : public xwalk::common::EventTarget,
+      public PXCFaceConfiguration::AlertHandler {
  public:
   FaceModuleObject();
   ~FaceModuleObject() override;
@@ -28,6 +31,9 @@ class FaceModuleObject : public xwalk::common::EventTarget {
   // EventTarget implementation.
   void StartEvent(const std::string& type) override;
   void StopEvent(const std::string& type) override;
+
+  // PXCFaceConfiguration::AlertHandler implementation.
+  void OnFiredAlert(const PXCFaceData::AlertData *alert) override;
 
  private:
   void OnSetCamera(
@@ -97,6 +103,7 @@ class FaceModuleObject : public xwalk::common::EventTarget {
 
   bool on_processedsample_;
   bool on_error_;
+  bool on_alert_;
 
   base::Thread face_module_thread_;
   scoped_refptr<base::MessageLoopProxy> message_loop_;

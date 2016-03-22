@@ -17,6 +17,15 @@ namespace face_module {
     right_left
   };
 
+  enum AlertType {
+    new_face_detected,
+    face_out_of_fov,
+    face_back_to_fov,
+    face_occluded,
+    face_no_longer_occluded,
+    face_lost
+  };
+
   enum PixelFormat {
     RGB32,
     DEPTH
@@ -94,6 +103,16 @@ namespace face_module {
     double y;
   };
 
+  // AlertConfiguration
+  dictionary AlertConfiguration {
+    boolean? newFaceDetected;
+    boolean? faceOutOfFov;
+    boolean? faceBackToFov;
+    boolean? faceOccluded;
+    boolean? faceNoLongerOccluded;
+    boolean? faceLost;
+  };
+
   // DetectionConfiguration 
   dictionary DetectionConfiguration {
     boolean? enable;
@@ -116,6 +135,7 @@ namespace face_module {
   dictionary FaceConfigurationData {
     TrackingModeType? mode;
     TrackingStrategyType? strategy;
+    AlertConfiguration? alert;
     DetectionConfiguration? detection;
     LandmarksConfiguration? landmarks;
     RecognitionConfiguration? recognition;
@@ -160,6 +180,12 @@ namespace face_module {
     FaceData[] faces;
   };
 
+  dictionary AlertEventData {
+    AlertType typeLabel;
+    long timeStamp;
+    long faceId;
+  };
+
   callback ProcessedSamplePromise = void (ProcessedSample sample);
   callback FaceConfigurationDataPromise = void (FaceConfigurationData faceConf);
   callback LongPromise = void (long value);
@@ -169,6 +195,7 @@ namespace face_module {
     void onended();
     void onerror();
     void onprocessedsample();
+    void onalert();
   };
 
   interface Functions {

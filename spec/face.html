@@ -190,7 +190,48 @@
               to <code><a>FaceModule</a></code> when a new processed sample is ready.
             </p>
           </dd>
+          <dt>
+            attribute EventHandler onalert
+          </dt>
+          <dd>
+            <p>
+              A property used to set the EventHandler (described in [[!HTML]])
+              for the <a><code>AlertEvent</code></a> that is dispatched
+              to <code><a>FaceModule</a></code> when there is an alert happened.
+            </p>
+          </dd>
         </dl>
+        <section>
+          <h3>
+            <code><a>AlertEvent</a></code> interface
+          </h3>
+          <dl class="idl" title="interface AlertEvent: Event">
+            <dt>
+              readonly attribute AlertType typeLabel
+            </dt>
+            <dd>
+              <p>
+                The label of the alert event.
+              </p>
+            </dd>
+            <dt>
+              readonly attribute long timeStamp
+            </dt>
+            <dd>
+              <p>
+                The time stamp when the event occurred, in 100ns.
+              </p>
+            </dd>
+            <dt>
+              readonly attribute long faceId
+            </dt>
+            <dd>
+              <p>
+                The identifier of the relevant face, if relevant and known.
+              </p>
+            </dd>
+          </dl>
+        </section>
         <section>
           <h3>
             <code><a>FaceErrorEvent</a></code> interface
@@ -461,6 +502,49 @@
       </section>
       <section>
         <h2>
+          <code><a>AlertConfiguration</a></code>
+        </h2>
+        <dl title='dictionary AlertConfiguration' class='idl'>
+          <dt>
+            boolean? newFaceDetected
+          </dt>
+          <dd>
+            Enable new_face_detected alert.
+          </dd>
+          <dt>
+            boolean? faceOutOfFov
+          </dt>
+          <dd>
+            Enable face_out_of_fov alert.
+          </dd>
+          <dt>
+            boolean? faceBackToFov
+          </dt>
+          <dd>
+            Enable face_back_to_fov alert.
+          </dd>
+          <dt>
+            boolean? faceOccluded
+          </dt>
+          <dd>
+            Enable face_occluded alert.
+          </dd>
+          <dt>
+            boolean? faceNoLongerOccluded
+          </dt>
+          <dd>
+            Enable face_no_longer_occluded alert.
+          </dd>
+          <dt>
+            boolean? faceLost
+          </dt>
+          <dd>
+            Enable face_lost alert.
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
           <code><a>DetectionConfiguration</a></code>
         </h2>
         <dl title='dictionary DetectionConfiguration' class='idl'>
@@ -532,6 +616,14 @@
           </dt>
           <dd>
             Face tracking strategy.
+          </dd>
+          <dt>
+            AlertConfiguration? alert
+          </dt>
+          <dd>
+            <p>
+              The structure describing the alert enable/disable status.
+            </p>
           </dd>
           <dt>
             DetectionConfiguration? detection
@@ -799,6 +891,61 @@
           <dd>
             <p>
               Track faces from right to left.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>AlertType</a></code> enum
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum AlertType">
+          <dt>
+            new_face_detected
+          </dt>
+          <dd>
+            <p>
+              A new face enters the FOV and its position and bounding rectangle is available.
+            </p>
+          </dd>
+          <dt>
+            face_out_of_fov
+          </dt>
+          <dd>
+            <p>
+              A new face is out of field of view (even slightly).
+            </p>
+          </dd>
+          <dt>
+            face_back_to_fov
+          </dt>
+          <dd>
+            <p>
+              A tracked face is back fully to field of view.
+            </p>
+          </dd>
+          <dt>
+            face_occluded
+          </dt>
+          <dd>
+            <p>
+              Face is occluded by any object or hand (even slightly).
+            </p>
+          </dd>
+          <dt>
+            face_no_longer_occluded
+          </dt>
+          <dd>
+            <p>
+              Face is not occluded by any object or hand.
+            </p>
+          </dd>
+          <dt>
+            face_lost
+          </dt>
+          <dd>
+            <p>
+              A face could not be detected for too long, will be ignored.
             </p>
           </dd>
         </dl>
