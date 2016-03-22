@@ -1423,7 +1423,7 @@ void ScenePerceptionObject::DoQueryVolumePreview(
   if (!params) {
     info->PostResult(
         QueryVolumePreview::Results::Create(
-          image, "Malformed parameters for queryVolumePreview"));
+            image, "Malformed parameters for queryVolumePreview"));
     return;
   }
   pxcF32 pose[12];
@@ -1431,11 +1431,17 @@ void ScenePerceptionObject::DoQueryVolumePreview(
     pose[i] = static_cast<float>((params->pose)[i]);
   }
 
-  PXCImage* vPreview = scene_perception_->QueryVolumePreview(pose);
+  PXCImage* volume_preview = scene_perception_->QueryVolumePreview(pose);
+  if (!volume_preview) {
+    info->PostResult(
+        QueryVolumePreview::Results::Create(
+            image, "Failed to queryVolumePreview"));
+    return;
+  }
   // sample message: call_id (i32),
   // width (i32), height (i32),
   // RGBA_data (int8 buffer)
-  PXCImage::ImageInfo imageInfo = vPreview->QueryInfo();
+  PXCImage::ImageInfo imageInfo = volume_preview->QueryInfo();
   int dataOffset = 3 * sizeof(int);
 
   size_t internalSize =
@@ -1448,12 +1454,12 @@ void ScenePerceptionObject::DoQueryVolumePreview(
   int_array[1] = imageInfo.width;
   int_array[2] = imageInfo.height;
 
-  copyImageRGB32(vPreview,
+  copyImageRGB32(volume_preview,
          reinterpret_cast<uint8_t*>(
          volume_preview_message.get() + dataOffset));
 
   // Need to release to image.
-  vPreview->Release();
+  volume_preview->Release();
   scoped_ptr<base::ListValue> result(new base::ListValue());
   result->Append(base::BinaryValue::CreateWithCopiedBuffer(
         reinterpret_cast<const char*>(volume_preview_message.get()),
