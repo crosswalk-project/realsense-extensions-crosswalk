@@ -40,7 +40,7 @@ def packageSampleApp(appRoot, platform, xwalkPath):
 def main():
   parser = optparse.OptionParser()
   parser.add_option('-e', '--extensions', help='Directory to the extensions')
-  parser.add_option('-w', '--web_content', help='Dietory to the web staff.')
+  parser.add_option('-w', '--web_content', help='Directory to the web staff.')
   parser.add_option('-o', '--out', help='Output directory of the sample app.')
   parser.add_option('-p', '--platform',
                     help='The target platform for the sample.')
@@ -69,7 +69,7 @@ def main():
     sys.exit(2)
   shutil.copytree(options.extensions, distExtDir)
 
-  # Add currently VEERSION to the manifest.json.
+  # Add currently VERSION to the manifest.json.
   if options.version is not None:
     addAppVersion(options.version, options.out)
 
@@ -81,7 +81,7 @@ def main():
 
   xwalkEnv = "XWALK_HOME"
   if (xwalkEnv not in os.environ):
-    print "Error: 'XWALK_HOME' has not be set to the crosswalk binary."
+    print "Error: 'XWALK_HOME' has not been set to the crosswalk binary."
     sys.exit(2)
 
   # Currently we specified the platfrom as "windows".
