@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hand Tracking</title>
+    <meta charset='utf-8'>
+    <script src='respec/respec-w3c-common.js'
+            async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+          // specification status (e.g. WD, LCWD, WG-NOTE, etc.). If in doubt use ED.
+          specStatus:           "unofficial",
+
+          additionalCopyrightHolders: "This document uses the BSD license, see the <a href='https://github.com/crosswalk-project/realsense-extensions-crosswalk/blob/master/LICENSE'>LICENSE</a> file.",
+
+          shortName:            "hand-tracking",
+          // editors, add as many as you like
+          // only "name" is required
+          editors:  [
+              {
+                  name:       "Ningxin Hu"
+              ,   company:    "Intel"
+              ,   companyURL: "http://www.intel.com/"
+              },
+          ],
+      };
+    </script>
+  </head>
+  <body>
+    <section id='abstract'>
+      <p>
+        This specification describes support for real-time 3D hand motion tracking by using depth camera.
+      </p>
+    </section>
+
+    <section id='sotd'>
+      <p>
+        This document was published by the <a href="https://crosswalk-project.org/">Crosswalk Project</a>
+        as an API Draft.
+        If you wish to make comments regarding this document, please send them to
+        <a href="mailto:crosswalk-dev@lists.crosswalk-project.org">crosswalk-dev@lists.crosswalk-project.org</a>.
+        All comments are welcome.
+      </p>
+    </section>
+
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        The APIs described in this document are exposed through
+        <code>realsense.HandTracking</code> module.
+      </p>
+      <section>
+        <h2>Hand Tracking</h2>
+        <p>
+          The hand tracking capability can be accessed via <code><a>HandModule</a></code>
+          interface. It allows to control, configure the hand tracking and retrieve 
+          the hand information.
+        </p>
+      </section>
+      <section>
+        <h2>Hand Model</h2>
+        <p>
+          The tracked hand provides full 3D skeleton information including
+          all 22 joints and fingers data as following diagram illustrated.<br>
+          <img src="images/hand-model.png" style="width:90%">
+        </p>
+        <p>
+          The tracked hand model can be accessed via <code><a>Hand</a></code> interface.
+        </p>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Interfaces
+      </h2>
+      <section>
+        <h2>
+          <code><a>HandModule</a></code>
+        </h2>
+        <p>
+          The <code><a>HandModule</a></code> is the main interface for
+          hand tracking.
+        </p>
+        <dl title='[Constructor()] interface HandModule' class='idl'>
+          <dt>
+            Promise&lt;void&gt; init()
+          </dt>
+          <dd>
+            <p>
+              The <code>init()</code> method initializes the hand tracking.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object defined in [[!WEBIDL]] if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;ImageSize&gt; start()
+          </dt>
+          <dd>
+            <p>
+              The <code>start()</code> method starts the hand tracking.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the image size if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;void&gt; stop()
+          </dt>
+          <dd>
+            <p>
+              The <code>stop()</code> method stops the hand tracking.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;sequence&lt;Hand&gt;&gt; track()
+          </dt>
+          <dd>
+            <p>
+              The <code>track()</code> method tracks the hands.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with an array of tracked hands
+              if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getDepthImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>getDepthImage()</code> method gets the latest processed depth image.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the processed depth image if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object if there is a failure.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Hand</a></code>
+        </h2>
+        <p>
+          The <code><a>Hand</a></code> is the interface of the tracked hand.
+        </p>
+        <dl title='interface Hand' class='idl'>
+          <dt>
+            readonly attribute long uniqueId
+          </dt>
+          <dd>
+            <p>
+              The unique ID of given tracked hand.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute long long timeStamp
+          </dt>
+          <dd>
+            <p>
+              The time-stamp in which the collection of the hand data was completed.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute boolean calibrated
+          </dt>
+          <dd>
+            <p>
+              <code>true</code> if there is a valid hand calibration, otherwise <code>false</code>.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute BodySide bodySide
+          </dt>
+          <dd>
+            <p>
+              The side of the body to which the hand belongs (when known).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Rect boundingBoxImage
+          </dt>
+          <dd>
+            <p>
+              The location and dimensions of the tracked hand, represented by a 2D bounding box (defined in pixels).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Point2D massCenterImage
+          </dt>
+          <dd>
+            <p>
+              The 2D center of mass of the hand in image space (in pixels).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Point3D massCenterWorld
+          </dt>
+          <dd>
+            <p>
+              The 3D center of mass of the hand in world space (in meters).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Point4D palmOrientation
+          </dt>
+          <dd>
+            <p>
+              The quaternion representing the global 3D orientation of the palm.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute double palmRadiusImage
+          </dt>
+          <dd>
+            <p>
+              The palm radius in image space (number of pixels).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute double palmRadiusWorld
+          </dt>
+          <dd>
+            <p>
+              The palm radius in world space (meters).
+            </p>
+          </dd>
+          <dt>
+            readonly attribute ExtremityDataPoints extremityPoints
+          </dt>
+          <dd>
+            <p>
+              The extremity points of tracked hand.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Fingers fingerData
+          </dt>
+          <dd>
+            <p>
+              The finger data of tracked hand.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Joints trackedJoints
+          </dt>
+          <dd>
+            <p>
+              The joints data of tracked hand.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute TrackingStatus trackingStatus
+          </dt>
+          <dd>
+            <p>
+              The tracking status.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute long openness
+          </dt>
+          <dd>
+            <p>
+              The degree of openness of the hand.
+            </p>
+          </dd>
+          <dt>
+            readonly attribute Joints normalizedJoints
+          </dt>
+          <dd>
+            <p>
+              The normalized joints data of tracked hand.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;Image&gt; getSegmentationImage()
+          </dt>
+          <dd>
+            <p>
+              The <code>getSegmentationImage()</code> method retrieves the
+              2D image mask of the tracked hand.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the mask image if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object defined in [[!WEBIDL]] if there is a failure.
+            </p>
+          </dd>
+          <dt>
+            Promise&lt;sequence&lt;Contour&gt;&gt; getContours()
+          </dt>
+          <dd>
+            <p>
+              The <code>getContours()</code> method retrieves the contours of
+              the tracked hand.
+            </p>
+            <p>
+              This method returns a promise.
+              The promise will be fulfilled with the array of contours if there are no errors.
+              The promise will be rejected with the <code><a>DOMException</a></code>
+              object defined in [[!WEBIDL]] if there is a failure.
+            </p>
+          </dd>
+        </section>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Dictionaries
+      </h2>
+      <section>
+        <h2>
+          <code><a>Image</a></code>
+        </h2>
+        <dl title='dictionary Image' class='idl'>
+          <dt>
+            PixelFormat format
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long width
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            long height
+          </dt>
+          <dd>
+          </dd>
+          <dt>
+            ArrayBuffer data
+          </dt>
+          <dd>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point2D</a></code>
+        </h2>
+        <dl title='dictionary Point2D' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+            <p>
+              The x coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+            <p>
+              The y coordinate of the point.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point3D</a></code>
+        </h2>
+        <dl title='dictionary Point3D' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+            <p>
+              The x coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+            <p>
+              The y coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double z
+          </dt>
+          <dd>
+            <p>
+              The z coordinate of the point.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Point4D</a></code>
+        </h2>
+        <dl title='dictionary Point4D' class='idl'>
+          <dt>
+            double x
+          </dt>
+          <dd>
+            <p>
+              The x coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double y
+          </dt>
+          <dd>
+            <p>
+              The y coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double z
+          </dt>
+          <dd>
+            <p>
+              The z coordinate of the point.
+            </p>
+          </dd>
+          <dt>
+            double w
+          </dt>
+          <dd>
+            <p>
+              The w coordinate of the point.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Rect</a></code>
+        </h2>
+        <dl title='dictionary Rect' class='idl'>
+          <dt>
+            unsigned long x
+          </dt>
+          <dd>
+            <p>
+              The horizontal coordinate of the top left pixel of the rectangle.
+            </p>
+          </dd>
+          <dt>
+            unsigned long y
+          </dt>
+          <dd>
+            <p>
+              The vertical coordinate of the top left pixel of the rectangle.
+            </p>
+          </dd>
+          <dt>
+            unsigned long w
+          </dt>
+          <dd>
+            <p>
+              The rectangle width in pixels.
+            </p>
+          </dd>
+          <dt>
+            unsigned long h
+          </dt>
+          <dd>
+            <p>
+              The rectangle height in pixels.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>ImageSize</a></code>
+        </h2>
+        <dl title='dictionary ImageSize' class='idl'>
+          <dt>
+            unsigned long width
+          </dt>
+          <dd>
+            <p>
+              The rectangle width in pixels.
+            </p>
+          </dd>
+          <dt>
+            unsigned long height
+          </dt>
+          <dd>
+            <p>
+              The rectangle height in pixels.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>ExtremityData</a></code>
+        </h2>
+        <dl title='dictionary ExtremityData' class='idl'>
+          <dt>
+            Point3D pointWorld
+          </dt>
+          <dd>
+            <p>
+              The 3D world coordinates of the extremity point.
+            </p>
+          </dd>
+          <dt>
+            Point2D pointImage
+          </dt>
+          <dd>
+            <p>
+              The 2D image coordinates of the extremity point.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>ExtremityDataPoints</a></code>
+        </h2>
+        <dl title='dictionary ExtremityDataPoints' class='idl'>
+          <dt>
+            ExtremityData closest
+          </dt>
+          <dd>
+            <p>
+              The closest point to the camera in the tracked hand.
+            </p>
+          </dd>
+          <dt>
+            ExtremityData leftmost
+          </dt>
+          <dd>
+            <p>
+              The left-most point of the tracked hand.
+            </p>
+          </dd>
+          <dt>
+            ExtremityData rightmost
+          </dt>
+          <dd>
+            <p>
+              The right-most point of the tracked hand.
+            </p>
+          </dd>
+          <dt>
+            ExtremityData topmost
+          </dt>
+          <dd>
+            <p>
+              The top-most point of the tracked hand.
+            </p>
+          </dd>
+          <dt>
+            ExtremityData bottommost
+          </dt>
+          <dd>
+            <p>
+              The bottom-most point of the tracked hand.
+            </p>
+          </dd>
+          <dt>
+            ExtremityData center
+          </dt>
+          <dd>
+            <p>
+              The center point of the tracked hand.
+            </p>
+          </dd>
+          
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>FingerData</a></code>
+        </h2>
+        <dl title='dictionary FingerData' class='idl'>
+          <dt>
+            long foldedness
+          </dt>
+          <dd>
+            <p>
+              The degree of "foldedness" of the tracked finger, ranging from 0 (least folded / straight) to 100 (most folded).
+            </p>
+          </dd>
+          <dt>
+            long radius
+          </dt>
+          <dd>
+            <p>
+              The radius of the tracked fingertip. The default value is 0.017m while the hand is not calibrated.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Fingers</a></code>
+        </h2>
+        <dl title='dictionary Fingers' class='idl'>
+          <dt>
+            FingerData thumb
+          </dt>
+          <dd>
+            <p>
+              The finger data of thumb finger.
+            </p>
+          </dd>
+          <dt>
+            FingerData index
+          </dt>
+          <dd>
+            <p>
+              The finger data of index finger.
+            </p>
+          </dd>
+          <dt>
+            FingerData middle
+          </dt>
+          <dd>
+            <p>
+              The finger data of middle finger.
+            </p>
+          </dd>
+          <dt>
+            FingerData ring
+          </dt>
+          <dd>
+            <p>
+              The finger data of ring finger.
+            </p>
+          </dd>
+          <dt>
+            FingerData pinky
+          </dt>
+          <dd>
+            <p>
+              The finger data of pinky finger.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>JointData</a></code>
+        </h2>
+        <dl title='dictionary JointData' class='idl'>
+          <dt>
+            long confidence
+          </dt>
+          <dd>
+            <p>
+              RESERVED: for future confidence score feature
+            </p>
+          </dd>
+          <dt>
+            Point3D positionWorld
+          </dt>
+          <dd>
+            <p>
+              The geometric position in 3D world coordinates, in meters.
+            </p>
+          </dd>
+          <dt>
+            Point3D positionImage
+          </dt>
+          <dd>
+            <p>
+              The geometric position in 2D image coordinates, in pixels. (Note: the Z coordinate is the point's depth in millimeters.)
+            </p>
+          </dd>
+          <dt>
+            Point4D localRotation
+          </dt>
+          <dd>
+            <p>
+              A quaternion representing the local 3D orientation of the joint, relative to its parent joint.
+            </p>
+          </dd>
+          <dt>
+            Point4D globalOrientation
+          </dt>
+          <dd>
+            <p>
+              A quaternion representing the global 3D orientation, relative to the "world" y axis.
+            </p>
+          </dd>
+          <dt>
+            Point3D speed
+          </dt>
+          <dd>
+            <p>
+              The speed of the joints in 3D world coordinates (X speed, Y speed, Z speed, in meters/second).
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>FingerJoints</a></code>
+        </h2>
+        <dl title='dictionary FingerJoints' class='idl'>
+          <dt>
+            JointData base
+          </dt>
+          <dd>
+            <p>
+              The joint data of finger base.
+            </p>
+          </dd>
+          <dt>
+            JointData joint1
+          </dt>
+          <dd>
+            <p>
+              The data of finger joint1.
+            </p>
+          </dd>
+          <dt>
+            JointData joint2
+          </dt>
+          <dd>
+            <p>
+              The data of finger joint2;
+            </p>
+          </dd>
+          <dt>
+            JointData tip
+          </dt>
+          <dd>
+            <p>
+              The joint data of finger tip.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>Joints</a></code>
+        </h2>
+        <dl title='dictionary Joints' class='idl'>
+          <dt>
+            JointData wrist
+          </dt>
+          <dd>
+            <p>
+              The center of wrist.
+            </p>
+          </dd>
+          <dt>
+            JointData center
+          </dt>
+          <dd>
+            <p>
+              The center of the palm.
+            </p>
+          </dd>
+          <dt>
+            FingerJoints thumb
+          </dt>
+          <dd>
+            <p>
+              The joints of thumb finger.
+            </p>
+          </dd>
+          <dt>
+            FingerJoints index
+          </dt>
+          <dd>
+            <p>
+              The joints of index finger.
+            </p>
+          </dd>
+          <dt>
+            FingerJoints middle
+          </dt>
+          <dd>
+            <p>
+              The joints of middle finger.
+            </p>
+          </dd>
+          <dt>
+            FingerJoints ring
+          </dt>
+          <dd>
+            <p>
+              The joints of ring finger.
+            </p>
+          </dd>
+          <dt>
+            FingerJoints pinky
+          </dt>
+          <dd>
+            <p>
+              The joints of pinky finger.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section>
+      <h2>
+        Enumerators
+      </h2>
+      <section>
+        <h2>
+          <code><a>PixelFormat</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum PixelFormat">
+          <dt>
+            depth
+          </dt>
+          <dd>
+            <p>
+              The depth map data in 16-bit unsigned integer.
+              The values indicate the distance from an object to the camera's XY
+              plane or the Cartesian depth.The value precision is in millimeters.
+            </p>
+          </dd>
+          <dt>
+            y8
+          </dt>
+          <dd>
+            <p>
+              The 8-bit gray format.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>BodySide</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum BodySide">
+          <dt>
+            unknown
+          </dt>
+          <dd>
+            <p>
+              The side was not determined.
+            </p>
+          </dd>
+          <dt>
+            left
+          </dt>
+          <dd>
+            <p>
+              Left side of the body.
+            </p>
+          </dd>
+          <dt>
+            right
+          </dt>
+          <dd>
+            <p>
+              Right side of the body.
+            </p>
+          </dd>
+        </dl>
+      </section>
+      <section>
+        <h2>
+          <code><a>TrackingStatus</a></code>
+        </h2>
+        <dl id="enum-basic" class="idl" title="enum TrackingStatus">
+          <dt>
+            good
+          </dt>
+          <dd>
+            <p>
+              Optimal tracking conditions.
+            </p>
+          </dd>
+          <dt>
+            out-of-fov
+          </dt>
+          <dd>
+            <p>
+              The hand is outside the field of view (in the x/y axis).
+            </p>
+          </dd>
+          <dt>
+            out-of-range
+          </dt>
+          <dd>
+            <p>
+              The hand is outside the depth range.
+            </p>
+          </dd>
+          <dt>
+            high-speed
+          </dt>
+          <dd>
+            <p>
+              The hand is moving at high speed.
+            </p>
+          </dd>
+          <dt>
+            pointing-fingers
+          </dt>
+          <dd>
+            <p>
+              The hand fingers pointing the camera.
+            </p>
+          </dd>
+        </dl>
+      </section>
+    </section>
+    <section class='informative'>
+      <h2>
+        Examples
+      </h2>
+      <section>
+        <h3>
+          Tracking Hands
+        </h3>
+        <pre class='example highlight'>
+
+var handModule;
+var stopped = false;
+var startButton = document.getElementById('start');
+var stopButton = document.getElementById('stop');
+
+function handleError(error) {
+  // The error is an instance of DOMException.
+  console.log(error.name + ': ' + error.message);
+}
+
+function trackHands() {
+  handModule.track().then(
+      function(hands) {
+        // The hands argument is an array of <code><a>Hand</a></code> objects.
+
+        // ... process hands ...
+
+        // Continue to track hands.
+        if (!stopped)
+          trackHands();
+      },
+      handleError
+  );
+}
+
+function main() {
+  try {
+    // Create an instance of <code><a>HandModule</a></code> interface.
+    // It is the main interface of hand tracking capability.
+    handModule = new realsense.Hand.HandModule();
+  } catch (e) {
+    console.log(e);
+  }
+
+  handModule.init().then(
+      function() {
+        console.log('Succeed to init.');
+        startButton.disabled = false;
+        stopButton.disabled = false;
+      },
+      handleError
+  );
+
+  startButton.onclick = function(e) {
+    handModule.start().then(
+        function(imageSize) {
+          // The imageSize argument is an <code><a>ImageSize</a></code> object.
+          console.log('Succeed to start.')
+          stopped = false;
+          trackHands();
+        },
+        handleError
+    );
+  };
+
+  stopButton.onclick = function(e) {
+    stopped = true;
+    handModule.stop().then(
+        function() {
+          console.log('Succeed to stop.');
+        },
+        handleError
+    );
+  };
+}
+        </pre>
+      </section>
+    </section>
+    <section class='appendix'>
+      <h2>Acknowledgments</h2>
+      <p>
+      </p>
+    </section>
+  </body>
+</html>

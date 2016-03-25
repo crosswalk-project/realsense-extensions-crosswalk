@@ -16,4 +16,44 @@ namespace common {
     ErrorCode error;
     DOMString message;
   };
+
+  // https://heycam.github.io/webidl/#idl-DOMException-error-names
+  enum ErrorName {
+    IndexSizeError,
+    HierarchyRequestError,
+    WrongDocumentError,
+    InvalidCharacterError,
+    NoModificationAllowedError,
+    NotFoundError,
+    NotSupportedError,
+    InUseAttributeError,
+    InvalidStateError,
+    SyntaxError,
+    InvalidModificationError,
+    NamespaceError,
+    InvalidAccessError,
+    SecurityError,
+    NetworkError,
+    AbortError,
+    URLMismatchError,
+    QuotaExceededError,
+    TimeoutError,
+    InvalidNodeTypeError,
+    DataCloneError,
+    EncodingError,
+    NotReadableError,
+    UnknownError,
+    ConstraintError,
+    DataError,
+    TransactionInactiveError,
+    ReadOnlyError,
+    VersionError,
+    OperationError,
+    NotAllowedError
+  };
+
+  dictionary DOMException {
+    DOMString message;
+    ErrorName name;
+  };
 };

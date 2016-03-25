@@ -49,6 +49,18 @@ scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error,
   return create_results.Pass();
 }
 
+scoped_ptr<base::ListValue> CreateDOMException(const std::string& message,
+                                               ErrorName name) {
+  DOMException domException;
+  domException.message = message;
+  domException.name = name;
+
+  scoped_ptr<base::ListValue> result(new base::ListValue());
+  result->Append(base::Value::CreateNullValue());
+  result->Append((domException).ToValue().release());
+  return result.Pass();
+}
+
 scoped_ptr<base::ListValue> CreateSuccessResult() {
   scoped_ptr<base::ListValue> create_results(new base::ListValue());
   create_results->Append(base::Value::CreateNullValue());

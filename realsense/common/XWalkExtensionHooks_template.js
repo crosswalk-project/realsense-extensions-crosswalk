@@ -13,7 +13,8 @@ var RS_LICENSE_URL = RS_RUNTIME_URL_BASE +
 var FeatureNameMap = {
   'RS_R200_DEP': 'epv',
   'RS_R200_SP': 'scene_perception',
-  'RS_R200_Face': 'face3d'
+  'RS_R200_Face': 'face3d',
+  'RS_F200_Hand': 'hand'
 };
 
 function RsRuntimePackagingHooks(app, configId, extraArgs, sharedState) {

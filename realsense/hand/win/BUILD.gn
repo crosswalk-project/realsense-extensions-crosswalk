@@ -1,0 +1,55 @@
+# Copyright (c) 2016 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//xwalk/common/xwalk_common.gni")
+
+xwalk_idlgen("hand_module_idl") {
+  namespace = "realsense::jsapi"
+  sources = [ "hand_module.idl" ]
+}
+
+xwalk_js2c("hand_js") {
+  sources = [ "../js/hand_api.js" ]
+}
+
+shared_library("hand") {
+  sources = [
+    "hand_extension.cc",
+    "hand_extension.h",
+    "hand_instance.cc",
+    "hand_instance.h",
+    "hand_module_object.cc",
+    "hand_module_object.h",
+  ]
+  deps = [
+    "../../common:common_idl",
+    "../../common:common_utils",
+    ":hand_module_idl",
+    ":hand_js",
+    "//extensions/third_party/libpxc",
+    "//xwalk/common:common_static",
+  ]
+  include_dirs = [
+    "../../..",
+    "$target_gen_dir",
+  ]
+}
+
+action("make_dist") {
+  script = "//extensions/realsense/common/dist.py"
+  dll_file = "hand.dll"
+  sources = [
+    "../../common/XWalkExtensionHooks_template.js"
+  ]
+  dist_dir = "$root_build_dir/realsense_extensions/hand"
+  outputs = [
+    "$dist_dir/$dll_file",
+    "$dist_dir/XWalkExtensionHooks.js",
+  ]
+  args = [
+    "--extension-dll", rebase_path("$root_build_dir/$dll_file"),
+    "--target-dir", rebase_path("$dist_dir"),
+  ]
+  deps = [ ":hand" ]
+}
