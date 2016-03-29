@@ -56,13 +56,15 @@ RsRuntimePackagingHooks.prototype.postPackage = function(platform, callback) {
   }
   fs.closeSync(fs.openSync(this._postTaskLockFile, 'w'));
 
-  // Get the generated msi file.
-  var msiFile = this._app.generatedPackage;
-  if (!this._util.ShellJS.test('-f', msiFile)) {
-    this._output.error('Error: not msi found.');
+  // Get the generated wxs file.
+  var wxsFiles = this._util.ShellJS.ls(Path.join(this._app.rootPath, '*.wxs'));
+  if (wxsFiles.length < 1) {
+    this._output.error('Error: no .wxs file found in ' + this._app.rootPath);
     callback(1);
     return;
   }
+  // Currently, we pick up the first wxs file.
+  var wxsFile = wxsFiles[0];
 
   // Get the needed modules, registerred by prePackage phase.
   var modules = fs.readFileSync(this._moduleNamesFile, 'utf8');
@@ -97,12 +99,12 @@ RsRuntimePackagingHooks.prototype.postPackage = function(platform, callback) {
       this._output.warning('Failed to download license file, ' + errorMsg);
     }
     if (this._util.ShellJS.test('-f', runtimeFile)) {
-      this.bundleThemAll(msiFile, runtimeFile, licenseFile, modules, bundleCbk);
+      this.bundleThemAll(wxsFile, runtimeFile, licenseFile, modules, bundleCbk);
       return;
     }
     this.downloadFromUrl(RS_RUNTIME_URL, '.', tryTimes, function(runtimeFile, errorMsg) {
       if (this._util.ShellJS.test('-f', runtimeFile)) {
-        this.bundleThemAll(msiFile, runtimeFile, licenseFile, modules, bundleCbk);
+        this.bundleThemAll(wxsFile, runtimeFile, licenseFile, modules, bundleCbk);
       } else {
         this._output.error('Failed to download runtime installer, ' + errorMsg);
         callback(1);
@@ -123,22 +125,13 @@ function buildFileName(url) {
      */
 }
 
-function getWindowsVersion(appVersion) {
-  // WiX wants 4 component version numbers, so append as many '.0' as needed.
-  // Manifest versions are restricted to 4 parts max.
-  if (!appVersion || appVersion.length < 1)
-    return '0.0.0.0';
-  var nComponents = appVersion.split('.').length;
-  var versionPadding = new Array(4 - nComponents + 1).join('.0');
-  return appVersion + versionPadding;
-}
-
 // To be used for cmd line arguments.
 function InQuotes(arg) {
   return '\"' + arg + '\"';
 }
-RsRuntimePackagingHooks.prototype.runWix = function(basename, options, callback) {
-  var candle = 'candle ' + options + ' ' + basename + '.wxs';
+
+RsRuntimePackagingHooks.prototype.runWix = function(basename, wxsPath, options, callback) {
+  var candle = 'candle ' + options + ' ' + wxsPath;
   this._output.info('Running "' + candle + '"');
   var child = child_process.exec(candle);
 
@@ -187,106 +180,130 @@ RsRuntimePackagingHooks.prototype.runWixLight = function(basename, options, call
 RsRuntimePackagingHooks.prototype.onData = function(data) {
 };
 
-RsRuntimePackagingHooks.prototype.selectIcon = function() {
-  var output = this._output;
-  var appPath = this._app.appPath;
-
-  var icons = this._app.manifest.icons;
-  var winIcon = null;
-  if (icons && icons.length > 0) {
-    for (var i = 0; i < icons.length; i++) {
-      var icon = icons[i];
-      var ext = Path.extname(icon.src).toLowerCase();
-      if (ext === '.ico') {
-        winIcon = icon.src;
-        break;
-      }
-    }
-  }
-
-  if (winIcon) {
-    winIcon = Path.join(appPath, winIcon);
-  } else {
-    output.warning('No icon in ".ico" format found in the manifest');
-    output.warning('Using default crosswalk.ico');
-    winIcon = Path.join(appPath, 'crosswalk.ico');
-    this._util.ShellJS.cp(
-        Path.join(__dirname, '..', '..', 'app-template', 'crosswalk.ico'), winIcon);
-  }
-
-  return winIcon;
-};
 // This callback of this function:
 // function ([Boolean] success) {}
 RsRuntimePackagingHooks.prototype.bundleThemAll =
-    function(msiFile, runtimeFile, licenseFile, modules, callback) {
+    function(wxsFile, runtimeFile, licenseFile, modules, callback) {
   this._output.info('Create a bundle with following files:');
-  this._output.info('msiFile:' + msiFile);
+  this._output.info('wxsFile:' + wxsFile);
   this._output.info('runtimeFile:' + runtimeFile);
   this._output.info('licenseFile:' + licenseFile);
   this._output.info('modules:' + modules);
-  var root = this._util.XmlBuilder.create('Wix')
-             .att('xmlns', 'http://schemas.microsoft.com/wix/2006/wi');
-  var version = getWindowsVersion(this._app.manifest.appVersion);
-  var bundle = root.ele('Bundle', {
-    'Name': '!(bind.packageName.MainApp)',
-    'Manufacturer': '!(bind.packageManufacturer.MainApp)',
-    'Version': version,
-    'IconSourceFile': this.selectIcon(),
-    'UpgradeCode': this._util.NodeUuid.v1()
-  });
-  var bootStrapper = bundle.ele('BootstrapperApplicationRef', {
-    'Id': 'WixStandardBootstrapperApplication.HyperlinkLicense'
-  });
-  var bal = bootStrapper.ele('bal:WixStandardBootstrapperApplication', {
-    'xmlns:bal': 'http://schemas.microsoft.com/wix/BalExtension',
-    'ShowVersion': 'yes',
-    'LicenseUrl': ''
-  });
-  if (licenseFile && this._util.ShellJS.test('-f', licenseFile)) {
-    bootStrapper.att('Id', 'WixStandardBootstrapperApplication.RtfLargeLicense');
-    bal.att('LicenseFile', licenseFile);
-  } else {
-    this._output.warning('No license File for the bundle.');
-    bootStrapper.att('Id', 'WixStandardBootstrapperApplication.HyperlinkLicense');
-    bal.att('LicenseUrl', '');
+  var DOMParser = this._util.XmlDom.DOMParser;
+  var XMLSerializer = this._util.XmlDom.XMLSerializer;
+
+  var buf = fs.readFileSync(wxsFile, {'encoding': 'utf8'});
+  var doc = new DOMParser().parseFromString(buf);
+
+  var product = doc.getElementsByTagName('Product');
+  var featureEle = doc.getElementsByTagName('Feature');
+  if (product.length < 1 || featureEle.length < 1) {
+    this._output.error('Failed to get [Product] or [Feature] element of:' + wxsFile);
+    if (callback instanceof Function)
+      callback(false);
   }
-  var chain = bundle.ele('Chain');
+  product = product[0];
+  featureEle = featureEle[0];
+  var version = product.getAttribute('Version');
+
+  // Insert the customAction in the wxs file.
+  var appRootRef = doc.createElement('DirectoryRef');
+  appRootRef.setAttribute('Id', 'ApplicationRootFolder');
+  product.appendChild(appRootRef);
+
+  var rtFolder = doc.createElement('Directory');
+  rtFolder.setAttribute('Id', 'RSSDKRuntimeFolder');
+  rtFolder.setAttribute('Name', 'rssdk_runtime');
+  appRootRef.appendChild(rtFolder);
+
+  var fileKey = Path.basename(runtimeFile);
+  var component = doc.createElement('Component');
+  component.setAttribute('Id', fileKey);
+  component.setAttribute('Guid', this._util.NodeUuid.v1());
+  component.setAttribute('Win64', 'yes');
+  rtFolder.appendChild(component);
+
+  var fileEle = doc.createElement('File');
+  fileEle.setAttribute('Id', fileKey);
+  fileEle.setAttribute('Source', runtimeFile);
+  component.appendChild(fileEle);
+
+  // Add component referring item.
+  var componentRef = doc.createElement('ComponentRef');
+  componentRef.setAttribute('Id', fileKey);
+  featureEle.appendChild(componentRef);
+
   var rtCmdLine = getRuntimeCmdOptions(modules);
-  this._output.info('RealSense runtime intall command:' + rtCmdLine);
-  chain.ele('ExePackage', {
-    'SourceFile': runtimeFile,
-    'InstallCommand': rtCmdLine,
-    'Vital': 'no'
-  });
-  chain.ele('RollbackBoundary');
-  chain.ele('MsiPackage', {
-    'Id': 'MainApp',
-    'SourceFile': msiFile,
-    'ForcePerMachine': 'yes',
-    'Vital': 'yes'
-  });
-  var xml_str = root.end({ pretty: true });
+  var actionId = 'InstallRSSDKRuntime';
+  var customAction = doc.createElement('CustomAction');
+  customAction.setAttribute('Id', actionId);
+  customAction.setAttribute('FileKey', fileKey);
+  customAction.setAttribute('ExeCommand', rtCmdLine);
+  customAction.setAttribute('Execute', 'deferred');
+  customAction.setAttribute('Return', 'ignore');
+  product.appendChild(customAction);
+
+  var installSeq = doc.createElement('InstallExecuteSequence');
+  product.appendChild(installSeq);
+
+  var customEle = doc.createElement('Custom');
+  customEle.setAttribute('Action', actionId);
+  customEle.setAttribute('Before', 'InstallFinalize');
+  var cData = doc.createCDATASection('NOT REMOVE');
+  customEle.appendChild(cData);
+  // TODO: add cdata?
+  installSeq.appendChild(customEle);
+
+  // Add UI hint.
+  var ui = doc.createElement('UI');
+  product.appendChild(ui);
+
+  var processText = doc.createElement('ProgressText');
+  processText.setAttribute('Action', actionId);
+  var textNode = doc.createTextNode('Installing RS SDK runtime');
+  processText.appendChild(textNode);
+  ui.appendChild(processText);
+
+  // Use build-in Wix_minimal dialog to show EULA.
+  var uiRef = doc.createElement('UIRef');
+  uiRef.setAttribute('Id', 'WixUI_Minimal');
+  product.appendChild(uiRef);
+
+  // Delete 'Property:ARPNOMODIFY' setting,
+  // because it is conflict with 'WixUI_Minimal'.
+  var pArray = doc.getElementsByTagName('Property');
+  var length = pArray.length;
+  var p;
+  for (var i = 0; i < length; i++) {
+    p = pArray[i];
+    if (p.getAttribute('Id') == 'ARPNOMODIFY')
+      product.removeChild(p);
+  }
+
+  // Add EULA.
+  var eula = doc.createElement('WixVariable');
+  eula.setAttribute('Id', 'WixUILicenseRtf');
+  eula.setAttribute('Value', licenseFile);
+  product.appendChild(eula);
+
+  var xmlStr = new XMLSerializer().serializeToString(doc);
   var basename = this._app.manifest.packageId + '_with_rssdk_runtime_' + version;
-  fs.writeFileSync(basename + '.wxs', xml_str);
-  var wixOptions = '-v -ext WixBalExtension';
-  this.runWix(InQuotes(basename), wixOptions, function(success) {
+  var wxsPath = Path.join(this._app.rootPath, basename + '.wxs');
+  fs.writeFileSync(wxsPath, xmlStr);
+  var wixOptions = '-v -ext WixUIExtension';
+  this.runWix(InQuotes(basename), wxsPath, wixOptions, function(success) {
     if (success) {
-      //TODO(Donna): Should we exposePackagedFile like the original
-      //             process of msi file?
-      var bundleExe = Path.resolve(basename + '.exe');
-      if (!this._util.ShellJS.test('-f', bundleExe)) {
-        this._output.error('Bundle installer could not be found ' + bundleExe);
+      var generatedFile = Path.resolve(basename + '.msi');
+      if (!this._util.ShellJS.test('-f', generatedFile)) {
+        this._output.error('Bundle installer could not be found ' + generatedFile);
         success = false;
       } else {
-        this._output.highlight('Installer including RealSense runtime: ' + bundleExe);
+        this._output.highlight('Installer including RealSense runtime: ' + generatedFile);
       }
 
       // Only delete on success, for debugging reasons.
-      //Move the files to hooksTempDir in case the '-k' option was used.
-      this._util.ShellJS.mv('-f', basename + '.wxs', this._hooksTempPath);
-      this._util.ShellJS.mv('-f', basename + '.wixobj', this._hooksTempPath);
-      this._util.ShellJS.mv('-f', basename + '.wixpdb', this._hooksTempPath);
+      this._util.ShellJS.rm('-f', basename + '.wixobj');
+      this._util.ShellJS.rm('-f', basename + '.wixpdb');
     }
     if (callback instanceof Function)
       callback(success);
@@ -328,7 +345,7 @@ RsRuntimePackagingHooks.prototype.downloadFromUrl = function(url, defaultPath, t
   var localPath = handler.findLocally(localDirs);
   if (localPath) {
     this._output.info('Using cached', localPath);
-    callback(localPath);
+    callback(Path.resolve(localPath));
     return;
   }
 
@@ -352,8 +369,9 @@ RsRuntimePackagingHooks.prototype.downloadFromUrl = function(url, defaultPath, t
       callback(null, errormsg);
     } else {
       var finishedPath = handler.finish(process.env.RS_RUNTIME_CACHE_DIR);
-      callback(finishedPath);
+      callback(Path.resolve(finishedPath));
     }
   }.bind(this));
 };
+
 module.exports = RsRuntimePackagingHooks;
