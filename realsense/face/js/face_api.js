@@ -43,7 +43,7 @@ var FaceModule = function(previewStream, object_id) {
   var that = this;
   videoTrack.onended = function() {
     that.dispatchEvent(
-        {type: 'error', data: {error: 'exec_failed', message: 'Video stream ended.'}});
+        {type: 'error', error: 'exec_failed', message: 'Video stream ended.'});
     that.stop().then(
         function() { that.dispatchEvent({type: 'ended'});},
         function(e) { that.dispatchEvent({type: 'ended'});});

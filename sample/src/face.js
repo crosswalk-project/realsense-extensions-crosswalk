@@ -69,6 +69,18 @@ var constraintsMap = {
   'fhd': {width: 1920, height: 1080, fps: 30},
 };
 
+function DisableConfigButtons() {
+  setConfButton.disabled = true;
+  getConfButton.disabled = true;
+  getDefaultsButton.disabled = true;
+}
+
+function EnableConfigButtons() {
+  setConfButton.disabled = false;
+  getConfButton.disabled = false;
+  getDefaultsButton.disabled = false;
+}
+
 function ConvertDepthToRGBUsingHistogram(
     depthImage, nearColor, farColor, rgbImage, depthWidth, depthHeight) {
   var imageSize = depthWidth * depthHeight;
@@ -246,7 +258,7 @@ function clearAfterStopped() {
   trackingColorDepthModeRadio.disabled = false;
 }
 
-setConfButton.onclick = function(e) {
+function onSetConfButton(e) {
   if (!ft) return;
   // Call configuration.set API.
   ft.configuration.set(getConf()).then(
@@ -256,7 +268,9 @@ setConfButton.onclick = function(e) {
       function(e) {
         statusElement.innerHTML = 'Status: ' + e.message;
         console.log(e.message);});
-};
+}
+
+setConfButton.onclick = onSetConfButton;
 
 getDefaultsButton.onclick = function(e) {
   if (!ft) return;
@@ -290,15 +304,19 @@ getConfButton.onclick = onGetConfButton;
 
 function stopPreviewStream() {
   if (previewStream) {
-    previewStream.getTracks().forEach(function(track) {
-      track.stop();
-    });
     if (ft) {
       // Remove listeners as we don't care about the events.
       ft.onerror = null;
       ft.onprocessedsample = null;
+      ft.onready = null;
+      ft.onalert = null;
+      ft.onended = null;
       ft = null;
+      DisableConfigButtons();
     }
+    previewStream.getTracks().forEach(function(track) {
+      track.stop();
+    });
   }
   previewStream = null;
 }
@@ -327,6 +345,8 @@ startButton.onclick = function(e) {
           statusElement.innerHTML = e.message;
           return;
         }
+        EnableConfigButtons();
+        onSetConfButton();
 
         ft.onprocessedsample = function(e) {
           ft.getProcessedSample(false, depthMapCheckBox.checked).then(function(processedSample) {
@@ -490,8 +510,8 @@ stopButton.onclick = function(e) {
         clearAfterStopped();
         stopPreviewStream();},
       function(e) {
-        statusElement.innerHTML = 'Status: stop fails';
-        console.log('stop fails');
+        statusElement.innerHTML = 'Status: stop fails: ' + e.message;
+        console.log('stop fails: ' + e.message);
         clearAfterStopped();
         stopPreviewStream();});
 };
@@ -536,3 +556,4 @@ depthMapCheckBox.onchange = function(e) {
 };
 
 depthMapCheckBox.disabled = true;
+DisableConfigButtons();
