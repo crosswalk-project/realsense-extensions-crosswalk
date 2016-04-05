@@ -46,3 +46,4 @@ Thumbs.db
 /crosswalk-extensions-sdk
 /out*
 /third_party/libpxc
+/sample/src_polymer/bower_components
