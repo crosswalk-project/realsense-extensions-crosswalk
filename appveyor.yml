@@ -8,7 +8,7 @@ init:
 environment:
   DEPOT_TOOLS_WIN_TOOLCHAIN: 0
   XWALK_CHANNEL: canary
-  XWALK_VERSION: 19.48.498.0
+  XWALK_VERSION: 19.49.506.0
 install:
 - cmd: >-
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
