@@ -196,6 +196,20 @@ function RightRender(sp) {
   function staticViewpoint() {
     isStaticViewpoint = !isStaticViewpoint;
   }
+
+  function zoom(isZoomIn) {
+    var incrementMatrix = new THREE.Matrix4();
+    var delta = 0.2;
+    if (!isZoomIn) delta *= -1;
+
+    incrementMatrix.fromCameraPose([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, delta]);
+    incrementMatrix.multiply(movePose);
+    movePose = incrementMatrix;
+  }
+
   // Export the object;
   this.init = init;
   this.toggleExtend = toggleExtend;
@@ -208,4 +222,6 @@ function RightRender(sp) {
   this.resize = resize;
   this.centerViewpoint = centerViewpoint;
   this.staticViewpoint = staticViewpoint;
+  this.zoomIn = function(ev) { zoom(true); };
+  this.zoomOut = function(ev) { zoom(false); };
 }

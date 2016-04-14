@@ -28,6 +28,16 @@ var buttons = [
     'details': 'cycle (i)mage color/depth',
   },
   {
+    'id': 'zoomIn',
+    'display': '+',
+    'details': '(+) zoom in the right view',
+  },
+  {
+    'id': 'zoomOut',
+    'display': '-',
+    'details': '(-) zoom out the right view',
+  },
+  {
     'id': 'toggleExtend',
     'display': 'e',
     'details': '(e)xtend reconstruction',
@@ -270,6 +280,10 @@ function bindHandlers(leftView, rightView) {
   };
 
   document.getElementById('toggleImageRender').onclick = leftView.toggleView;
+
+  document.getElementById('zoomIn').onclick = rightView.zoomIn;
+
+  document.getElementById('zoomOut').onclick = rightView.zoomOut;
 
   document.getElementById('toggleExtend').onclick = rightView.toggleExtend;
 
