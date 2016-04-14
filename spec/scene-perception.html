@@ -1265,10 +1265,8 @@
 
           // -- INITIALIZED
           // Pipeline is initialized, SP module is paused.
-          // Possible output in this state:
+          // Possible event in this state:
           //     checking event(depth quality)
-          //
-          //     getSample(raw color/depth image)
 
           // -- STARTED
           // SP module starts to work, receiving raw smaples and reconstructing the
@@ -1277,9 +1275,15 @@
           // is acceptable.
           // SP module is on tracking, and on reconstructing if reconstruction
           // flag enabled.
-          // Possible output in this state:
+          // Possible events in this state:
           //     sampleProcessed event(quality, tracking accuracy, camera pose)
           //     meshupdated event(no data)
+
+          // Interfaces get/queryXXX are used to get processed data from SP module.
+          // They are availiable after the module being initialized.
+          // Although, they can be accessed in both "INITIALIZED" and "TARTED" states,
+          // they may return unavaliable data if the SP module haven't successfully
+          // established the co-ordinate system from the first frame.
           //
           //     getSample(processed sample including color/depth image)
           //     getMeshData
