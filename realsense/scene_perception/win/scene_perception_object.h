@@ -163,8 +163,6 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
     // Pipeline is initialized, SP module is paused.
     // Possible output in this state:
     //     checking event(depth quality)
-    //
-    //     getSample(raw color/depth image)
     INITIALIZED,
 
     // SP module starts to work, receiving raw smaples and reconstructing the
@@ -176,13 +174,18 @@ class ScenePerceptionObject : public xwalk::common::EventTarget {
     // Possible output in this state:
     //     sampleProcessed event(quality, tracking accuracy, camera pose)
     //     meshupdated event(no data)
-    //
-    //     getSample(processed sample including color/depth image)
+    STARTED
+
+    // Interfaces get/queryXXX are used to get processed data from SP module.
+    // They are availiable after the module being initialized.
+    // Although, they can be accessed in both "INITIALIZED" and "TARTED" states,
+    // they may return unavaliable data if the SP module haven't successfully
+    // established the co-ordinate system from the first frame.
+    //     getSample(color/depth image)
     //     getCameraPose
     //     getVertices
     //     getNormals
     //     getMeshData
-    STARTED
   };
 
   State state_;

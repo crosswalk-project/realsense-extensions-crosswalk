@@ -814,7 +814,7 @@ void ScenePerceptionObject::DoGetVerticesOrNormals(bool isGettingVertices,
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
-  if (state_ != STARTED) {
+  if (scene_perception_ == NULL) {
     VerticesOrNormals data;
     info->PostResult(GetVertices::Results::Create(
         data, std::string("Wrong state.")));
@@ -1147,7 +1147,7 @@ void ScenePerceptionObject::DoSetCameraPose(
 void ScenePerceptionObject::OnSetCameraPose(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
-  if (state_ != STARTED || !sensemanager_thread_.IsRunning()) {
+  if (scene_perception_ == NULL || !sensemanager_thread_.IsRunning()) {
     info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
                                        "Wrong state to set camera pose."));
     return;  // Wrong state.
@@ -1190,7 +1190,7 @@ void ScenePerceptionObject::OnSetMeshingUpdateConfigs(
 
 void ScenePerceptionObject::OnConfigureSurfaceVoxelsData(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
+  if (!sensemanager_thread_.IsRunning() || scene_perception_ == NULL) {
     info->PostResult(
         CreateErrorResult(ERROR_CODE_EXEC_FAILED,
                           "Wrong state to configure surface voxels data."));
@@ -1470,7 +1470,7 @@ void ScenePerceptionObject::DoQueryVolumePreview(
 void ScenePerceptionObject::OnQueryVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   Image image;
-  if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
+  if (!sensemanager_thread_.IsRunning() || scene_perception_ == NULL) {
     info->PostResult(QueryVolumePreview::Results::Create(
         image, std::string("Wrong state to query volume preview.")));
     return;  // Wrong state.
