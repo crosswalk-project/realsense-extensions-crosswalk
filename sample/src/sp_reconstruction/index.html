@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <title>RealSense Scene Perception Sample</title>
+  </head>
+  <style>
+    body {
+      margin: 0px;
+    }
+
+    #controlPanel {
+      position: absolute;
+      right:10px;
+      margin-left:8px;
+      width: 36px;
+      height: 100%;
+      top: 2px;
+    }
+
+    #controlPanel > button {
+      width: 35px;
+      height: 35px;
+      border-radius : 100%;
+      border:0px;
+      color: #ffffff;
+      background-color: #006699;
+      font-weight: bold;
+      font-size: 16px;
+      text-decoration: none;
+      text-align: center;
+      text-shadow: 0px -1px 0px rgba(0,0,0,0.5);
+    }
+
+    button:disabled {
+      background-color: #90a0c0 !important;
+      opacity: 0.5 !important;
+    }
+
+    .flexRow {
+      display: flex;
+    }
+
+    .flexItem {
+      flex: 1;
+      margin: 0px;
+    }
+
+    canvas {
+      width: 100%;
+      min-width: 320px;
+      min-height: 240px;
+    }
+
+    #rightHint, #leftHint {
+      z-index: 100;
+      display: inline-block;
+      top: -50px;
+      left: 20px;
+      position: relative;
+    }
+  </style>
+  <body>
+    <div id='container' style='width = 100%; height = 100%'>
+      <div id='controlPanel'>
+      </div>
+      <div id='renderContainer' class ='flexRow'>
+        <div id='leftContainer' class ='flexItem'>
+           <canvas  id='imageRender'></canvas>
+           <span id='leftHint'></span>
+        </div>
+        <div id='rightContainer' class ='flexItem'>
+          <canvas  id='volumePreviewRender' style='background-color:black; display:none'></canvas>
+          <canvas  id='meshRender' style='background-color:black'></canvas>
+          <span id='rightHint'></span>
+        </div>
+      </div>
+      <div id='bottomPanel' style= 'margin: 8px'>
+        <p style='width: 100%;'>Left click: <span id='instructions'></span></p>
+        <p style='width: 100%; margin-top: 10px'>Status: <span id='status'></span></p>
+      </div>
+    </div>
+  </body>
+  <script src='../libs/three.js'></script>
+  <script src='../libs/TrackballControls.js'></script>
+  <script src='../libs/stats.min.js'></script>
+  <script src='../common/utils.js'></script>
+  <script src='../common/spMath.js'></script>
+  <script src='leftRender.js'></script>
+  <script src='volumePreview.js'></script>
+  <script src='meshView.js'></script>
+  <script src='rightRender.js'></script>
+  <script src='main.js'></script>
+  <script>
+    window.onload = main();
+  </script>
+</html>
