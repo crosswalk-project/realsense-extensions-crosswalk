@@ -14,11 +14,17 @@ import shutil
 
 SCRIPT_DIR = os.path.dirname(__file__)
 DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "XWalkExtensionHooks_template.js")
+NPM_SCRIPT_TEMPLATE = os.path.join(SCRIPT_DIR, "npm_install_template.js")
+
 MOUDLE_MAP = {
-    "enhanced_photography.dll": "RS_R200_DEP",
-    "scene_perception.dll": "RS_R200_SP",
-    "face.dll": "RS_R200_Face",
-    "hand.dll": "RS_F200_Hand"
+    "enhanced_photography.dll": {"module_name": "RS_R200_DEP",
+                                 "package_name": "crosswalk-extension-dep"},
+    "scene_perception.dll": {"module_name": "RS_R200_SP",
+                             "package_name": "crosswalk-extension-sp"},
+    "face.dll": {"module_name": "RS_R200_Face",
+                 "package_name": "crosswalk-extension-face"},
+    "hand.dll": {"module_name": "RS_F200_Hand",
+                 "package_name": "crosswalk-extension-hand"}
 }
 
 
@@ -46,9 +52,16 @@ def main():
   hooks_file = os.path.join(args.target_dir, "XWalkExtensionHooks.js")
   # Add extra line in the template js hooks to make the module hooks.
   open(hooks_file, 'w').write('var MODULE_NAME = "' +
-                              MOUDLE_MAP[dll_file] + '";')
+                              MOUDLE_MAP[dll_file]["module_name"] + '";')
   open(hooks_file, 'a').write(open(DEFAULT_TEMPLATE, 'r').read())
 
+  npm_install_file = os.path.join(args.target_dir, "npm_install.js")
+  template = open(NPM_SCRIPT_TEMPLATE, 'r').read();
+  package_name_placeholder = '// set var package_name here.'
+  var_package_name = ('var package_name = "' +
+                      MOUDLE_MAP[dll_file]["package_name"] + '";')
+  open(npm_install_file, 'w').write(
+      template.replace(package_name_placeholder, var_package_name))
 
 if __name__ == '__main__':
   main()
