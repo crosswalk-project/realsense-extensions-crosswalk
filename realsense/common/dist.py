@@ -17,7 +17,8 @@ DEFAULT_TEMPLATE = os.path.join(SCRIPT_DIR, "XWalkExtensionHooks_template.js")
 MOUDLE_MAP = {
     "enhanced_photography.dll": "RS_R200_DEP",
     "scene_perception.dll": "RS_R200_SP",
-    "face.dll": "RS_R200_Face"
+    "face.dll": "RS_R200_Face",
+    "hand.dll": "RS_F200_Hand"
 }
 
 

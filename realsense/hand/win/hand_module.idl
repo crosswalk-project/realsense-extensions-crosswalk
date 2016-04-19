@@ -1,0 +1,158 @@
+// Copyright (c) 2016 Intel Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// HandModule interface
+[dash_delimited_enum_string=true]
+namespace hand_module {
+  enum PixelFormat {
+    depth,
+    y8
+  };
+
+  enum BodySide {
+    unknown,
+    left,
+    right
+  };
+
+  enum TrackingStatus {
+    good,
+    out_of_fov,
+    out_of_range,
+    high_speed,
+    pointing_fingers
+  };
+
+  dictionary Image {
+    PixelFormat format;
+    long width;
+    long height;
+    ArrayBuffer data;
+  };
+
+  dictionary ImageSize {
+    long width;
+    long height;
+  };
+
+  dictionary Rect {
+    long x;
+    long y;
+    long w;
+    long h;
+  };
+
+  dictionary Point2D {
+    double x;
+    double y;
+  };
+
+  dictionary Point3D {
+    double x;
+    double y;
+    double z;
+  };
+
+  dictionary Point4D {
+    double x;
+    double y;
+    double z;
+    double w;
+  };
+
+  dictionary ExtremityData {
+    Point3D pointWorld;
+    Point3D pointImage;
+  };
+
+  dictionary ExtremityDataPoints {
+    ExtremityData closest;
+    ExtremityData leftmost;
+    ExtremityData rightmost;
+    ExtremityData topmost;
+    ExtremityData bottommost;
+    ExtremityData center;
+  };
+
+  dictionary FingerData {
+    long foldedness;
+    long radius;
+  };
+
+  dictionary Fingers {
+    FingerData thumb;
+    FingerData index;
+    FingerData middle;
+    FingerData ring;
+    FingerData pinky;
+  };
+
+  dictionary JointData {
+    long confidence;
+    Point3D positionWorld;
+    Point3D positionImage;
+    Point4D localRotation;
+    Point4D globalOrientation;
+    Point3D speed;
+  };
+
+  dictionary FingerJoints {
+    JointData base;
+    JointData joint1;
+    JointData joint2;
+    JointData tip;
+  };
+
+  dictionary Joints {
+    JointData wrist;
+    JointData center;
+    FingerJoints thumb;
+    FingerJoints index;
+    FingerJoints middle;
+    FingerJoints ring;
+    FingerJoints pinky;
+  };
+
+  dictionary Hand {
+    long uniqueId;
+    double timeStamp;
+    boolean calibrated;
+    BodySide bodySide;
+    Rect boundingBoxImage;
+    Point2D massCenterImage;
+    Point3D massCenterWorld;
+    Point4D palmOrientation;
+    double palmRadiusImage;
+    double palmRadiusWorld;
+    ExtremityDataPoints extremityPoints;
+    Fingers fingerData;
+    Joints trackedJoints;
+    TrackingStatus trackingStatus;
+    long openness;
+    Joints normalizedJoints;
+  };
+
+  dictionary Contour {
+    boolean isOutter;
+    Point2D[] points;
+  };
+
+  callback HandDataPromise = void (Hand[] hands);
+  callback ContoursPromise = void(Contour[] contours);
+  callback ImagePromise = void(Image image);
+  callback ImageSizePromise = void(ImageSize size);
+
+  interface Functions {
+    void init();
+    void start(ImageSizePromise promise);
+    void stop();
+    void track(HandDataPromise promise);
+    void getDepthImage(ImagePromise promise);
+
+    void _getSegmentationImageById(long handId, ImagePromise promise);
+    void _getContoursById(long handId, ContoursPromise promise);
+    
+    [nodoc] HandModule handModuleConstructor(DOMString objectId);
+  };
+};

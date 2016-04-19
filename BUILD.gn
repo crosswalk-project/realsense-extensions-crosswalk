@@ -9,6 +9,7 @@ group("all_extensions") {
     "//extensions/realsense/common:common_utils",
     "//extensions/realsense/enhanced_photography/win:enhanced_photography",
     "//extensions/realsense/face/win:face",
+    "//extensions/realsense/hand/win:hand",
     "//extensions/realsense/scene_perception/win:scene_perception",
     "//extensions/realsense/session/win:session",
   ]
@@ -18,6 +19,7 @@ group("dist") {
   deps = [
     "//extensions/realsense/enhanced_photography/win:make_dist",
     "//extensions/realsense/face/win:make_dist",
+    "//extensions/realsense/hand/win:make_dist",
     "//extensions/realsense/scene_perception/win:make_dist",
   ]
 }
