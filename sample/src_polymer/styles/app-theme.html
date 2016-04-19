@@ -1,0 +1,67 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+
+<style is="custom-style" include="shared-styles">
+
+:root {
+  --primary-background-color: black;
+  --primary-text-color: white;
+  --primary-color: black;
+  --dark-theme-text-color: white;
+}
+
+body {
+  background: black;
+}
+
+paper-header-panel[drawer] {
+  background: black;
+  width: 455px;
+  height: 100%;
+}
+        
+paper-header-panel[drawer] paper-toolbar {
+  --paper-toolbar-color: white;
+  height: 108px;
+}
+
+paper-header-panel[drawer] .menu-name {
+  margin-top: 46px;
+  margin-left: 55px;
+  font-size: 18px;
+}
+
+paper-header-panel[drawer] paper-menu {
+  margin-top: 50px;
+}
+
+paper-header-panel[drawer] paper-icon-item {
+  --paper-icon-item: {
+    height: 88px;
+    margin-left: 55px;
+  };
+}
+
+paper-header-panel[drawer] .menu-item-name {
+  font-size: 16px;
+  color: #EDEFEF;
+}
+
+paper-header-panel[main] paper-toolbar {
+  --paper-toolbar-background: #d3d3d3;
+  height: 108px;
+}
+
+paper-header-panel[main] paper-toolbar paper-icon-button {
+  margin-top: 46px;
+  margin-left: 55px;
+  margin-right: 46px;
+}
+
+paper-header-panel[main] paper-toolbar .page-title {
+  margin-top: 48px;
+  font-size: 18px;
+  color: #242A2B;
+}
+
+</style>

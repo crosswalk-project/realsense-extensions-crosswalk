@@ -1,0 +1,42 @@
+<link rel="import" href="../elements.html">
+
+
+<dom-module id="face-page">
+  <template>
+    <style include="shared-styles">
+    </style>
+  
+    <div id="left-panel">
+      <div id="stat-panel">
+      </div>
+
+      <div id='viewer'>
+        <video id='preview' autoplay></video>
+        <canvas id='overlay'></canvas>
+        <canvas id='depth'></canvas>
+      </div>
+    </div>
+
+    <div id="right-panel">
+      <template is="dom-if" if="{{hasCamera}}">
+        <span>Has Camera.</span>
+      </template>
+  
+      <template is="dom-if" if="{{!hasCamera}}">
+        <span>No Camera!</span>
+      </template>
+    </div>
+  </template>
+  
+  <script>
+    Polymer({
+      is: "face-page",
+      properties: {
+        hasCamera: {
+          type: Boolean,
+          value: false
+        },
+      },
+    });
+  </script>
+</dom-module>

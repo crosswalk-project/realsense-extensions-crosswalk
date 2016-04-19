@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <link rel="import" href="elements/elements.html">
+  </head>
+  <body>
+    <template is="dom-bind" id="app">
+
+      <paper-drawer-panel force-narrow edge-swipe-sensitivity=55 id="paperDrawerPanel">
+
+        <paper-header-panel mode="scroll" drawer>
+
+          <!-- Drawer Toolbar -->
+          <paper-toolbar id="drawerToolbar">
+            <span class="menu-name">Intel(R) RealSense(TM) 3D Camera R200</span>
+          </paper-toolbar>
+          
+          <!-- Drawer Content -->
+          <paper-menu id="paperMenu"
+                      attr-for-selected="page-name" selected="{{selectedPage}}"
+                      on-iron-select="_onPageSelected">
+            <paper-icon-item role="menuitem" page-name="Photo Capture">
+              <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+              <span class="menu-item-name">Photo Capture</span>
+            </paper-icon-item>
+
+            <paper-icon-item role="menuitem" page-name="Scene Perception">
+              <iron-icon src="images/icon_cube.png" item-icon></iron-icon>
+              <span class="menu-item-name">Scene Perception</span>
+            </paper-icon-item>
+
+            <paper-icon-item role="menuitem" page-name="Face">
+              <iron-icon src="images/icon_magicwand.png" item-icon></iron-icon>
+              <span class="menu-item-name">Face</span>
+            </paper-icon-item>
+          </paper-menu>
+          
+        </paper-header-panel>
+        
+        <paper-header-panel main>
+
+          <!-- Main Toolbar -->
+          <paper-toolbar>
+            <paper-icon-button src="images/icon_menu.png" paper-drawer-toggle></paper-icon-button>
+            <span class="page-title">[[selectedPage]]</span>
+          </paper-toolbar>
+          
+          <!-- Main Content -->
+          <iron-pages attr-for-selected="page-name" selected="[[selectedPage]]">
+            <photo-capture-page page-name="Photo Capture"></photo-capture-page> 
+            <scene-perception-page page-name="Scene Perception"></scene-perception-page> 
+            <face-page page-name="Face"></face-page> 
+          </iron-pages>
+          
+        </paper-header-panel>
+        
+      </paper-drawer-panel>
+  
+    </template>
+
+    <script src="scripts/app.js"></script> 
+
+  </body>
+</html> 
