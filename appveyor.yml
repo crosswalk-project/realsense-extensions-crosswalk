@@ -60,9 +60,9 @@ after_build:
 
     appveyor PushArtifact realsense_extensions.zip
 
-    7z a sample_installers.zip org.crosswalk_project.rs_sample*
+    7z a sample_installer.zip org.crosswalk_project.rs_sample_with_rssdk_runtime_*
 
-    appveyor PushArtifact sample_installers.zip
+    appveyor PushArtifact sample_installer.zip
 deploy:
   description: 'Release Description'
   provider: GitHub
@@ -78,5 +78,5 @@ artifacts:
     - path: realsense_extensions.zip
       name: RealSense Extensions for crosswalk
 
-    - path: sample_installers.zip
-      name: Sample App Installers
+    - path: sample_installer.zip
+      name: Sample App Installer
