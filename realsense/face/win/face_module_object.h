@@ -19,7 +19,7 @@
 namespace realsense {
 namespace face {
 
-using realsense::jsapi::common::ErrorCode;
+using realsense::jsapi::common::ErrorName;
 
 class FaceModuleObject
     : public xwalk::common::EventTarget,
@@ -92,7 +92,7 @@ class FaceModuleObject
   void OnStopFaceModuleThread();
 
   size_t CalculateBinaryMessageSize(bool get_color, bool get_depth);
-  void DispatchErrorEvent(const ErrorCode& error, const std::string& message);
+  void DispatchErrorEvent(const std::string& message, ErrorName name);
 
   enum State {
     NOT_READY,

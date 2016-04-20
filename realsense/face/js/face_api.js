@@ -81,9 +81,9 @@ var FaceModule = function(previewStream, object_id) {
     // color format
     var color_format = '';
     if (int32_array[1] == 1) {
-      color_format = 'RGB32';
+      color_format = 'rgb32';
     } else if (int32_array[1] == 2) {
-      color_format = 'DEPTH';
+      color_format = 'depth';
     }
     // color width, height
     var color_width = int32_array[2];
@@ -98,9 +98,9 @@ var FaceModule = function(previewStream, object_id) {
     // depth format
     var depth_format = '';
     if (int32_array[0] == 1) {
-      depth_format = 'RGB32';
+      depth_format = 'rgb32';
     } else if (int32_array[0] == 2) {
-      depth_format = 'DEPTH';
+      depth_format = 'depth';
     }
     // depth width, height
     var depth_width = int32_array[1];
@@ -211,15 +211,21 @@ var FaceModule = function(previewStream, object_id) {
     };
   }
 
-  this._addMethodWithPromise('start');
-  this._addMethodWithPromise('stop');
-  this._addMethodWithPromise('getProcessedSample', null, wrapProcessedSampleReturns);
+  function wrapErrorReturns(error) {
+    return new DOMException(error.message, error.name);
+  }
+
+  this._addMethodWithPromise('start', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('stop', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getProcessedSample', null, wrapProcessedSampleReturns,
+                             wrapErrorReturns);
 
   var FaceErrorEvent = function(type, data) {
+    // Follow https://developer.mozilla.org/en-US/docs/Web/API/ErrorEvent
     this.type = type;
 
     if (data) {
-      this.error = data.error;
+      this.error = new DOMException(data.message, data.error);
       this.message = data.message;
     }
   };

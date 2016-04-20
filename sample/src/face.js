@@ -129,19 +129,19 @@ function getConf() {
   if (trackingColorModeRadio.checked) {
     faceModuleConf.mode = 'color';
   } else if (trackingColorDepthModeRadio.checked) {
-    faceModuleConf.mode = 'color_depth';
+    faceModuleConf.mode = 'color-depth';
   }
   // Tracking strategy
   if (strategyTimeRadio.checked) {
-    faceModuleConf.strategy = 'appearance_time';
+    faceModuleConf.strategy = 'appearance-time';
   } else if (strategyCloseFarRadio.checked) {
-    faceModuleConf.strategy = 'closest_farthest';
+    faceModuleConf.strategy = 'closest-farthest';
   } else if (strategyFarCloseRadio.checked) {
-    faceModuleConf.strategy = 'farthest_closest';
+    faceModuleConf.strategy = 'farthest-closest';
   } else if (strategyLeftRightRadio.checked) {
-    faceModuleConf.strategy = 'left_right';
+    faceModuleConf.strategy = 'left-right';
   } else if (strategyRightLeftRadio.checked) {
-    faceModuleConf.strategy = 'right_left';
+    faceModuleConf.strategy = 'right-left';
   }
   // Alert
   faceModuleConf.alert = {};
@@ -177,19 +177,19 @@ function setConf(faceModuleConf) {
   // Tracking mode
   if (faceModuleConf.mode == 'color') {
     trackingColorModeRadio.checked = true;
-  } else if (faceModuleConf.mode == 'color_depth') {
+  } else if (faceModuleConf.mode == 'color-depth') {
     trackingColorDepthModeRadio.checked = true;
   }
   // Tracking strategy
-  if (faceModuleConf.strategy == 'appearance_time') {
+  if (faceModuleConf.strategy == 'appearance-time') {
     strategyTimeRadio.checked = true;
-  } else if (faceModuleConf.strategy == 'closest_farthest') {
+  } else if (faceModuleConf.strategy == 'closest-farthest') {
     strategyCloseFarRadio.checked = true;
-  } else if (faceModuleConf.strategy == 'farthest_closest') {
+  } else if (faceModuleConf.strategy == 'farthest-closest') {
     strategyFarCloseRadio.checked = true;
-  } else if (faceModuleConf.strategy == 'left_right') {
+  } else if (faceModuleConf.strategy == 'left-right') {
     strategyLeftRightRadio.checked = true;
-  } else if (faceModuleConf.strategy == 'right_left') {
+  } else if (faceModuleConf.strategy == 'right-left') {
     strategyRightLeftRadio.checked = true;
   }
   // Alert
@@ -452,18 +452,18 @@ startButton.onclick = function(e) {
 
         ft.onalert = function(e) {
           var text = '';
-          if (e.typeLabel == 'new_face_detected') {
+          if (e.typeLabel == 'new-face-detected') {
             text = 'New face No. ' + e.faceId + ' detected at timestamp ' + e.timeStamp;
-          } else if (e.typeLabel == 'face_out_of_fov') {
+          } else if (e.typeLabel == 'face-out-of-fov') {
             text = 'Face No. ' + e.faceId + ' out of view at timestamp ' + e.timeStamp;
-          } else if (e.typeLabel == 'face_back_to_fov') {
+          } else if (e.typeLabel == 'face-back-to-fov') {
             text = 'Face No. ' + e.faceId + ' back to view at timestamp ' + e.timeStamp;
-          } else if (e.typeLabel == 'face_occluded') {
+          } else if (e.typeLabel == 'face-occluded') {
             text = 'Face No. ' + e.faceId +
                 ' is occluded by some objects at timestamp ' + e.timeStamp;
-          } else if (e.typeLabel == 'face_no_longer_occluded') {
+          } else if (e.typeLabel == 'face-no-longer-occluded') {
             text = 'Face No. ' + e.faceId + ' is no longer occluded at timestamp ' + e.timeStamp;
-          } else if (e.typeLabel == 'face_lost') {
+          } else if (e.typeLabel == 'face-lost') {
             text = 'Face No. ' + e.faceId + ' lost at timestamp ' + e.timeStamp;
           }
 
