@@ -15,7 +15,85 @@
      span {
        color: #F2F2F2;
        font-family: sans-serif;
+       font-size: 16px;
      }
+
+     .center-center {
+       position: absolute;
+       top: 50%;
+       left: 50%;
+       transform: translate(-50%, -50%);
+     }
+
+    paper-button.round-button,
+    paper-button.checkbox-button,
+    paper-button.radio-button {
+	  display: inline-block;
+	  position: relative;
+    }
+
+    paper-button.round-button {
+      color: #F2F2F2;
+      background-color: #3A4345;
+      --paper-button-ink-color: white;
+    }
+
+    paper-button.round-button:hover {
+      border: 1px solid #F2F2F2;
+    }
+
+    paper-button.round-button[pressed] {
+      color: #242A2B;
+      background-color: white;
+    }
+
+    paper-button.checkbox-button {
+      color: #6F787D;
+      background-color: rgba(82, 92, 94, 0.2);
+      border: 1px solid #A5ACB0;
+      --paper-button-ink-color: #00FFE5;
+    }
+
+    paper-button.checkbox-button:hover {
+      background-color: rgba(0, 255, 229, 0.5);
+      border: 1px solid double #F2F2F2;
+      color: #FFFFFF;
+    }
+
+    paper-button.checkbox-button[toggles][active] {
+      background-color: rgba(0, 255, 229, 1.0);
+      border: 1px solid double #F2F2F2;
+      color: #242A2B;
+    }
+
+    paper-button.radio-button {
+      color: #FFFFFF;
+      background-color: rgba(0, 0, 0, 0.5);
+      --paper-button-ink-color: #00FFE5;
+    }
+
+    paper-button.radio-button:hover {
+      background-color: black;
+      border: 1px solid white;
+    }
+
+    paper-button.radio-button[toggles][active] {
+      color: #242A2B;
+      background-color: #00FFE5;
+    }
+
+    paper-button.text-button {
+	  padding: 18px 30px;
+	  text-align: center;
+	  border-radius: 30px;
+	  font: 16px sans-serif;
+    }
+
+    paper-button.image-button {
+      width: 69px;
+      height: 48px;
+	  border-radius: 20px;
+    }
 
      h1 {
        color: blue;
