@@ -361,8 +361,8 @@ void FaceModuleObject::OnSetCamera(
   scoped_ptr<SetCamera::Params> params(
       SetCamera::Params::Create(*info->arguments()));
   if (!params) {
-    DispatchErrorEvent(ERROR_CODE_PARAM_UNSUPPORTED,
-        "Failed to get setCamera parameters.");
+    DispatchErrorEvent("Failed to get setCamera parameters.",
+                       ERROR_NAME_INVALIDACCESSERROR);
     return;
   }
   camera_name_ = params->camera;
@@ -376,23 +376,23 @@ void FaceModuleObject::OnStart(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (face_module_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is already started"));
+        CreateDOMException("Face module is already started",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
 
   // In case that camera name has not been set, yet.
   if (camera_name_.empty()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_INIT_FAILED,
-            "Camera has not been set yet"));
+        CreateDOMException("Camera has not been set yet",
+                           ERROR_NAME_NOTFOUNDERROR));
     return;
   }
 
   if (!Init()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_INIT_FAILED,
-            "Can't initialize face module"));
+        CreateDOMException("Can't initialize face module",
+                           ERROR_NAME_NOTFOUNDERROR));
     return;
   }
 
@@ -410,8 +410,8 @@ void FaceModuleObject::OnStop(
   if (!face_module_thread_.IsRunning()) {
     if (info.get()) {
       info->PostResult(
-          CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-              "Face module is not started yet"));
+          CreateDOMException("Face module is not started yet",
+                             ERROR_NAME_INVALIDSTATEERROR));
     }
     return;  // Wrong state.
   }
@@ -429,8 +429,8 @@ void FaceModuleObject::OnGetProcessedSample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not started yet"));
+        CreateDOMException("Face module is not started yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -447,8 +447,8 @@ void FaceModuleObject::OnSetConf(
   if (!face_module_thread_.IsRunning()) {
     if (!Init()) {
       info->PostResult(
-          CreateErrorResult(ERROR_CODE_INIT_FAILED,
-              "Can't initialize face module"));
+          CreateDOMException("Can't initialize face module",
+                             ERROR_NAME_NOTFOUNDERROR));
       return;
     }
 
@@ -470,8 +470,8 @@ void FaceModuleObject::OnGetDefaultsConf(
     if (!Init()) {
       JSFaceConfigurationData config_data;
       info->PostResult(
-          CreateErrorResult(ERROR_CODE_INIT_FAILED,
-              "Can't initialize face module"));
+          CreateDOMException("Can't initialize face module",
+                             ERROR_NAME_NOTFOUNDERROR));
       return;
     }
 
@@ -493,8 +493,8 @@ void FaceModuleObject::OnGetConf(
     if (!Init()) {
       JSFaceConfigurationData config_data;
       info->PostResult(
-          CreateErrorResult(ERROR_CODE_INIT_FAILED,
-              "Can't initialize face module"));
+          CreateDOMException("Can't initialize face module",
+                             ERROR_NAME_NOTFOUNDERROR));
       return;
     }
 
@@ -513,8 +513,8 @@ void FaceModuleObject::OnRegisterUserByFaceID(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not started yet"));
+        CreateDOMException("Face module is not started yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -538,8 +538,8 @@ void FaceModuleObject::OnUnregisterUserByID(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!face_module_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not started yet"));
+        CreateDOMException("Face module is not started yet",
+                           ERROR_NAME_NOTFOUNDERROR));
     return;
   }
 
@@ -547,7 +547,9 @@ void FaceModuleObject::OnUnregisterUserByID(
       UnregisterUserByID::Params::Create(*info->arguments()));
 
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(
+        CreateDOMException("There are invalid/unsupported parameters",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
 
@@ -637,8 +639,8 @@ void FaceModuleObject::OnStartPipeline(
   if (!face_output_) {
     DLOG(ERROR) << "Failed to create face output";
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to create face output"));
+        CreateDOMException("Failed to create face output",
+                           ERROR_NAME_ABORTERROR));
     ReleasePipelineResources();
     StopFaceModuleThread();
     return;
@@ -666,7 +668,8 @@ void FaceModuleObject::OnRunPipeline() {
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "AcquiredFrame failed: " << status;
     if (on_error_) {
-      DispatchErrorEvent(ERROR_CODE_EXEC_FAILED, "Fail to AcquireFrame. Stop.");
+      DispatchErrorEvent("Fail to AcquireFrame. Stop.",
+                         ERROR_NAME_ABORTERROR);
     }
 
     ReleasePipelineResources();
@@ -717,8 +720,8 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
 
   if (state_ != TRACKING) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Is not started yet, no processed_sample"));
+        CreateDOMException("Is not started yet, no processed_sample",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -945,8 +948,8 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
 
   if (fail) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to prepare processed_sample"));
+        CreateDOMException("Failed to prepare processed_sample",
+                           ERROR_NAME_ABORTERROR));
   } else {
     DCHECK(offset <= post_data_size);
     scoped_ptr<base::ListValue> result(new base::ListValue());
@@ -964,15 +967,15 @@ void FaceModuleObject::OnRegisterUserByFaceIDOnPipeline(
 
   if (state_ != TRACKING) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not started yet"));
+        CreateDOMException("Face module is not started yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
   if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Recognition feature is not enabled yet"));
+        CreateDOMException("Recognition feature is not enabled yet",
+                           ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -998,7 +1001,7 @@ void FaceModuleObject::OnRegisterUserByFaceIDOnPipeline(
 
   if (!error_msg.empty()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED, error_msg));
+        CreateDOMException(error_msg, ERROR_NAME_ABORTERROR));
   } else {
     info->PostResult(
         RegisterUserByFaceID::Results::Create(registered_id));
@@ -1012,15 +1015,15 @@ void FaceModuleObject::OnUnregisterUserByIDOnPipeline(
 
   if (state_ != TRACKING) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not started yet"));
+        CreateDOMException("Face module is not started yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
   if (face_config_->QueryRecognition()->properties.isEnabled == 0) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Recognition feature is not enabled yet"));
+        CreateDOMException("Recognition feature is not enabled yet",
+                           ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -1037,7 +1040,7 @@ void FaceModuleObject::OnUnregisterUserByIDOnPipeline(
 
   if (!error_msg.empty()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED, error_msg));
+        CreateDOMException(error_msg, ERROR_NAME_ABORTERROR));
   } else {
     info->PostResult(CreateSuccessResult());
   }
@@ -1049,15 +1052,17 @@ void FaceModuleObject::DoSetConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not ready yet"));
+        CreateDOMException("Face module is not ready yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
   scoped_ptr<Set::Params> params(
       Set::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(
+        CreateDOMException("There are invalid/unsupported parameters",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
 
@@ -1066,8 +1071,8 @@ void FaceModuleObject::DoSetConf(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "ApplyChangesConfig() failed: " << status;
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to set face configuration"));
+        CreateDOMException("Failed to set face configuration",
+                           ERROR_NAME_ABORTERROR));
     return;
   }
   info->PostResult(CreateSuccessResult());
@@ -1081,8 +1086,8 @@ void FaceModuleObject::DoGetDefaultsConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not ready yet"));
+        CreateDOMException("Face module is not ready yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -1103,8 +1108,8 @@ void FaceModuleObject::DoGetConf(
   // Pipeline is exiting because of error
   if (state_ == NOT_READY) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Face module is not ready yet"));
+        CreateDOMException("Face module is not ready yet",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -1113,8 +1118,8 @@ void FaceModuleObject::DoGetConf(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "Face config update() failed: " << status;
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to get face configuration"));
+        CreateDOMException("Failed to get face configuration",
+                           ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -1362,12 +1367,12 @@ size_t FaceModuleObject::CalculateBinaryMessageSize(
 }
 
 void FaceModuleObject::DispatchErrorEvent(
-    const ErrorCode& error, const std::string& message) {
-  RSError rsError;
-  rsError.error = error;
-  rsError.message = message;
+    const std::string& message, ErrorName name) {
+  DOMException dom_exception;
+  dom_exception.message = message;
+  dom_exception.name = name;
   scoped_ptr<base::ListValue> data(new base::ListValue);
-  data->Append(rsError.ToValue().release());
+  data->Append(dom_exception.ToValue().release());
   DispatchEvent("error", data.Pass());
 }
 

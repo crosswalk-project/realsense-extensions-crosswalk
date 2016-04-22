@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 // FaceModule interface
+[dash_delimited_enum_string=true]
 namespace face_module {
   enum TrackingModeType {
     color,
@@ -27,55 +28,55 @@ namespace face_module {
   };
 
   enum PixelFormat {
-    RGB32,
-    DEPTH
+    rgb32,
+    depth
   };
 
   enum LandmarkType {
-    NOT_NAMED,
+    not_named,
     
-    EYE_RIGHT_CENTER,
-    EYE_LEFT_CENTER,
+    eye_right_center,
+    eye_left_center,
     
-    EYELID_RIGHT_TOP,
-    EYELID_RIGHT_BOTTOM,
-    EYELID_RIGHT_RIGHT,
-    EYELID_RIGHT_LEFT,
+    eyelid_right_top,
+    eyelid_right_bottom,
+    eyelid_right_right,
+    eyelid_right_left,
     
-    EYELID_LEFT_TOP,
-    EYELID_LEFT_BOTTOM,
-    EYELID_LEFT_RIGHT,
-    EYELID_LEFT_LEFT,
+    eyelid_left_top,
+    eyelid_left_bottom,
+    eyelid_left_right,
+    eyelid_left_left,
     
-    EYEBROW_RIGHT_CENTER,
-    EYEBROW_RIGHT_RIGHT,
-    EYEBROW_RIGHT_LEFT,
+    eyebrow_right_center,
+    eyebrow_right_right,
+    eyebrow_right_left,
     
-    EYEBROW_LEFT_CENTER,
-    EYEBROW_LEFT_RIGHT,
-    EYEBROW_LEFT_LEFT,
+    eyebrow_left_center,
+    eyebrow_left_right,
+    eyebrow_left_left,
     
-    NOSE_TIP,
-    NOSE_TOP,
-    NOSE_BOTTOM,
-    NOSE_RIGHT,
-    NOSE_LEFT,
+    nose_tip,
+    nose_top,
+    nose_bottom,
+    nose_right,
+    nose_left,
     
-    LIP_RIGHT,
-    LIP_LEFT,
+    lip_right,
+    lip_left,
     
-    UPPER_LIP_CENTER,
-    UPPER_LIP_RIGHT,
-    UPPER_LIP_LEFT,
+    upper_lip_center,
+    upper_lip_right,
+    upper_lip_left,
     
-    LOWER_LIP_CENTER,
-    LOWER_LIP_RIGHT,
-    LOWER_LIP_LEFT,
+    lower_lip_center,
+    lower_lip_right,
+    lower_lip_left,
     
-    FACE_BORDER_TOP_RIGHT,
-    FACE_BORDER_TOP_LEFT,
+    face_border_top_right,
+    face_border_top_left,
     
-    CHIN
+    chin
   };
 
   dictionary Image {

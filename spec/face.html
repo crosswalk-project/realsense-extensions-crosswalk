@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
   <head>
-    <title>Face</title>
+    <title>Face Tracking And Recognition</title>
     <meta charset='utf-8'>
     <script src='respec/respec-w3c-common.js'
             async class='remove'></script>
@@ -77,9 +77,9 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               Note: Please call this method after <code><a>ready</a></code> event,
-              otherwise you will get a <code><a>FaceErrorEvent</a></code>.
+              otherwise you will get a <code><a>ErrorEvent</a></code>.
             </p>
           </dd>
           <dt>
@@ -92,7 +92,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -107,7 +107,7 @@
               The promise will be fulfilled with an <code><a>ProcessedSample</a></code>
               combining color/depth processed images(only if required and available)
               and face module tracking/recognition output data if there are no errors.
-              The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>optional boolean getColor</dt>
@@ -176,7 +176,7 @@
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
-              for the <a><code>FaceErrorEvent</code></a> that is dispatched
+              for the <a><code>ErrorEvent</code></a> that is dispatched
               to <code><a>FaceModule</a></code> when there is an error.
             </p>
           </dd>
@@ -205,7 +205,7 @@
           <h3>
             <code><a>AlertEvent</a></code> interface
           </h3>
-          <dl class="idl" title="interface AlertEvent: Event">
+          <dl class="idl" title="interface AlertEvent : Event">
             <dt>
               readonly attribute AlertType typeLabel
             </dt>
@@ -234,29 +234,6 @@
         </section>
         <section>
           <h3>
-            <code><a>FaceErrorEvent</a></code> interface
-          </h3>
-          <dl class="idl" title="interface FaceErrorEvent : Event">
-            <dt>
-              readonly attribute ErrorCode error
-            </dt>
-            <dd>
-              <p>
-                The error code.
-              </p>
-            </dd>
-            <dt>
-              readonly attribute DOMString message
-            </dt>
-            <dd>
-              <p>
-                The error message.
-              </p>
-            </dd>
-          </dl>
-        </section>
-        <section>
-          <h3>
             <code><a>Recognition</a></code> interface
           </h3>
           <p>
@@ -275,7 +252,7 @@
                 This method returns a promise.
                 The promise will be fulfilled with the user identifier
                 registered in recognition database if there are no errors.
-                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+                The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>long faceId</dt>
@@ -297,7 +274,7 @@
               <p>
                 This method returns a promise.
                 The promise will be fulfilled if there are no errors.
-                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+                The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>long userId</dt>
@@ -331,7 +308,7 @@
               <p>
                 This method returns a promise.
                 The promise will be fulfilled if there are no errors.
-                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+                The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               </p>
               <dl class='parameters'>
                 <dt>FaceConfigurationData config</dt>
@@ -356,7 +333,7 @@
                 This method returns a promise.
                 The promise will be fulfilled with the default face configuration
                 if there are no errors.
-                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+                The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               </p>
             </dd>
             <dt>
@@ -370,37 +347,11 @@
                 This method returns a promise.
                 The promise will be fulfilled with current effective face configuration
                 if there are no errors.
-                The promise will be rejected with the <code><a>FaceError</a></code> object if there is a failure.
+                The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
               </p>
             </dd>
           </dl>
         </section>
-      </section>
-      <section>
-        <h2>
-          <code><a>FaceError</a></code>
-        </h2>
-        <p>
-          The error type from the reject callback of Promise.
-        </p>
-        <dl class="idl" title="interface FaceError">
-          <dt>
-            readonly attribute ErrorCode error
-          </dt>
-          <dd>
-            <p>
-              The error code. See the <code><a>ErrorCode</a></code> enumerator for definition.
-            </p>
-          </dd>
-          <dt>
-            readonly attribute DOMString message
-          </dt>
-          <dd>
-            <p>
-              The descripton string for error.
-            </p>
-          </dd>
-        </dl>
       </section>
     </section>
     <section>
@@ -854,7 +805,7 @@
         </h2>
         <dl id="enum-basic" class="idl" title="enum TrackingStrategyType">
           <dt>
-            appearance_time
+            appearance-time
           </dt>
           <dd>
             <p>
@@ -862,7 +813,7 @@
             </p>
           </dd>
           <dt>
-            closest_farthest
+            closest-farthest
           </dt>
           <dd>
             <p>
@@ -870,7 +821,7 @@
             </p>
           </dd>
           <dt>
-            farthest_closest
+            farthest-closest
           </dt>
           <dd>
             <p>
@@ -878,7 +829,7 @@
             </p>
           </dd>
           <dt>
-            left_right
+            left-right
           </dt>
           <dd>
             <p>
@@ -886,7 +837,7 @@
             </p>
           </dd>
           <dt>
-            right_left
+            right-left
           </dt>
           <dd>
             <p>
@@ -901,7 +852,7 @@
         </h2>
         <dl id="enum-basic" class="idl" title="enum AlertType">
           <dt>
-            new_face_detected
+            new-face-detected
           </dt>
           <dd>
             <p>
@@ -909,7 +860,7 @@
             </p>
           </dd>
           <dt>
-            face_out_of_fov
+            face-out-of-fov
           </dt>
           <dd>
             <p>
@@ -917,7 +868,7 @@
             </p>
           </dd>
           <dt>
-            face_back_to_fov
+            face-back-to-fov
           </dt>
           <dd>
             <p>
@@ -925,7 +876,7 @@
             </p>
           </dd>
           <dt>
-            face_occluded
+            face-occluded
           </dt>
           <dd>
             <p>
@@ -933,7 +884,7 @@
             </p>
           </dd>
           <dt>
-            face_no_longer_occluded
+            face-no-longer-occluded
           </dt>
           <dd>
             <p>
@@ -941,7 +892,7 @@
             </p>
           </dd>
           <dt>
-            face_lost
+            face-lost
           </dt>
           <dd>
             <p>
@@ -956,7 +907,7 @@
         </h2>
         <dl id="enum-basic" class="idl" title="enum PixelFormat">
           <dt>
-            RGB32
+            rgb32
           </dt>
           <dd>
             <p>
@@ -964,7 +915,7 @@
             </p>
           </dd>
           <dt>
-            DEPTH
+            depth
           </dt>
           <dd>
             <p>
@@ -979,7 +930,7 @@
         </h2>
         <dl id="enum-basic" class="idl" title="enum LandmarkType">
           <dt>
-            NOT_NAMED
+            not-named
           </dt>
           <dd>
             <p>
@@ -987,7 +938,7 @@
             </p>
           </dd>
           <dt>
-            EYE_RIGHT_CENTER
+            eye-right-center
           </dt>
           <dd>
             <p>
@@ -995,7 +946,7 @@
             </p>
           </dd>
           <dt>
-            EYE_LEFT_CENTER,
+            eye-left-center,
           </dt>
           <dd>
             <p>
@@ -1003,7 +954,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_RIGHT_TOP,
+            eyelid-right-top,
           </dt>
           <dd>
             <p>
@@ -1011,7 +962,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_RIGHT_BOTTOM,
+            eyelid-right-bottom,
           </dt>
           <dd>
             <p>
@@ -1019,7 +970,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_RIGHT_RIGHT,
+            eyelid-right-right,
           </dt>
           <dd>
             <p>
@@ -1027,7 +978,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_RIGHT_LEFT,
+            eyelid-right-left,
           </dt>
           <dd>
             <p>
@@ -1035,7 +986,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_LEFT_TOP,
+            eyelid-left-top,
           </dt>
           <dd>
             <p>
@@ -1043,7 +994,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_LEFT_BOTTOM,
+            eyelid-left-bottom,
           </dt>
           <dd>
             <p>
@@ -1051,7 +1002,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_LEFT_RIGHT,
+            eyelid-left-right,
           </dt>
           <dd>
             <p>
@@ -1059,7 +1010,7 @@
             </p>
           </dd>
           <dt>
-            EYELID_LEFT_LEFT,
+            eyelid-left-left,
           </dt>
           <dd>
             <p>
@@ -1067,7 +1018,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_RIGHT_CENTER,
+            eyebrow-right-center,
           </dt>
           <dd>
             <p>
@@ -1075,7 +1026,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_RIGHT_RIGHT,
+            eyebrow-right-right,
           </dt>
           <dd>
             <p>
@@ -1083,7 +1034,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_RIGHT_LEFT,
+            eyebrow-right-left,
           </dt>
           <dd>
             <p>
@@ -1091,7 +1042,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_LEFT_CENTER,
+            eyebrow-left-center,
           </dt>
           <dd>
             <p>
@@ -1099,7 +1050,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_LEFT_RIGHT,
+            eyebrow-left-right,
           </dt>
           <dd>
             <p>
@@ -1107,7 +1058,7 @@
             </p>
           </dd>
           <dt>
-            EYEBROW_LEFT_LEFT,
+            eyebrow-left-left,
           </dt>
           <dd>
             <p>
@@ -1115,7 +1066,7 @@
             </p>
           </dd>
           <dt>
-            NOSE_TIP,
+            nose-tip,
           </dt>
           <dd>
             <p>
@@ -1123,7 +1074,7 @@
             </p>
           </dd>
           <dt>
-            NOSE_TOP,
+            nose-top,
           </dt>
           <dd>
             <p>
@@ -1131,7 +1082,7 @@
             </p>
           </dd>
           <dt>
-            NOSE_BOTTOM,
+            nose-bottom,
           </dt>
           <dd>
             <p>
@@ -1139,7 +1090,7 @@
             </p>
           </dd>
           <dt>
-            NOSE_RIGHT,
+            nose-right,
           </dt>
           <dd>
             <p>
@@ -1147,7 +1098,7 @@
             </p>
           </dd>
           <dt>
-            NOSE_LEFT,
+            nose-left,
           </dt>
           <dd>
             <p>
@@ -1155,7 +1106,7 @@
             </p>
           </dd>
           <dt>
-            LIP_RIGHT,
+            lip-right,
           </dt>
           <dd>
             <p>
@@ -1163,7 +1114,7 @@
             </p>
           </dd>
           <dt>
-            LIP_LEFT,
+            lip-left,
           </dt>
           <dd>
             <p>
@@ -1171,7 +1122,7 @@
             </p>
           </dd>
           <dt>
-            UPPER_LIP_CENTER,
+            upper-lip-center,
           </dt>
           <dd>
             <p>
@@ -1179,7 +1130,7 @@
             </p>
           </dd>
           <dt>
-            UPPER_LIP_RIGHT,
+            upper-lip-right,
           </dt>
           <dd>
             <p>
@@ -1187,7 +1138,7 @@
             </p>
           </dd>
           <dt>
-            UPPER_LIP_LEFT,
+            upper-lip-left,
           </dt>
           <dd>
             <p>
@@ -1195,7 +1146,7 @@
             </p>
           </dd>
           <dt>
-            LOWER_LIP_CENTER,
+            lower-lip-center,
           </dt>
           <dd>
             <p>
@@ -1203,7 +1154,7 @@
             </p>
           </dd>
           <dt>
-            LOWER_LIP_RIGHT,
+            lower-lip-right,
           </dt>
           <dd>
             <p>
@@ -1211,7 +1162,7 @@
             </p>
           </dd>
           <dt>
-            LOWER_LIP_LEFT,
+            lower-lip-left,
           </dt>
           <dd>
             <p>
@@ -1219,7 +1170,7 @@
             </p>
           </dd>
           <dt>
-            FACE_BORDER_TOP_RIGHT,
+            face-border-top-right,
           </dt>
           <dd>
             <p>
@@ -1227,7 +1178,7 @@
             </p>
           </dd>
           <dt>
-            FACE_BORDER_TOP_LEFT,
+            face-border-top-left,
           </dt>
           <dd>
             <p>
@@ -1235,7 +1186,7 @@
             </p>
           </dd>
           <dt>
-            CHIN
+            chin
           </dt>
           <dd>
             <p>
@@ -1358,7 +1309,7 @@
           // Please refer to <code><a>FaceConfigurationData</a></code> interface for confData details.
           var confData = {
             // Set face tracking strategy.
-            strategy: 'right_left',
+            strategy: 'right-left',
             // Disable landmarks.
             landmarks: {
               enable: false
