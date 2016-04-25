@@ -522,7 +522,8 @@ void FaceModuleObject::OnRegisterUserByFaceID(
       RegisterUserByFaceID::Params::Create(*info->arguments()));
 
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException("Invalid parameters",
+                                        ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
 
@@ -608,8 +609,8 @@ void FaceModuleObject::OnStartPipeline(
   if (status < PXC_STATUS_NO_ERROR) {
     DLOG(ERROR) << "Failed to init sense manager: " << status;
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-            "Failed to init sense manager"));
+        CreateDOMException("Failed to init sense manager",
+                           ERROR_NAME_ABORTERROR));
     ReleasePipelineResources();
     StopFaceModuleThread();
     return;
@@ -728,7 +729,8 @@ void FaceModuleObject::OnGetProcessedSampleOnPipeline(
   scoped_ptr<GetProcessedSample::Params> params(
       GetProcessedSample::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException("Invalid parameters",
+                                        ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   // Do not transmit color/depth image data by default.

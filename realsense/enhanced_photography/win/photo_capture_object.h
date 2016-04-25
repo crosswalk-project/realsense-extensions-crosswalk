@@ -27,6 +27,7 @@ namespace enhanced_photography {
 
 using xwalk::common::XWalkExtensionFunctionInfo;
 using namespace jsapi::photo_capture; // NOLINT
+using realsense::jsapi::common::ErrorName;
 
 class PhotoCaptureObject : public xwalk::common::EventTarget {
  public:
