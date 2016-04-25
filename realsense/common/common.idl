@@ -4,19 +4,6 @@
 
 // Common interface
 namespace common {
-  enum ErrorCode {
-    feature_unsupported,
-    param_unsupported,
-    photo_invalid,
-    init_failed,
-    exec_failed
-  };
-
-  dictionary RSError {
-    ErrorCode error;
-    DOMString message;
-  };
-
   // https://heycam.github.io/webidl/#idl-DOMException-error-names
   enum ErrorName {
     IndexSizeError,
