@@ -3,12 +3,13 @@
 // found in the LICENSE file.
 
 // DepthPhoto interface
+[dash_delimited_enum_string=true]
 namespace depth_photo {
   enum PixelFormat {
-    RGB32,
-    DEPTH,
-    DEPTH_F32,
-    Y8
+    rgb32,
+    depth,
+    depth_f32,
+    y8
   };
 
   dictionary Image {

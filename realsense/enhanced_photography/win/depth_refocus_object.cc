@@ -44,7 +44,7 @@ void DepthRefocusObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   scoped_ptr<Init::Params> params(
       Init::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -52,14 +52,14 @@ void DepthRefocusObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   if ((depth_refocus_->Init(depthPhotoObject->GetPhoto())) <
       PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "DepthRefocus Init failed"));
+    info->PostResult(CreateDOMException("DepthRefocus Init failed",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
   info->PostResult(CreateSuccessResult());
@@ -69,7 +69,7 @@ void DepthRefocusObject::OnApply(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   scoped_ptr<Apply::Params> params(
       Apply::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -84,7 +84,7 @@ void DepthRefocusObject::OnApply(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   else
     pxcphoto = depth_refocus_->Apply(focus);
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

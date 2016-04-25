@@ -147,13 +147,21 @@ function doPasteOnPlane() {
                           imageData.data.set(image.data);
                           imageContext.putImageData(imageData, 0, 0);
                         },
-                        function(e) { statusElement.innerHTML = e.message; });
+                        function(e) {
+                          statusElement.innerHTML = e.message;
+                        });
                   },
-                  function(e) { statusElement.innerHTML = e.message; });
+                  function(e) {
+                    statusElement.innerHTML = e.message;
+                  });
             },
-            function(e) { statusElement.innerHTML = e.message; });
+            function(e) {
+              statusElement.innerHTML = e.message;
+            });
       },
-      function(e) { statusElement.innerHTML = e.message; });
+      function(e) {
+        statusElement.innerHTML = e.message;
+      });
 }
 
 function pasteOnPlane(e) {
@@ -276,7 +284,7 @@ function main() {
             0, 0, pastedImage.width, pastedImage.height);
 
         sticker = {
-          format: 'RGB32',
+          format: 'rgb32',
           width: pastedImage.width,
           height: pastedImage.height,
           data: pastedImageData.data
@@ -361,7 +369,9 @@ function main() {
             imageData.data.set(image.data);
             imageContext.putImageData(imageData, 0, 0);
           },
-          function(e) { statusElement.innerHTML = e.message; });
+          function(e) {
+            console.log(e);
+            statusElement.innerHTML = e.message; });
     }
   }, false);
 

@@ -83,16 +83,16 @@ void PhotoCaptureObject::OnEnableDepthStream(
   scoped_ptr<EnableDepthStream::Params> params(
       EnableDepthStream::Params::Create(*info->arguments()));
   if (!params) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_PARAM_UNSUPPORTED,
-                             "Failed to get parameters.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to get parameters.",
+                             ERROR_NAME_INVALIDACCESSERROR);
     return;
   }
   std::string cameraName = params->camera;
 
   session_ = PXCSession::CreateInstance();
   if (!session_) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to create PXCSession.")
+    DISPATCH_ERROR_AND_CLEAR("Failed to create PXCSession.",
+                             ERROR_NAME_NOTFOUNDERROR)
     return;
   }
 
@@ -126,8 +126,8 @@ void PhotoCaptureObject::OnEnableDepthStream(
   }
 
   if (!capture_device_) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to create capture device.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to create capture device.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
@@ -140,8 +140,8 @@ void PhotoCaptureObject::OnEnableDepthStream(
   if (PXC_FAILED(capture_device_->QueryStreamProfileSet(
     PXCCapture::STREAM_TYPE_COLOR | PXCCapture::STREAM_TYPE_DEPTH,
     0, &profile_set))) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to query stream profile set.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to query stream profile set.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
@@ -157,15 +157,15 @@ void PhotoCaptureObject::OnEnableDepthStream(
 
   sense_manager_ = session_->CreateSenseManager();
   if (!sense_manager_) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to create sense manager.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to create sense manager.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
   PXCCaptureManager* capture_manager = sense_manager_->QueryCaptureManager();
   if (!capture_manager) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to query capture manager.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to query capture manager.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
   capture_manager->FilterByStreamProfiles(&profile_set);
@@ -193,28 +193,28 @@ void PhotoCaptureObject::OnEnableDepthStream(
   data_desc.streams.depth.options = profile_set.depth.options;
 
   if (PXC_FAILED(sense_manager_->EnableStreams(&data_desc))) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to enable depth stream.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to enable depth stream.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
   if (PXC_FAILED(sense_manager_->Init())) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to init sense manager.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to init sense manager.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
   PXCCapture::Device* capture_device = capture_manager->QueryDevice();
   if (!capture_device) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to query device.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to query device.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
   if (PXC_FAILED(capture_device->QueryStreamProfileSet(&profile_set))) {
     DISPATCH_ERROR_AND_CLEAR(
-        ERROR_CODE_INIT_FAILED,
-        "Failed to query stream profile set after sense manager init.");
+        "Failed to query stream profile set after sense manager init.",
+        ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
@@ -222,8 +222,8 @@ void PhotoCaptureObject::OnEnableDepthStream(
   PXCCapture::Device::StreamProfile depth = profile_set.depth;
 
   if (!color.imageInfo.format || !depth.imageInfo.format) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to get color and depth stream profile.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to get color and depth stream profile.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
@@ -248,8 +248,8 @@ void PhotoCaptureObject::OnEnableDepthStream(
 
   photo_utils_ = PXCEnhancedPhoto::PhotoUtils::CreateInstance(session_);
   if (!photo_utils_) {
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_INIT_FAILED,
-                             "Failed to create photo utils instance.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to create photo utils instance.",
+                             ERROR_NAME_NOTFOUNDERROR);
     return;
   }
 
@@ -288,8 +288,8 @@ void PhotoCaptureObject::OnGetDepthImage(
     base::AutoLock lock(lock_);
     if (!depth_enabled_) {
       Image depth_image;
-      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                         "The depth stream is not enabled."));
+      info->PostResult(CreateDOMException("The depth stream is not enabled.",
+                                          ERROR_NAME_ABORTERROR));
       return;
     }
   }
@@ -308,8 +308,8 @@ void PhotoCaptureObject::OnTakePhoto(
     base::AutoLock lock(lock_);
     if (!depth_enabled_) {
       jsapi::depth_photo::Photo photo;
-      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                         "The depth stream is not enabled."));
+      info->PostResult(CreateDOMException("The depth stream is not enabled.",
+                                          ERROR_NAME_ABORTERROR));
       return;
     }
   }
@@ -334,8 +334,7 @@ void PhotoCaptureObject::RunPipeline() {
       base::AutoLock lock(lock_);
       depth_enabled_ = false;
     }
-    DISPATCH_ERROR_AND_CLEAR(ERROR_CODE_EXEC_FAILED,
-                             "Failed to acquire frame.");
+    DISPATCH_ERROR_AND_CLEAR("Failed to acquire frame.", ERROR_NAME_ABORTERROR);
     return;
   }
 
@@ -379,16 +378,16 @@ void PhotoCaptureObject::RunPipeline() {
 void PhotoCaptureObject::DoGetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!depth_image_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to get depth image."));
+    info->PostResult(CreateDOMException("Failed to get depth image.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
   if (!CopyImageToBinaryMessage(depth_image_,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to copy depth image."));
+    info->PostResult(CreateDOMException("Failed to get depth image.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -402,7 +401,8 @@ void PhotoCaptureObject::DoGetDepthImage(
 void PhotoCaptureObject::DoTakePhoto(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (PXC_FAILED(sense_manager_->AcquireFrame(true))) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException("Failed to acquire frame.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -455,13 +455,13 @@ void PhotoCaptureObject::ReleaseResources() {
   }
 }
 
-void PhotoCaptureObject::DispatchErrorEvent(const ErrorCode& error,
-                                            const std::string& message) {
-  RSError rsError;
-  rsError.error = error;
-  rsError.message = message;
+void PhotoCaptureObject::DispatchErrorEvent(
+    const std::string& message, ErrorName name) {
+  DOMException dom_exception;
+  dom_exception.message = message;
+  dom_exception.name = name;
   scoped_ptr<base::ListValue> data(new base::ListValue);
-  data->Append(rsError.ToValue().release());
+  data->Append(dom_exception.ToValue().release());
   DispatchEvent("error", data.Pass());
 }
 

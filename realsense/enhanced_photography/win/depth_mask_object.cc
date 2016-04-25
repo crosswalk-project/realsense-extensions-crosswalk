@@ -48,7 +48,7 @@ void DepthMaskObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   scoped_ptr<Init::Params> params(
       Init::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -56,12 +56,12 @@ void DepthMaskObject::OnInit(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
   if ((depth_mask_->Init(depthPhotoObject->GetPhoto())) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "DepthMask Init failed."));
+    info->PostResult(CreateDOMException("DepthMask Init failed.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -73,7 +73,7 @@ void DepthMaskObject::OnComputeFromCoordinate(
   scoped_ptr<ComputeFromCoordinate::Params> params(
       ComputeFromCoordinate::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -98,7 +98,7 @@ void DepthMaskObject::OnComputeFromCoordinate(
   if (!CopyImageToBinaryMessage(pxcimage,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -116,7 +116,7 @@ void DepthMaskObject::OnComputeFromThreshold(
   scoped_ptr<ComputeFromThreshold::Params> params(
       ComputeFromThreshold::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -137,7 +137,7 @@ void DepthMaskObject::OnComputeFromThreshold(
   if (!CopyImageToBinaryMessage(pxcimage,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

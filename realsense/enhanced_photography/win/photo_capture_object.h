@@ -53,7 +53,7 @@ class PhotoCaptureObject : public xwalk::common::EventTarget {
   void DoTakePhoto(scoped_ptr<XWalkExtensionFunctionInfo> info);
 
   // Helpers
-  void DispatchErrorEvent(const ErrorCode& error, const std::string& message);
+  void DispatchErrorEvent(const std::string& message, ErrorName name);
   void ReleaseResources();
 
   bool on_depthquality_;

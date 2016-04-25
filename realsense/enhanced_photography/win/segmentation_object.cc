@@ -55,13 +55,13 @@ void SegmentationObject::OnObjectSegment(
   if (info->arguments()->Get(0, &image_value) &&
       !image_value->IsType(base::Value::TYPE_NULL)) {
     if (!image_value->IsType(base::Value::TYPE_BINARY)) {
-      info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+      info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
       return;
     } else {
       binary_value = static_cast<const base::BinaryValue*>(image_value);
     }
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -77,7 +77,7 @@ void SegmentationObject::OnObjectSegment(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -117,7 +117,7 @@ void SegmentationObject::OnObjectSegment(
   if (!CopyImageToBinaryMessage(pxc_mask_image,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -140,7 +140,7 @@ void SegmentationObject::OnRedo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!CopyImageToBinaryMessage(pxc_mask_image,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -162,13 +162,13 @@ void SegmentationObject::OnRefineMask(
   if (info->arguments()->Get(0, &image_value) &&
     !image_value->IsType(base::Value::TYPE_NULL)) {
     if (!image_value->IsType(base::Value::TYPE_BINARY)) {
-      info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+      info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
       return;
     } else {
       binary_value = static_cast<const base::BinaryValue*>(image_value);
     }
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -178,7 +178,7 @@ void SegmentationObject::OnRefineMask(
   const int* int_array = reinterpret_cast<const int*>(data);
   int points_number = int_array[0];
   if (points_number == 0) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
   std::vector<PXCPointI32> points;
@@ -202,7 +202,7 @@ void SegmentationObject::OnRefineMask(
   if (!CopyImageToBinaryMessage(pxc_mask_image,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -223,7 +223,7 @@ void SegmentationObject::OnUndo(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!CopyImageToBinaryMessage(pxc_mask_image,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

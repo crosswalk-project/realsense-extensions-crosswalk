@@ -93,7 +93,7 @@ void DepthPhotoObject::DestroyPhoto() {
 void DepthPhotoObject::OnCheckSignature(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -104,14 +104,14 @@ void DepthPhotoObject::OnCheckSignature(
 void DepthPhotoObject::OnQueryCameraPerspectiveModel(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<QueryCameraPerspectiveModel::Params> params(
       QueryCameraPerspectiveModel::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -136,14 +136,14 @@ void DepthPhotoObject::OnQueryCameraPerspectiveModel(
 void DepthPhotoObject::OnQueryCameraPose(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<QueryCameraPose::Params> params(
       QueryCameraPose::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -165,14 +165,14 @@ void DepthPhotoObject::OnQueryCameraPose(
 void DepthPhotoObject::OnQueryCameraVendorInfo(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<QueryCameraVendorInfo::Params> params(
       QueryCameraVendorInfo::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -190,7 +190,7 @@ void DepthPhotoObject::OnQueryContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -198,7 +198,7 @@ void DepthPhotoObject::OnQueryContainerImage(
   if (!CopyImageToBinaryMessage(imColor,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -213,14 +213,14 @@ void DepthPhotoObject::OnQueryImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<QueryColorImage::Params> params(
       QueryColorImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -232,7 +232,7 @@ void DepthPhotoObject::OnQueryImage(
   if (!CopyImageToBinaryMessage(imColor,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -247,14 +247,14 @@ void DepthPhotoObject::OnQueryDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<QueryDepthImage::Params> params(
       QueryDepthImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -266,7 +266,7 @@ void DepthPhotoObject::OnQueryDepth(
   if (!CopyImageToBinaryMessage(imDepth,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -280,7 +280,7 @@ void DepthPhotoObject::OnQueryDepth(
 void DepthPhotoObject::OnQueryDeviceVendorInfo(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -297,7 +297,7 @@ void DepthPhotoObject::OnQueryDeviceVendorInfo(
 void DepthPhotoObject::OnQueryNumberOfCameras(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -310,7 +310,7 @@ void DepthPhotoObject::OnQueryRawDepth(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Image img;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -318,7 +318,7 @@ void DepthPhotoObject::OnQueryRawDepth(
   if (!CopyImageToBinaryMessage(imDepth,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -332,7 +332,7 @@ void DepthPhotoObject::OnQueryRawDepth(
 void DepthPhotoObject::OnQueryXDMRevision(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -344,7 +344,7 @@ void DepthPhotoObject::OnQueryXDMRevision(
 void DepthPhotoObject::OnResetContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -355,14 +355,14 @@ void DepthPhotoObject::OnResetContainerImage(
 void DepthPhotoObject::OnSetContainerImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<SetContainerImage::Params> params(
       SetContainerImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -375,12 +375,12 @@ void DepthPhotoObject::OnSetContainerImage(
 
   PXCImage* out = photo_->QueryContainerImage();
   if (!out) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -389,7 +389,7 @@ void DepthPhotoObject::OnSetContainerImage(
                                           PXCImage::PIXEL_FORMAT_RGB24,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -410,14 +410,14 @@ void DepthPhotoObject::OnSetContainerImage(
 void DepthPhotoObject::OnSetColorImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<SetColorImage::Params> params(
       SetColorImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -430,12 +430,12 @@ void DepthPhotoObject::OnSetColorImage(
 
   PXCImage* out = photo_->QueryImage();
   if (!out) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -444,7 +444,7 @@ void DepthPhotoObject::OnSetColorImage(
                                           PXCImage::PIXEL_FORMAT_RGB32,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -465,14 +465,14 @@ void DepthPhotoObject::OnSetColorImage(
 void DepthPhotoObject::OnSetDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<SetDepthImage::Params> params(
       SetDepthImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -486,7 +486,7 @@ void DepthPhotoObject::OnSetDepthImage(
   PXCImage* out = photo_->QueryDepth();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -495,7 +495,7 @@ void DepthPhotoObject::OnSetDepthImage(
                                           PXCImage::PIXEL_FORMAT_DEPTH,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -516,14 +516,14 @@ void DepthPhotoObject::OnSetDepthImage(
 void DepthPhotoObject::OnSetRawDepthImage(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   scoped_ptr<SetRawDepthImage::Params> params(
       SetRawDepthImage::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -537,7 +537,7 @@ void DepthPhotoObject::OnSetRawDepthImage(
   PXCImage* out = photo_->QueryRawDepth();
   PXCImage::ImageInfo outInfo = out->QueryInfo();
   if (width != outInfo.width || height != outInfo.height) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -546,7 +546,7 @@ void DepthPhotoObject::OnSetRawDepthImage(
                                           PXCImage::PIXEL_FORMAT_DEPTH,
                                           &outData);
   if (photoSts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -568,7 +568,7 @@ void DepthPhotoObject::OnClone(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   jsapi::depth_photo::Photo photo;
   if (!photo_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
