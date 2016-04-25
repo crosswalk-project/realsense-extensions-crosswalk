@@ -36,6 +36,12 @@ shared_library("hand") {
   ]
 }
 
+copy("npm_package") {
+  sources = [ "../npm/README.md", "../npm/package.json" ]
+  dist_dir = "$root_build_dir/realsense_extensions/hand"
+  outputs = [ "$dist_dir/{{source_file_part}}" ]
+}
+
 action("make_dist") {
   script = "//extensions/realsense/common/dist.py"
   dll_file = "hand.dll"
@@ -51,5 +57,5 @@ action("make_dist") {
     "--extension-dll", rebase_path("$root_build_dir/$dll_file"),
     "--target-dir", rebase_path("$dist_dir"),
   ]
-  deps = [ ":hand" ]
+  deps = [ ":hand", ":npm_package" ]
 }
