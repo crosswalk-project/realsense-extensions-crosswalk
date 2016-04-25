@@ -20,7 +20,6 @@
 namespace realsense {
 namespace hand {
 
-using realsense::jsapi::common::ErrorCode;
 using xwalk::common::XWalkExtensionFunctionInfo;
 
 class HandModuleObject

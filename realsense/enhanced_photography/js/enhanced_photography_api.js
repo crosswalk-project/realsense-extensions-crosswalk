@@ -22,7 +22,7 @@ function wrapF32ImageReturns(data) {
   var width = int32Array[1];
   var height = int32Array[2];
   var buffer = new Float32Array(data, headerByteOffset, width * height);
-  return { format: 'DEPTH_F32', width: width, height: height, data: buffer };
+  return { format: 'depth-f32', width: width, height: height, data: buffer };
 }
 
 function wrapPhotoArgs(data) {
@@ -42,7 +42,7 @@ function wrapRGB32ImageReturns(data) {
   // 3 int32 (4 bytes) values.
   var headerByteOffset = 3 * bytesPerInt32;
   var buffer = new Uint8Array(data, headerByteOffset, width * height * bytesPerRGB32Pixel);
-  return { format: 'RGB32', width: width, height: height, data: buffer };
+  return { format: 'rgb32', width: width, height: height, data: buffer };
 }
 
 function wrapY8ImageReturns(data) {
@@ -64,7 +64,11 @@ function wrapDepthImageReturns(data) {
   // 3 int32 (4 bytes) values.
   var headerByteOffset = 3 * bytesPerInt32;
   var buffer = new Uint16Array(data, headerByteOffset, width * height);
-  return { format: 'DEPTH', width: width, height: height, data: buffer };
+  return { format: 'depth', width: width, height: height, data: buffer };
+}
+
+function wrapErrorReturns(error) {
+  return new DOMException(error.message, error.name);
 }
 
 var DepthMask = function(objectId) {
@@ -75,9 +79,9 @@ var DepthMask = function(objectId) {
       throw new InitFailureException('Failed to construct DepthMask object. Missing dependency');
   }
 
-  this._addMethodWithPromise('init', wrapPhotoArgs);
-  this._addMethodWithPromise('computeFromCoordinate', null, wrapF32ImageReturns);
-  this._addMethodWithPromise('computeFromThreshold', null, wrapF32ImageReturns);
+  this._addMethodWithPromise('init', wrapPhotoArgs, null, wrapErrorReturns);
+  this._addMethodWithPromise('computeFromCoordinate', null, wrapF32ImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('computeFromThreshold', null, wrapF32ImageReturns, wrapErrorReturns);
 };
 
 DepthMask.prototype = new common.EventTargetPrototype();
@@ -94,7 +98,7 @@ var DepthPhoto = function(objectId) {
   }
 
   function wrapRGB32ImageArgs(args) {
-    if (args[0].format != 'RGB32')
+    if (args[0].format != 'rgb32')
       return null;
     var length = 2 * bytesPerInt32 + args[0].width * args[0].height * bytesPerRGB32Pixel;
     var arrayBuffer = new ArrayBuffer(length);
@@ -109,7 +113,7 @@ var DepthPhoto = function(objectId) {
   };
 
   function wrapDepthImageArgs(args) {
-    if (args[0].format != 'DEPTH')
+    if (args[0].format != 'depth')
       return null;
     var length = 2 * bytesPerInt32 + args[0].width * args[0].height * bytesPerDEPTHPixel;
     var arrayBuffer = new ArrayBuffer(length);
@@ -123,23 +127,23 @@ var DepthPhoto = function(objectId) {
     return arrayBuffer;
   };
 
-  this._addMethodWithPromise('checkSignature');
-  this._addMethodWithPromise('queryCameraPerspectiveModel');
-  this._addMethodWithPromise('queryCameraPose');
-  this._addMethodWithPromise('queryCameraVendorInfo');
-  this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('queryImage', null, wrapRGB32ImageReturns);
-  this._addMethodWithPromise('queryDepth', null, wrapDepthImageReturns);
-  this._addMethodWithPromise('queryDeviceVendorInfo');
-  this._addMethodWithPromise('queryNumberOfCameras');
+  this._addMethodWithPromise('checkSignature', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('queryCameraPerspectiveModel', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('queryCameraPose', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('queryCameraVendorInfo', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('queryContainerImage', null, wrapRGB32ImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('queryImage', null, wrapRGB32ImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('queryDepth', null, wrapDepthImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('queryDeviceVendorInfo', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('queryNumberOfCameras', null, null, wrapErrorReturns);
   this._addMethodWithPromise('queryRawDepth', null, wrapDepthImageReturns);
-  this._addMethodWithPromise('queryXDMRevision');
-  this._addMethodWithPromise('resetContainerImage');
-  this._addBinaryMethodWithPromise('setContainerImage', wrapRGB32ImageArgs);
-  this._addBinaryMethodWithPromise('setColorImage', wrapRGB32ImageArgs);
-  this._addBinaryMethodWithPromise('setDepthImage', wrapDepthImageArgs);
-  this._addBinaryMethodWithPromise('setRawDepthImage', wrapDepthImageArgs);
-  this._addMethodWithPromise('clone', null, wrapPhotoReturns);
+  this._addMethodWithPromise('queryXDMRevision', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('resetContainerImage', null, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('setContainerImage', wrapRGB32ImageArgs, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('setColorImage', wrapRGB32ImageArgs, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('setDepthImage', wrapDepthImageArgs, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('setRawDepthImage', wrapDepthImageArgs, null, wrapErrorReturns);
+  this._addMethodWithPromise('clone', null, wrapPhotoReturns, wrapErrorReturns);
 
   Object.defineProperties(this, {
     'photoId': {
@@ -179,11 +183,11 @@ var Measurement = function(objectId) {
       throw new InitFailureException('Failed to construct Measurement object. Missing dependency');
   }
 
-  this._addMethodWithPromise('measureDistance', wrapPhotoArgs);
+  this._addMethodWithPromise('measureDistance', wrapPhotoArgs, null, wrapErrorReturns);
   // Mark following APIs as experimental according to RSSDK WM6.
-  this._addMethodWithPromise('measureUADistance', wrapPhotoArgs, null, null, true);
-  this._addMethodWithPromise('queryUADataSize', null, null, null, true);
-  this._addMethodWithPromise('queryUAData', null, null, null, true);
+  this._addMethodWithPromise('measureUADistance', wrapPhotoArgs, null, wrapErrorReturns, true);
+  this._addMethodWithPromise('queryUADataSize', null, null, wrapErrorReturns, true);
+  this._addMethodWithPromise('queryUAData', null, null, wrapErrorReturns, true);
 };
 
 Measurement.prototype = new common.EventTargetPrototype();
@@ -198,8 +202,8 @@ var MotionEffect = function(objectId) {
       throw new InitFailureException('Failed to construct MotionEffect object. Missing dependency');
   }
 
-  this._addMethodWithPromise('init', wrapPhotoArgs);
-  this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns);
+  this._addMethodWithPromise('init', wrapPhotoArgs, null, wrapErrorReturns);
+  this._addMethodWithPromise('apply', null, wrapRGB32ImageReturns, wrapErrorReturns);
 };
 
 MotionEffect.prototype = new common.EventTargetPrototype();
@@ -223,7 +227,7 @@ var Paster = function(objectId) {
     if (!effects)
       hasEffects = false;
 
-    if (sticker.format != 'RGB32')
+    if (sticker.format != 'rgb32')
       return null;
 
     var length;
@@ -283,11 +287,12 @@ var Paster = function(objectId) {
     return arrayBuffer;
   };
 
-  this._addMethodWithPromise('getPlanesMap', null, wrapY8ImageReturns);
-  this._addMethodWithPromise('setPhoto', wrapPhotoArgs);
-  this._addBinaryMethodWithPromise('setSticker', wrapSetStickerArgsToArrayBuffer);
-  this._addMethodWithPromise('paste', null, wrapPhotoReturns);
-  this._addMethodWithPromise('previewSticker', null, wrapY8ImageReturns);
+  this._addMethodWithPromise('getPlanesMap', null, wrapY8ImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('setPhoto', wrapPhotoArgs, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('setSticker', wrapSetStickerArgsToArrayBuffer, null,
+                                   wrapErrorReturns);
+  this._addMethodWithPromise('paste', null, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('previewSticker', null, wrapY8ImageReturns, wrapErrorReturns);
 };
 
 Paster.prototype = new common.EventTargetPrototype();
@@ -330,14 +335,15 @@ var PhotoCapture = function(previewStream, objectId) {
     }
   });
 
-  this._addMethodWithPromise('getDepthImage', null, wrapDepthImageReturns);
-  this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns);
+  this._addMethodWithPromise('getDepthImage', null, wrapDepthImageReturns, wrapErrorReturns);
+  this._addMethodWithPromise('takePhoto', null, wrapPhotoReturns, wrapErrorReturns);
 
   var CaptureErrorEvent = function(type, data) {
+    // Follow https://developer.mozilla.org/en-US/docs/Web/API/ErrorEvent
     this.type = type;
 
     if (data) {
-      this.error = data.error;
+      this.error = new DOMException(data.message, data.error);
       this.message = data.message;
     }
   };
@@ -368,13 +374,13 @@ var PhotoUtils = function(objectId) {
   if (objectId == undefined)
     internal.postMessage('photoUtilsConstructor', [this._id]);
 
-  this._addMethodWithPromise('colorResize', wrapPhotoArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('commonFOV', wrapPhotoArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('getDepthQuality', wrapPhotoArgs);
-  this._addMethodWithPromise('photoCrop', wrapPhotoArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('photoRotate', wrapPhotoArgs, wrapPhotoReturns);
+  this._addMethodWithPromise('colorResize', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('commonFOV', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('depthResize', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('enhanceDepth', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('getDepthQuality', wrapPhotoArgs, null, wrapErrorReturns);
+  this._addMethodWithPromise('photoCrop', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('photoRotate', wrapPhotoArgs, wrapPhotoReturns, wrapErrorReturns);
 };
 
 PhotoUtils.prototype = new common.EventTargetPrototype();
@@ -447,10 +453,12 @@ var Segmentation = function(objectId) {
 
   this._addBinaryMethodWithPromise('objectSegment',
                                    wrapObjectSegmentArgsToArrayBuffer,
-                                   wrapY8ImageReturns);
-  this._addMethodWithPromise('redo', null, wrapY8ImageReturns);
-  this._addBinaryMethodWithPromise('refineMask', wrapRefineMaskToArrayBuffer, wrapY8ImageReturns);
-  this._addMethodWithPromise('undo', null, wrapY8ImageReturns);
+                                   wrapY8ImageReturns,
+                                   wrapErrorReturns);
+  this._addMethodWithPromise('redo', null, wrapY8ImageReturns, wrapErrorReturns);
+  this._addBinaryMethodWithPromise('refineMask', wrapRefineMaskToArrayBuffer, wrapY8ImageReturns,
+                                   wrapErrorReturns);
+  this._addMethodWithPromise('undo', null, wrapY8ImageReturns, wrapErrorReturns);
 };
 
 Segmentation.prototype = new common.EventTargetPrototype();
@@ -481,9 +489,9 @@ var XDMUtils = function(objectId) {
     return blob;
   };
 
-  this._addBinaryMethodWithPromise2('isXDM', wrapBlobArgs);
-  this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArgs, wrapPhotoReturns);
-  this._addMethodWithPromise('saveXDM', wrapPhotoArgs, wrapBlobReturns);
+  this._addBinaryMethodWithPromise2('isXDM', wrapBlobArgs, null, wrapErrorReturns);
+  this._addBinaryMethodWithPromise2('loadXDM', wrapBlobArgs, wrapPhotoReturns, wrapErrorReturns);
+  this._addMethodWithPromise('saveXDM', wrapPhotoArgs, wrapBlobReturns, wrapErrorReturns);
 };
 
 XDMUtils.prototype = new common.EventTargetPrototype();

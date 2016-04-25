@@ -62,8 +62,7 @@ PhotoUtilsObject::~PhotoUtilsObject() {
 void PhotoUtilsObject::OnColorResize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -71,7 +70,7 @@ void PhotoUtilsObject::OnColorResize(
   scoped_ptr<ColorResize::Params> params(
       ColorResize::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -79,7 +78,7 @@ void PhotoUtilsObject::OnColorResize(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -89,7 +88,7 @@ void PhotoUtilsObject::OnColorResize(
       photo_utils_->ColorResize(depthPhotoObject->GetPhoto(), width);
 
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -100,8 +99,7 @@ void PhotoUtilsObject::OnColorResize(
 void PhotoUtilsObject::OnCommonFOV(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -109,7 +107,7 @@ void PhotoUtilsObject::OnCommonFOV(
   scoped_ptr<CommonFOV::Params> params(
       CommonFOV::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -117,7 +115,7 @@ void PhotoUtilsObject::OnCommonFOV(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -125,7 +123,7 @@ void PhotoUtilsObject::OnCommonFOV(
   PXCPhoto* pxcphoto = photo_utils_->CommonFOV(depthPhotoObject->GetPhoto());
 
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -136,8 +134,7 @@ void PhotoUtilsObject::OnCommonFOV(
 void PhotoUtilsObject::OnDepthResize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -145,7 +142,7 @@ void PhotoUtilsObject::OnDepthResize(
   scoped_ptr<DepthResize::Params> params(
       DepthResize::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -153,7 +150,7 @@ void PhotoUtilsObject::OnDepthResize(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -176,7 +173,7 @@ void PhotoUtilsObject::OnDepthResize(
   }
 
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -187,8 +184,7 @@ void PhotoUtilsObject::OnDepthResize(
 void PhotoUtilsObject::OnEnhanceDepth(
   scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -196,7 +192,7 @@ void PhotoUtilsObject::OnEnhanceDepth(
   scoped_ptr<EnhanceDepth::Params> params(
       EnhanceDepth::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -204,7 +200,7 @@ void PhotoUtilsObject::OnEnhanceDepth(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -219,7 +215,7 @@ void PhotoUtilsObject::OnEnhanceDepth(
   PXCPhoto* pxcphoto = photo_utils_->EnhanceDepth(depthPhotoObject->GetPhoto(),
                                                   pxcquality);
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -230,8 +226,7 @@ void PhotoUtilsObject::OnEnhanceDepth(
 void PhotoUtilsObject::OnGetDepthQuality(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -239,7 +234,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
   scoped_ptr<GetDepthQuality::Params> params(
       GetDepthQuality::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -247,7 +242,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -262,7 +257,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
   } else if (qulity == PXCEnhancedPhoto::PhotoUtils::DepthMapQuality::GOOD) {
     depth_quality = DepthMapQuality::DEPTH_MAP_QUALITY_GOOD;
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -273,8 +268,7 @@ void PhotoUtilsObject::OnGetDepthQuality(
 void PhotoUtilsObject::OnPhotoCrop(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -282,7 +276,7 @@ void PhotoUtilsObject::OnPhotoCrop(
   scoped_ptr<PhotoCrop::Params> params(
       PhotoCrop::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -290,7 +284,7 @@ void PhotoUtilsObject::OnPhotoCrop(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -304,7 +298,7 @@ void PhotoUtilsObject::OnPhotoCrop(
   PXCPhoto* pxcphoto = photo_utils_->PhotoCrop(depthPhotoObject->GetPhoto(),
                                                pxcrect);
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -315,8 +309,7 @@ void PhotoUtilsObject::OnPhotoCrop(
 void PhotoUtilsObject::OnPhotoRotate(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
@@ -324,7 +317,7 @@ void PhotoUtilsObject::OnPhotoRotate(
   scoped_ptr<PhotoRotate::Params> params(
       PhotoRotate::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -332,7 +325,7 @@ void PhotoUtilsObject::OnPhotoRotate(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -342,7 +335,7 @@ void PhotoUtilsObject::OnPhotoRotate(
   PXCPhoto* pxcphoto = photo_utils_->PhotoRotate(depthPhotoObject->GetPhoto(),
                                                  rotation);
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

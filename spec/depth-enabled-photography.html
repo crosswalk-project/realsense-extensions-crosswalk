@@ -95,7 +95,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -110,7 +110,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the mask image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Point coordinate</dt>
@@ -134,7 +134,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the mask image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>float depthThreshold</dt>
@@ -172,7 +172,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -186,7 +186,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the refocused photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Point focusPoint</dt>
@@ -199,32 +199,6 @@
                 The value is in the range of 7.7 to 160, roughly equivalent to f/22 and f/1.1, respectively.
               </dd>
             </dl>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
-          <code><a>DEPError</a></code>
-        </h2>
-        <p>
-          The error type from the reject callback of Promise.
-        </p>
-        <dl class="idl" title="interface DEPError">
-          <dt>
-            readonly attribute ErrorCode error
-          </dt>
-          <dd>
-            <p>
-              The error code. See the <code><a>ErrorCode</a></code> enumerator for definition.
-            </p>
-          </dd>
-          <dt>
-            readonly attribute DOMString message
-          </dt>
-          <dd>
-            <p>
-              The descripton string for error.
-            </p>
           </dd>
         </dl>
       </section>
@@ -293,7 +267,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the measure data if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -324,7 +298,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the measure data if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -354,7 +328,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the size of the MeasureData if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -371,7 +345,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with an array of the MeasureData if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
         </dl>
@@ -399,7 +373,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -420,7 +394,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the processed image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Motion motion</dt>
@@ -466,7 +440,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the image instance with detected planes if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -479,7 +453,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -500,7 +474,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Image sticker</dt>
@@ -534,7 +508,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the resulting photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -550,7 +524,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the image mask if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
         </dl>
@@ -576,7 +550,7 @@
               This method returns a promise.
               If the container image is not modified, the promise will be fulfilled
               with true. Otherwise, the promise will be fulfilled with false.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -590,7 +564,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with new photo if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -605,7 +579,7 @@
               This method returns a promise.
               The promise will be fulfilled with the specified camera perspective
               model parameters if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>unsigned long cameraIndex</dt>
@@ -626,7 +600,7 @@
               This method returns a promise.
               The promise will be fulfilled with the specified camera pose
               information if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>unsigned long cameraIndex</dt>
@@ -647,7 +621,7 @@
               This method returns a promise.
               The promise will be fulfilled with the specified
               camera vendor information if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>unsigned long cameraIndex</dt>
@@ -670,7 +644,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the color image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>optional unsigned long cameraIndex</dt>
@@ -690,7 +664,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the container photo image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -707,7 +681,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the depth image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>optional unsigned long cameraIndex</dt>
@@ -728,7 +702,7 @@
               This method returns a promise.
               The promise will be fulfilled with the specified
               device vendor information if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -743,7 +717,7 @@
               This method returns a promise.
               The promise will be fulfilled with the number of cameras if there
               are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -759,7 +733,7 @@
               This method returns a promise.
               The promise will be fulfilled with the not-processed original
               depth image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -773,7 +747,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -788,7 +762,7 @@
               This method returns a promise.
               The promise will be fulfilled with the XDM file revision string if
               there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -803,7 +777,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Image image</dt>
@@ -827,7 +801,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -842,7 +816,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Image image</dt>
@@ -866,7 +840,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
         </dl>
@@ -902,7 +876,7 @@
               This method returns a promise.
               The promise will be fulfilled with the latest available
               depth image if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -917,7 +891,7 @@
               This method returns a promise.
               The promise will be fulfilled with the photo instance if there are
               no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -934,7 +908,7 @@
           <dd>
             <p>
               A property used to set the EventHandler (described in [[!HTML]])
-              for the <a><code>CaptureErrorEvent</code></a> that is dispatched
+              for the <a><code>ErrorEvent</code></a> that is dispatched
               to <code><a>PhotoCapture</a></code> when an error happens
               in preview.
             </p>
@@ -951,29 +925,6 @@
             </p>
           </dd>
         </dl>
-        <section>
-          <h3>
-            <code><a>CaptureErrorEvent</a></code> interface
-          </h3>
-          <dl class="idl" title="interface CaptureErrorEvent : Event">
-            <dt>
-              readonly attribute ErrorCode error
-            </dt>
-            <dd>
-              <p>
-                The error code.
-              </p>
-            </dd>
-            <dt>
-              readonly attribute DOMString message
-            </dt>
-            <dd>
-              <p>
-                The error message.
-              </p>
-            </dd>
-          </dl>
-        </section>
         <section>
           <h3>
             <code><a>DepthQualityEvent</a></code> interface
@@ -1012,7 +963,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with a color-resized photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1038,7 +989,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the new photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1059,7 +1010,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the depth map-resized photo image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1089,7 +1040,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the depth enhanced photo image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1114,7 +1065,7 @@
               This method returns a promise.
               The promise will be fulfilled with the depth map quality as defined
               in the <code><a>DepthMapQuality</a></code> enumerator if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1134,7 +1085,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the cropped photo image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1161,7 +1112,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the rotated photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1201,7 +1152,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the mask image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -1228,7 +1179,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the mask image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
           <dt>
@@ -1245,7 +1196,7 @@
               This method returns a promise.
               The promise will be fulfilled with the refined mask image instance if there are no errors.
               The returned image mask uses pixel value 255 for detected pixels and 0 for undetected pixels.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>sequence&lt;Point&gt; points</dt>
@@ -1271,7 +1222,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the mask image instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
           </dd>
         </dl>
@@ -1298,7 +1249,7 @@
               The promise will be fulfilled with true if the blob data is in
               [[!XDM]] format.
               Otherwise, the promise will be fulfilled with false.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Blob blob</dt>
@@ -1318,7 +1269,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the photo instance if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Blob blob</dt>
@@ -1338,7 +1289,7 @@
             <p>
               This method returns a promise.
               The promise will be fulfilled with the blob data if there are no errors.
-              The promise will be rejected with the <code><a>DEPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>Photo photo</dt>
@@ -2053,70 +2004,23 @@
       </section>
       <section>
         <h2>
-          <code><a>ErrorCode</a></code> enum
-        </h2>
-        <dl id="enum-basic" class="idl" title="enum ErrorCode">
-          <dt>
-            feature_unsupported
-          </dt>
-          <dd>
-            <p>
-              The requested feature is not available or not implemented.
-            </p>
-          </dd>
-          <dt>
-            param_unsupported
-          </dt>
-          <dd>
-            <p>
-              There are invalid/unsupported parameters.
-            </p>
-          </dd>
-          <dt>
-            photo_invalid
-          </dt>
-          <dd>
-            <p>
-              The Photo object is invalid.
-            </p>
-          </dd>
-          <dt>
-            init_failed
-          </dt>
-          <dd>
-            <p>
-              The initialization failed.
-            </p>
-          </dd>
-          <dt>
-            exec_failed
-          </dt>
-          <dd>
-            <p>
-              The operation failed to execute.
-            </p>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
           <code><a>PixelFormat</a></code> enum
         </h2>
         <dl id="enum-basic" class="idl" title="enum PixelFormat">
           <dt>
-            RGBA32
+            rgba32
           </dt>
           <dd>
             <p>
               The 32-bit RGBA32 color format. When <code>format</code> of
-              an <code><a>Image</a></code> instance is set to <code>RGBA32</code>,
+              an <code><a>Image</a></code> instance is set to <code>rgba32</code>,
               the <code>data</code> of that image instance must follow the
               bytes layout of <a href="http://www.w3.org/TR/2dcontext/#canvas-pixel-arraybuffer">Canvas Pixel ArrayBuffer</a>
               defined in [[!CANVAS-2D]].
             </p>
           </dd>
           <dt>
-            DEPTH
+            depth
           </dt>
           <dd>
             <p>
@@ -2126,7 +2030,7 @@
             </p>
           </dd>
           <dt>
-            DEPTH_F32
+            depth-f32
           </dt>
           <dd>
             <p>
@@ -2135,7 +2039,7 @@
             </p>
           </dd>
           <dt>
-            Y8
+            y8
           </dt>
           <dd>
             <p>

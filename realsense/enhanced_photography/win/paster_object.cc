@@ -59,7 +59,7 @@ void PasterObject::OnGetPlanesMap(
   if (!CopyImageToBinaryMessage(mask,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -77,7 +77,7 @@ void PasterObject::OnSetPhoto(
   scoped_ptr<SetPhoto::Params> params(
       SetPhoto::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -85,13 +85,13 @@ void PasterObject::OnSetPhoto(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
   pxcStatus sts = paster_->SetPhoto(depthPhotoObject->GetPhoto());
   if (sts < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -104,13 +104,13 @@ void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (info->arguments()->Get(0, &buffer_value) &&
     !buffer_value->IsType(base::Value::TYPE_NULL)) {
     if (!buffer_value->IsType(base::Value::TYPE_BINARY)) {
-      info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+      info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
       return;
     } else {
       binary_value = static_cast<const base::BinaryValue*>(buffer_value);
     }
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -191,7 +191,7 @@ void PasterObject::OnSetSticker(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   }
 
   if (sts != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -206,7 +206,7 @@ void PasterObject::OnPaste(scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK(paster_);
   PXCPhoto* pxcphoto = paster_->Paste();
   if (!pxcphoto) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 
@@ -223,7 +223,7 @@ void PasterObject::OnPreviewSticker(
   if (!CopyImageToBinaryMessage(mask,
                                 binary_message_,
                                 &binary_message_size_)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

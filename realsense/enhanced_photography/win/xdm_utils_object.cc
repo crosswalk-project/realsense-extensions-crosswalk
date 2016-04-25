@@ -47,15 +47,14 @@ XDMUtilsObject::~XDMUtilsObject() {
 void XDMUtilsObject::OnIsXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
   base::BinaryValue* binary_value = nullptr;
   GetBinaryValueFromArgs(info->arguments(), &binary_value);
   if (!binary_value)
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
 
   base::ScopedTempDir tmp_dir;
   tmp_dir.CreateUniqueTempDir();
@@ -77,15 +76,14 @@ void XDMUtilsObject::OnIsXDM(
 void XDMUtilsObject::OnLoadXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
   base::BinaryValue* binary_value = nullptr;
   GetBinaryValueFromArgs(info->arguments(), &binary_value);
   if (!binary_value)
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
 
   base::ScopedTempDir tmp_dir;
   tmp_dir.CreateUniqueTempDir();
@@ -97,7 +95,7 @@ void XDMUtilsObject::OnLoadXDM(
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   PXCPhoto* pxcphoto = session_->CreatePhoto();
   if (pxcphoto->LoadXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
   jsapi::depth_photo::Photo photo;
@@ -108,15 +106,14 @@ void XDMUtilsObject::OnLoadXDM(
 void XDMUtilsObject::OnSaveXDM(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!isRSSDKInstalled_) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "The RSSDK is uninstalled"));
+    info->PostResult(CreateDOMException(ERROR_CODE_INIT_FAILED));
     return;
   }
 
   scoped_ptr<SaveXDM::Params> params(
       SaveXDM::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -124,7 +121,7 @@ void XDMUtilsObject::OnSaveXDM(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -134,7 +131,7 @@ void XDMUtilsObject::OnSaveXDM(
       FILE_PATH_LITERAL("tmp_img.jpg"));
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (depthPhotoObject->GetPhoto()->SaveXDM(wfile) < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED));
+    info->PostResult(CreateDOMException(ERROR_CODE_EXEC_FAILED));
     return;
   }
 

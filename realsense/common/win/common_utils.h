@@ -15,10 +15,6 @@
 namespace realsense {
 using namespace jsapi::common;  // NOLINT
 namespace common {
-
-scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error);
-scoped_ptr<base::ListValue> CreateErrorResult(ErrorCode error,
-                                              const std::string& message);
 scoped_ptr<base::ListValue> CreateDOMException(const std::string& message,
                                                ErrorName name);
 scoped_ptr<base::ListValue> CreateSuccessResult();

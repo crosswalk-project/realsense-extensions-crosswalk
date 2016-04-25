@@ -8,6 +8,7 @@
 
 #include "base/bind.h"
 #include "realsense/common/win/common_utils.h"
+#include "realsense/enhanced_photography/win/common_utils.h"
 #include "realsense/enhanced_photography/win/depth_photo_object.h"
 
 namespace realsense {
@@ -44,7 +45,7 @@ void MeasurementObject::OnMeasureDistance(
   scoped_ptr<MeasureDistance::Params> params(
       MeasureDistance::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -52,7 +53,7 @@ void MeasurementObject::OnMeasureDistance(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -65,8 +66,8 @@ void MeasurementObject::OnMeasureDistance(
                                                    end,
                                                    &data);
   if (status != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "MeasureDistance failed"));
+    info->PostResult(CreateDOMException("MeasureDistance failed",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -81,7 +82,7 @@ void MeasurementObject::OnMeasureUADistance(
   scoped_ptr<MeasureUADistance::Params> params(
       MeasureUADistance::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED));
+    info->PostResult(CreateDOMException(ERROR_CODE_PARAM_UNSUPPORTED));
     return;
   }
 
@@ -89,7 +90,7 @@ void MeasurementObject::OnMeasureUADistance(
   DepthPhotoObject* depthPhotoObject = static_cast<DepthPhotoObject*>(
       instance_->GetBindingObjectById(object_id));
   if (!depthPhotoObject || !depthPhotoObject->GetPhoto()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PHOTO_INVALID));
+    info->PostResult(CreateDOMException(ERROR_CODE_PHOTO_INVALID));
     return;
   }
 
@@ -100,8 +101,8 @@ void MeasurementObject::OnMeasureUADistance(
   pxcStatus status = measurement_->MeasureUADistance(
       depthPhotoObject->GetPhoto(), start, end, &data);
   if (status != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "MeasureUADistance failed"));
+    info->PostResult(CreateDOMException("MeasureUADistance failed",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -125,8 +126,8 @@ void MeasurementObject::OnQueryUAData(
   PXCEnhancedPhoto::Measurement::MeasureData data;
   pxcStatus status = measurement_->QueryUAData(&data);
   if (status != PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "QueryUAData failed"));
+    info->PostResult(CreateDOMException("QueryUAData failed",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 

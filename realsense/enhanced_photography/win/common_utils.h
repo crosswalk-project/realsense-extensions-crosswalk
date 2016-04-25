@@ -14,6 +14,22 @@
 namespace realsense {
 namespace enhanced_photography {
 
+#define ERROR_CODE_FEATURE_UNSUPPORTED \
+  "The requested feature is not available or not implemented.", \
+  ERROR_NAME_NOTFOUNDERROR
+#define ERROR_CODE_PARAM_UNSUPPORTED \
+  "There are invalid/unsupported parameters.", \
+  ERROR_NAME_INVALIDACCESSERROR
+#define ERROR_CODE_PHOTO_INVALID \
+  "The Photo object is invalid.", \
+  ERROR_NAME_INVALIDACCESSERROR
+#define ERROR_CODE_INIT_FAILED \
+  "The initialization failed.", \
+  ERROR_NAME_ABORTERROR
+#define ERROR_CODE_EXEC_FAILED \
+  "The operation failed to execute.", \
+  ERROR_NAME_ABORTERROR
+
 bool CopyImageToBinaryMessage(PXCImage* image,
                               scoped_ptr<uint8[]>& binary_message,  // NOLINT
                               size_t* length);
