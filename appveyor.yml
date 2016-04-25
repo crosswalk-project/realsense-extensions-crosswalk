@@ -1,14 +1,14 @@
 # Copyright (c) 2015 Intel Corporation. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-version: 19.6.0.{build}
+version: 19.6.1.{build}
 clone_folder: c:\projects\realsense-extensions-crosswalk\src\extensions
 init:
 - cmd: git config --global core.autocrlf input
 environment:
   DEPOT_TOOLS_WIN_TOOLCHAIN: 0
-  XWALK_CHANNEL: canary
-  XWALK_VERSION: 19.49.506.0
+  XWALK_CHANNEL: beta
+  XWALK_VERSION: 19.49.514.1
 install:
 - cmd: >-
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
