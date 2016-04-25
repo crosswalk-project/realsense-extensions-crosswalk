@@ -4,39 +4,246 @@
 <dom-module id="face-page">
   <template>
     <style include="shared-styles">
+      #leftPanel {
+        float: left;
+        width: 60%;
+        height: 100%;
+      }
+
+      #rightPanel {
+        float: right;
+        width: 40%;
+        height: 100%;
+        background: #101010;
+      }
+
+      #statPanel {
+        height: 110px;
+      }
+
+      #fpsContainer {
+        float: left;
+        width: 30%;
+        height: 100%;
+        position: relative;
+      }
+
+      #resoContainer {
+        float: right;
+        width: 70%;
+        height: 100%;
+        position: relative;
+      }
+
+      .previewCanvas {
+        position: absolute;
+        left: 0px;
+        top: 110px;
+      }
+
+      .extendRight {
+        margin-top: 25px;
+        margin-left: 10px;
+      }
+
+      span {
+        display: block;
+      }
+
+      span.configItem {
+        font-size: 14px;
+        margin-top: 25px;
+        margin-left: 50px;
+      }
+
+      span.titleItem {
+        font-size: 16px;
+        margin-top: 25px;
+        margin-left: 25px;
+      }
+
+      video {
+        max-width: 65%;
+        text-align: center;
+      }
+
+      canvas {
+        max-width: 65%;
+        text-align: center;
+      }
+
     </style>
   
-    <div id="left-panel">
-      <div id="stat-panel">
+    <div style="overflow: auto;">
+    <div id="leftPanel">
+      <div id="statPanel">
+        <div id="fpsContainer">
+        </div>
+        <div id="resoContainer">
+          <resolution-slider class="center-center" candidates="[[resolutionKeys]]" selected-index="{{resolutionIndex}}"></resolution-slider>
+        </div>
       </div>
 
       <div id='viewer'>
-        <video id='preview' autoplay></video>
-        <canvas id='overlay'></canvas>
-        <canvas id='depth'></canvas>
+        <video id='preview' autoplay class="previewCanvas" style='z-index: -1;'></video>
+        <canvas id='overlay' class="previewCanvas" style='z-index: 1;'></canvas>
+        <canvas id='depth' class="previewCanvas"></canvas>
       </div>
+      <span style='text-align: center;'>[[depthResolutionText]]</span>
     </div>
 
-    <div id="right-panel">
+    <div id="rightPanel">
       <template is="dom-if" if="{{hasCamera}}">
-        <span>Has Camera.</span>
+        <span class="titleItem">FACE MODULE</span>
+        <div>
+          <paper-button on-tap="_startFacemodule" disabled="[[ftStarted]]" class="round-button text-button" style='margin-top: 25px; margin-left: 55px'>
+            START
+          </paper-button>
+          <paper-button on-tap="_stopFacemodule" disabled="[[!ftStarted]]" class="round-button text-button extendRight">
+            STOP
+          </paper-button>
+          <paper-button toggles on-tap="_showDepthCanvas" active="{{showDepth}}" disabled="[[!ftStarted]]" class="checkbox-button text-button" style='margin-top: 25px; margin-left: 25px'>
+            SHOW DEPTH
+          </paper-button>
+        </div>
+
+        <span class="titleItem">CONFIGURATION</span>
+        <span class="configItem">TRACKING MODE</span>
+        <paper-button id='colorButton' toggles on-tap="_onConfModeColor" disabled="[[ftStarted]]" class="radio-button text-button" style='margin-top: 25px; margin-left: 80px'>
+          COLOR
+        </paper-button>
+        <paper-button id='colorDepthButton' toggles on-tap="_onConfModeColorDepth" disabled="[[ftStarted]]" class="radio-button text-button extendRight">
+          COLOR DEPTH
+        </paper-button>
+
+        <span class="configItem">TRACKING STRATEGY</span>
+        <paper-button id='stratTimeButton' toggles on-tap="_onstratTimeButton" class="radio-button image-button" style='margin-top: 25px; margin-left: 80px'>
+          <iron-icon src="../../images/icon_time_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button id='stratCloseFarButton' toggles on-tap="_onstratCloseFarButton" class="radio-button image-button extendRight">
+          <iron-icon src="../../images/icon_closest_farthest_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button id='stratFarCloseButton' toggles on-tap="_onstratFarCloseButton" class="radio-button image-button extendRight">
+          <iron-icon src="../../images/icon_farthest_closest_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button id='stratLeftRightButton' toggles on-tap="_onstratLeftRightButton" class="radio-button image-button extendRight">
+          <iron-icon src="../../images/icon_left_to_right_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button id='stratRightLeftButton' toggles on-tap="_onstratRightLeftButton" class="radio-button image-button extendRight">
+          <iron-icon src="../../images/icon_right_to_left_dark.png"></iron-icon>
+        </paper-button>
+
+        <span class="configItem">ALERT</span>
+        <paper-button toggles active="{{faceModuleConf.alert.newFaceDetected}}" class="checkbox-button image-button" style='margin-top: 25px; margin-left: 80px'>
+          <iron-icon src="../../images/icon_new_face_detected_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button toggles active="{{faceModuleConf.alert.faceOutOfFov}}" class="checkbox-button image-button extendRight">
+          <iron-icon src="../../images/icon_face_out_of_fov_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button toggles active="{{faceModuleConf.alert.faceBackToFov}}" class="checkbox-button image-button extendRight">
+          <iron-icon src="../../images/icon_face_back_to_fov_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button toggles active="{{faceModuleConf.alert.faceOccluded}}" class="checkbox-button image-button extendRight">
+          <iron-icon src="../../images/icon_face_occluded_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button toggles active="{{faceModuleConf.alert.faceNoLongerOccluded}}" class="checkbox-button image-button extendRight">
+          <iron-icon src="../../images/icon_face_occluded_dark.png"></iron-icon>
+        </paper-button>
+        <paper-button toggles active="{{faceModuleConf.alert.faceLost}}" class="checkbox-button image-button extendRight">
+          <iron-icon src="../../images/icon_face_lost_dark.png"></iron-icon>
+        </paper-button>
+
+        <span class="configItem">DETECTION</span>
+        <div>
+          <paper-button toggles active="{{faceModuleConf.detection.enable}}" class="checkbox-button text-button" style='margin-top: 25px; margin-left: 80px'>
+            ENABLE
+          </paper-button>
+          <span style="display: inline-block; margin-top: 25px; margin-left: 20px;">MAX FACES:</span>
+          <number-slider min=0 max=100 current-number="{{faceModuleConf.detection.maxFaces}}"></number-slider>
+        </div>
+
+        <div>
+        <span style="display: inline-block;" class="configItem">LANDMARKS</span>
+        <span style="display: inline-block; margin-left: 50px; font-size: 12px;">
+           Maximum number of Landmarks: [[faceModuleConf.landmarks.numLandmarks]]
+        </span>
+        </div>
+        <div>
+          <paper-button toggles active="{{faceModuleConf.landmarks.enable}}" class="checkbox-button text-button" style='margin-top: 25px; margin-left: 80px'>
+            ENABLE
+          </paper-button>
+          <span style="display: inline-block; margin-top: 25px; margin-left: 20px;">MAX FACES:</span>
+          <number-slider min=0 max=100 current-number="{{faceModuleConf.landmarks.maxFaces}}"></number-slider>
+        </div>
+
+        <div>
+          <span style="display: inline-block;" class="configItem">RECOGNITION</span>
+          <paper-button toggles active="{{faceModuleConf.recognition.enable}}" class="checkbox-button text-button" style='margin-top: 25px; margin-left: 10px'>
+            ENABLE
+          </paper-button>
+        </div>
+
+        <div>
+          <paper-button on-tap="_confApply" disabled="[[confDisabled]]" class="round-button text-button" style='margin-top: 25px; margin-left: 55px'>
+            APPLY  
+          </paper-button>
+          <paper-button on-tap="_confRevert" disabled="[[confDisabled]]" class="round-button text-button extendRight">
+            REVERT
+          </paper-button>
+          <paper-button on-tap="_confGetDefault" disabled="[[confDisabled]]" class="round-button text-button extendRight">
+            DEFAULT
+          </paper-button>
+        </div>
+
+        <div>
+          <span style="display: inline-block;" class="titleItem">RECOGNITION</span>
+          <span style="display: inline-block; margin-left: 50px; font-size: 12px;">
+             (Face ID, Recognition ID) : [[recogData]]
+          </span>
+        </div>
+
+        <div style="margin-top: 25px;">
+          <paper-button on-tap="_recogRegister" disabled="{{!faceModuleConf.recognition.enable}}" class="round-button text-button" style='margin-left: 50px'>
+            REGISTER
+          </paper-button>
+          <span style="display: inline-block; margin-left: 80px;">Face ID:</span>
+          <number-slider style="margin-left: 10px;" min=0 current-number="{{faceIdToReg}}"></number-slider>
+        </div>
+
+        <div style="margin-top: 25px;">
+          <paper-button on-tap="_recogUnregister" disabled="{{!faceModuleConf.recognition.enable}}" class="round-button text-button" style='margin-left: 50px'>
+            UNREGISTER
+          </paper-button>
+          <span style="display: inline-block; margin-left: 40px;">RECOG ID:</span>
+          <number-slider style="margin-left: 10px;" min=0 current-number="{{recogIdToUnreg}}"></number-slider>
+        </div>
+      </div>
       </template>
   
       <template is="dom-if" if="{{!hasCamera}}">
-        <span>No Camera!</span>
+        <span style='margin-top: 50%; text-align: center;'>No available RealSense camera</span>
       </template>
     </div>
   </template>
   
+  <script src='../../libs/adapter.js'></script>
+  <script src='../../libs/stats.min.js'></script>
+  <script src='face-page.js'></script>
   <script>
     Polymer({
       is: "face-page",
+
       properties: {
         hasCamera: {
           type: Boolean,
           value: false
-        },
+        }
       },
+
+      ready: function() {
+        facepageReady(this);
+      }
+
     });
   </script>
 </dom-module>

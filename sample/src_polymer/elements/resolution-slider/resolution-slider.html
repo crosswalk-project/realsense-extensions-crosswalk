@@ -1,0 +1,51 @@
+<link rel="import" href="../elements.html">
+
+
+<dom-module id="resolution-slider">
+  <template>
+    <style include="shared-styles">
+      :host {
+        background-image: url("../../images/slider_bkgd.png");
+      }
+    </style>
+
+    <paper-icon-button on-tap="_selectPrev" src="../../images/slider_arrow_left.png"></paper-icon-button>
+    <span>[[_getSelectedValue(candidates, selectedIndex)]]</span> 
+    <paper-icon-button on-tap="_selectNext" src="../../images/slider_arrow_right.png"></paper-icon-button>
+  </template>
+  
+  <script>
+    Polymer({
+      is: "resolution-slider",
+
+      _getSelectedValue: function(values, idx) {
+        return values[idx];
+      },
+
+      _selectPrev: function() {
+        if (this.selectedIndex > 0) {
+          this.selectedIndex -= 1;
+        }
+      },
+
+      _selectNext: function() {
+        if (this.selectedIndex < this.candidates.length-1) {
+          this.selectedIndex += 1;
+        }
+      },
+
+      properties: {
+        candidates : {
+          type: Array,
+          value: [],
+        },
+        selectedIndex : {
+          type: Number,
+          value: 0,
+          notify: true
+        }
+      }
+
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,63 @@
+<link rel="import" href="../elements.html">
+
+
+<dom-module id="number-slider">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: inline-block;
+      }
+      span {
+        margin-left: 30px;
+        margin-right: 30px;
+      }
+    </style>
+
+    <paper-icon-button on-tap="_selectPrev" src="../../images/slider_arrow_left.png"></paper-icon-button>
+    <span>[[currentNumber]]</span> 
+    <paper-icon-button on-tap="_selectNext" src="../../images/slider_arrow_right.png"></paper-icon-button>
+  </template>
+  
+  <script>
+    Polymer({
+      is: "number-slider",
+
+      _selectPrev: function() {
+        if (this.currentNumber == undefined) {
+          this.currentNumber = 0;
+        }
+        if (this.currentNumber > this.min) {
+          this.currentNumber -= 1;
+        }
+      },
+
+      _selectNext: function() {
+        if (this.currentNumber == undefined) {
+          this.currentNumber = 0;
+        }
+        if (this.currentNumber < this.max) {
+          this.currentNumber += 1;
+        }
+      },
+
+      properties: {
+        min : {
+          type: Number,
+          value: 0,
+        },
+
+        max : {
+          type: Number,
+          value: Number.MAX_VALUE,
+        },
+
+        currentNumber : {
+          type: Number,
+          value: 0,
+          notify: true
+        }
+      }
+
+    });
+  </script>
+</dom-module>
