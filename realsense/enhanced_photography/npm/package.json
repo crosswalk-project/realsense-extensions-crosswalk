@@ -17,9 +17,6 @@
     "postinstall": "node npm_install.js",
     "postuninstall": "node npm_install.js --uninstall"
   },
-  "dependencies": {
-    "format-json": "~1.0.3"
-  },
   "author": "",
   "license": "BSD-3-Clause",
   "bugs": {

@@ -13,7 +13,6 @@ var uninstall = (process.argv[2] === '--uninstall');
 
 var FS = require('fs');
 var Path = require('path');
-var FormatJson = require('format-json');
 
 var buffer;
 try {
@@ -63,7 +62,7 @@ if (extensionIndex === -1 && uninstall === false) {
 
 if (updated) {
   try {
-    var buffer = FormatJson.plain(json);
+    var buffer = JSON.stringify(json, null, 2);
     FS.writeFileSync('../../manifest.json', buffer);
   } catch (e) {
     console.log('Failed to upate manifest.json.');
