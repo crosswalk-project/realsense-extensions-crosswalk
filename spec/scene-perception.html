@@ -187,7 +187,7 @@
             <p>
               This method returns a promise.<br/>
               The promise will be fulfilled with the VolumePreviewData instance if there are no errors.<br/>
-              The promise will be rejected with the <code><a>SPError</a></code> object if there is a failure.
+              The promise will be rejected with the <code><a>DOMException</a></code> object if there is a failure.
             </p>
             <dl class='parameters'>
               <dt>optional sequence&lt;float&gt; cameraPose</dt>
@@ -482,32 +482,6 @@
             readonly attribute float[] cameraPose
           </dt>
           <dd>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
-          <code><a>SPError</a></code>
-        </h2>
-        <p>
-          The error type from the reject callback of Promise.
-        </p>
-        <dl class="idl" title="interface SPError">
-          <dt>
-            readonly attribute ErrorCode error
-          </dt>
-          <dd>
-            <p>
-              The error code. See the <code><a>ErrorCode</a></code> enumerator for definition.
-            </p>
-          </dd>
-          <dt>
-            readonly attribute DOMString message
-          </dt>
-          <dd>
-            <p>
-              The descripton string for error.
-            </p>
           </dd>
         </dl>
       </section>
@@ -1187,64 +1161,25 @@
         </h2>
         <dl id="enum-basic" class="idl" title="enum PixelFormat">
           <dt>
-            RGBA32
+            rgba32
           </dt>
           <dd>
             <p>
               The 32-bit RGBA32 color format. When <code>format</code> of
-              an <code><a>Image</a></code> instance is set to <code>RGBA32</code>,
+              an <code><a>Image</a></code> instance is set to <code>rgba32</code>,
               the <code>data</code> of that image instance must follow the
               bytes layout of <a href="http://www.w3.org/TR/2dcontext/#canvas-pixel-arraybuffer">Canvas Pixel ArrayBuffer</a>
               defined in [[!CANVAS-2D]].
             </p>
           </dd>
           <dt>
-            DEPTH
+            depth
           </dt>
           <dd>
             <p>
               The depth map data in 16-bit unsigned integer.
               The values indicate the distance from an object to the camera's XY
               plane or the Cartesian depth.The value precision is in millimeters.
-            </p>
-          </dd>
-        </dl>
-      </section>
-      <section>
-        <h2>
-          <code><a>ErrorCode</a></code> enum
-        </h2>
-        <dl id="enum-basic" class="idl" title="enum ErrorCode">
-          <dt>
-            feature_unsupported
-          </dt>
-          <dd>
-            <p>
-              The requested feature is not available or not implemented.
-            </p>
-          </dd>
-          <dt>
-            param_unsupported
-          </dt>
-          <dd>
-            <p>
-              There are invalid/unsupported parameters.
-            </p>
-          </dd>
-          <dt>
-            init_failed
-          </dt>
-          <dd>
-            <p>
-              The initialization failed.
-            </p>
-          </dd>
-          <dt>
-            exec_failed
-          </dt>
-          <dd>
-            <p>
-              The operation failed to execute.
             </p>
           </dd>
         </dl>

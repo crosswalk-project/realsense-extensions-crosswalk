@@ -168,39 +168,54 @@ var ScenePerception = function(objectId) {
     };
   }
 
-  this._addMethodWithPromise('init');
-  this._addMethodWithPromise('reset');
-  this._addMethodWithPromise('start');
-  this._addMethodWithPromise('stop');
-  this._addMethodWithPromise('destroy');
+  function wrapErrorReturns(error) {
+    return new DOMException(error.message, error.name);
+  }
 
-  this._addMethodWithPromise('enableReconstruction');
-  this._addMethodWithPromise('enableRelocalization');
-  this._addMethodWithPromise('setMeshingResolution');
-  this._addMethodWithPromise('setMeshingThresholds');
-  this._addMethodWithPromise('setCameraPose');
-  this._addMethodWithPromise('setMeshingUpdateConfigs');
-  this._addMethodWithPromise('configureSurfaceVoxelsData');
-  this._addMethodWithPromise('setMeshingRegion');
+  this._addMethodWithPromise('init', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('reset', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('start', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('stop', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('destroy', null, null, wrapErrorReturns);
 
-  this._addMethodWithPromise('getSample', null, wrapSampleReturns);
-  this._addMethodWithPromise('getVolumePreview', null, wrapGetVolumePreviewReturn);
-  this._addMethodWithPromise('queryVolumePreview', null, wrapVolumePreviewReturn);
-  this._addMethodWithPromise('getVertices', null, wrapVerticesOrNormalsReturn);
-  this._addMethodWithPromise('getNormals', null, wrapVerticesOrNormalsReturn);
-  this._addMethodWithPromise('isReconstructionEnabled');
-  this._addMethodWithPromise('getVoxelResolution');
-  this._addMethodWithPromise('getVoxelSize');
-  this._addMethodWithPromise('getInternalCameraIntrinsics');
-  this._addMethodWithPromise('getMeshingThresholds');
-  this._addMethodWithPromise('getMeshingResolution');
-  this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn);
-  this._addMethodWithPromise('getSurfaceVoxels', null, wrapVoxelsReturn);
+  this._addMethodWithPromise('enableReconstruction', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('enableRelocalization', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('setMeshingResolution', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('setMeshingThresholds', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('setCameraPose', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('setMeshingUpdateConfigs', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('configureSurfaceVoxelsData', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('setMeshingRegion', null, null, wrapErrorReturns);
 
-  this._addMethodWithPromise('saveMesh', null, wrapMeshFileReturn);
-  this._addMethodWithPromise('clearMeshingRegion');
+  this._addMethodWithPromise('getSample', null, wrapSampleReturns, wrapErrorReturns);
+  this._addMethodWithPromise('getVolumePreview', null, wrapGetVolumePreviewReturn,
+                             wrapErrorReturns);
+  this._addMethodWithPromise('queryVolumePreview', null, wrapVolumePreviewReturn, wrapErrorReturns);
+  this._addMethodWithPromise('getVertices', null, wrapVerticesOrNormalsReturn, wrapErrorReturns);
+  this._addMethodWithPromise('getNormals', null, wrapVerticesOrNormalsReturn, wrapErrorReturns);
+  this._addMethodWithPromise('isReconstructionEnabled', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getVoxelResolution', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getVoxelSize', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getInternalCameraIntrinsics', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getMeshingThresholds', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getMeshingResolution', null, null, wrapErrorReturns);
+  this._addMethodWithPromise('getMeshData', null, wrapMeshDataReturn, wrapErrorReturns);
+  this._addMethodWithPromise('getSurfaceVoxels', null, wrapVoxelsReturn, wrapErrorReturns);
 
-  this._addEvent('error');
+  this._addMethodWithPromise('saveMesh', null, wrapMeshFileReturn, wrapErrorReturns);
+  this._addMethodWithPromise('clearMeshingRegion', null, null, wrapErrorReturns);
+
+  var SPErrorEvent = function(type, data) {
+    // Follow https://developer.mozilla.org/en-US/docs/Web/API/ErrorEvent
+    this.type = type;
+
+    if (data) {
+      this.error = new DOMException(data.message, data.error);
+      this.message = data.message;
+    }
+  };
+
+  this._addEvent('error', SPErrorEvent);
   this._addEvent('checking');
   this._addEvent('sampleprocessed');
   this._addEvent('meshupdated');
