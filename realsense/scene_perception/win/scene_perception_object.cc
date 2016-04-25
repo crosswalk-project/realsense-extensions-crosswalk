@@ -294,14 +294,13 @@ void ScenePerceptionObject::StopEvent(const std::string& type) {
   }
 }
 
-void ScenePerceptionObject::triggerError(const std::string msg) {
-    ErrorEvent event;
-    event.status = msg;
-
-    scoped_ptr<base::ListValue> eventData(new base::ListValue);
-    eventData->Append(event.ToValue().release());
-
-    DispatchEvent("error", eventData.Pass());
+void ScenePerceptionObject::triggerError(const std::string message) {
+  DOMException dom_exception;
+  dom_exception.message = message;
+  dom_exception.name = ERROR_NAME_ABORTERROR;
+  scoped_ptr<base::ListValue> data(new base::ListValue);
+  data->Append(dom_exception.ToValue().release());
+  DispatchEvent("error", data.Pass());
 }
 
 /** ---------------- Implementation for state triggers --------------**/
@@ -309,8 +308,8 @@ void ScenePerceptionObject::OnInit(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                          "Scene manager thread is still running."));
+        CreateDOMException("Scene manager thread is still running.",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.Start();
@@ -327,27 +326,24 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   if (state_ != IDLE) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "State is not IDLE."));
+    info->PostResult(CreateDOMException("State is not IDLE.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     StopSceneManagerThread();
     return;
   }
 
   session_ = PXCSession::CreateInstance();
   if (!session_) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "Failed to create session."));
+    info->PostResult(CreateDOMException("Failed to create session.",
+                                        ERROR_NAME_NOTFOUNDERROR));
     ReleaseResources();
     StopSceneManagerThread();
     return;
   }
   sense_manager_ = session_->CreateSenseManager();
   if (!sense_manager_) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "Failed to create sense manager."));
+    info->PostResult(CreateDOMException("Failed to create sense manager.",
+                                        ERROR_NAME_ABORTERROR));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -368,10 +364,9 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
 
   pxcStatus status = sense_manager_->EnableScenePerception();
   if (status != PXC_STATUS_NO_ERROR) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                          "Failed to enable scene perception module."));
+        CreateDOMException("Failed to enable scene perception module.",
+                           ERROR_NAME_ABORTERROR));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -379,9 +374,8 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
 
   scene_perception_ = sense_manager_->QueryScenePerception();
   if (scene_perception_ == NULL) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "Failed to query scene perception."));
+    info->PostResult(CreateDOMException("Failed to query scene perception.",
+                                        ERROR_NAME_ABORTERROR));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -393,9 +387,8 @@ void ScenePerceptionObject::OnCreateAndStartPipeline(
   /** Init the pipeline **/
   status = sense_manager_->Init();
   if (status != PXC_STATUS_NO_ERROR) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_INIT_FAILED,
-                                       "Failed to initialize pipeline."));
+    info->PostResult(CreateDOMException("Failed to initialize pipeline.",
+                                        ERROR_NAME_ABORTERROR));
     ReleaseResources();
     StopSceneManagerThread();
     return;
@@ -587,8 +580,8 @@ void ScenePerceptionObject::OnDestroy(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Sense manager thread is still running."));
+        CreateDOMException("Sense manager thread is still running.",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -604,9 +597,8 @@ void ScenePerceptionObject::OnStopAndDestroyPipeline(
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   if (state_ == IDLE) {
-    scoped_ptr<base::ListValue> error(new base::ListValue());
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "State is IDLE."));
+    info->PostResult(CreateDOMException("State is IDLE.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
   state_ = IDLE;
@@ -620,8 +612,8 @@ void ScenePerceptionObject::OnReset(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Sense manager thread is still running."));
+        CreateDOMException("Sense manager thread is still running.",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -636,8 +628,8 @@ void ScenePerceptionObject::OnResetScenePerception(
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   if (state_ == IDLE) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "State is IDLE."));
+    info->PostResult(CreateDOMException("State is IDLE.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
   scene_perception_->Reset();
@@ -654,8 +646,8 @@ void ScenePerceptionObject::DoPauseScenePerception(
   // Start the SP module, enable tracking.
   if (!pause) {
     if (state_ != INITIALIZED) {
-      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                         "State is not INITIALIZED."));
+      info->PostResult(CreateDOMException("State is not INITIALIZED.",
+                                          ERROR_NAME_INVALIDSTATEERROR));
       return;
     }
     state_ = STARTED;
@@ -663,8 +655,8 @@ void ScenePerceptionObject::DoPauseScenePerception(
     info->PostResult(CreateSuccessResult());
   } else {
     if (state_ != STARTED) {
-      info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                         "State is not STARTED."));
+      info->PostResult(CreateDOMException("State is not STARTED.",
+                                          ERROR_NAME_INVALIDSTATEERROR));
       return;
     }
     state_ = INITIALIZED;
@@ -676,8 +668,8 @@ void ScenePerceptionObject::DoPauseScenePerception(
 void ScenePerceptionObject::OnStart(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Sense manager is not running."));
+    info->PostResult(CreateDOMException("Sense manager is not running.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -691,8 +683,8 @@ void ScenePerceptionObject::OnStart(
 void ScenePerceptionObject::OnStop(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Sense manager is not running."));
+    info->PostResult(CreateDOMException("Sense manager is not running.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -718,8 +710,8 @@ void ScenePerceptionObject::DoEnableReconstruction(
   if (PXC_STATUS_NO_ERROR !=
       scene_perception_->EnableSceneReconstruction(enable)) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Failed to enable scene perception reconstruction."));
+        CreateDOMException("Failed to enable scene perception reconstruction.",
+                           ERROR_NAME_ABORTERROR));
   } else {
     // Stop meshing thread if all data pulled out and the reconstruction
     // is set to false.
@@ -737,13 +729,14 @@ void ScenePerceptionObject::OnEnableReconstruction(
       EnableReconstruction::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for enableReconstruction."));
+        CreateDOMException("Malformed parameters for enableReconstruction.",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-        "Wrong state to enable scene perception reconstruction."));
+    info->PostResult(CreateDOMException(
+        "Wrong state to enable scene perception reconstruction.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
 
@@ -762,8 +755,9 @@ void ScenePerceptionObject::DoEnableRelocalization(
   if (PXC_STATUS_NO_ERROR !=
       scene_perception_->EnableRelocalization(enable)) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Failed to enable scene perception relocalization."));
+        CreateDOMException(
+            "Failed to enable scene perception relocalization.",
+            ERROR_NAME_ABORTERROR));
   } else {
     info->PostResult(CreateSuccessResult());
   }
@@ -775,13 +769,15 @@ void ScenePerceptionObject::OnEnableRelocalization(
       EnableRelocalization::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for relocalization enabling."));
+        CreateDOMException(
+            "Malformed parameters for relocalization enabling.",
+            ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-        "Wrong state to enable scene perception relocalization."));
+    info->PostResult(CreateDOMException(
+        "Wrong state to enable scene perception relocalization.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
 
@@ -796,9 +792,9 @@ void ScenePerceptionObject::OnEnableRelocalization(
 void ScenePerceptionObject::OnGetVertices(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    VerticesOrNormals data;
-    info->PostResult(GetVertices::Results::Create(
-        data, std::string("Wrong state, or pipeline is not started.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, or pipeline is not started.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -815,9 +811,8 @@ void ScenePerceptionObject::DoGetVerticesOrNormals(bool isGettingVertices,
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
 
   if (scene_perception_ == NULL) {
-    VerticesOrNormals data;
-    info->PostResult(GetVertices::Results::Create(
-        data, std::string("Wrong state.")));
+    info->PostResult(CreateDOMException("Wrong state.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -854,9 +849,9 @@ void ScenePerceptionObject::DoGetVerticesOrNormals(bool isGettingVertices,
 void ScenePerceptionObject::OnGetNormals(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    VerticesOrNormals data;
-    info->PostResult(GetNormals::Results::Create(
-        data, std::string("Wrong state, or pipeline is not started.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, or pipeline is not started.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -871,9 +866,9 @@ void ScenePerceptionObject::OnGetNormals(
 void ScenePerceptionObject::OnGetMeshData(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    MeshData data;
-    info->PostResult(GetMeshData::Results::Create(
-        data, std::string("Wrong state, or pipeline is not started.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, or pipeline is not started.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -896,9 +891,9 @@ void ScenePerceptionObject::DoGetMeshData(
       || !(scene_perception_->IsReconstructionUpdated())
       || !(base::TimeTicks::Now() - last_meshing_time_ >
         base::TimeDelta::FromMilliseconds(1000))) {
-    MeshData data;
-    info->PostResult(GetMeshData::Results::Create(
-        data, std::string("Meshing thread is busy or no new mesh data.")));
+    info->PostResult(CreateDOMException(
+        "Meshing thread is busy or no new mesh data.",
+        ERROR_NAME_INVALIDSTATEERROR));
   } else {
     doing_meshing_updating_ = true;
     DLOG(INFO) << "Request meshing";
@@ -1025,8 +1020,9 @@ void ScenePerceptionObject::DoSetMeshingResolution(
       scene_perception_->SetMeshingResolution(resolution)) {
     info->PostResult(CreateSuccessResult());
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to set meshing resolution."));
+    info->PostResult(CreateDOMException(
+        "Failed to set meshing resolution.",
+        ERROR_NAME_ABORTERROR));
   }
 }
 void ScenePerceptionObject::OnSetMeshingResolution(
@@ -1035,8 +1031,9 @@ void ScenePerceptionObject::OnSetMeshingResolution(
       SetMeshingResolution::Params::Create(*info->arguments()));
 
   if (!params || !(params->m_resolution)) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-        "Malformed parameters for SetMeshingResolution."));
+    info->PostResult(CreateDOMException(
+        "Malformed parameters for SetMeshingResolution.",
+        ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   PXCScenePerception::MeshResolution resolution;
@@ -1052,14 +1049,14 @@ void ScenePerceptionObject::OnSetMeshingResolution(
       break;
     default:
       info->PostResult(
-          CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                            "Invalid parameters for setMeshingResolution."));
+          CreateDOMException("Invalid parameters for setMeshingResolution.",
+                             ERROR_NAME_INVALIDACCESSERROR));
       return;
   }
   if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Wrong state to set meshing resolution."));
+        CreateDOMException("Wrong state to set meshing resolution.",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1079,8 +1076,9 @@ void ScenePerceptionObject::DoSetMeshingThresholds(
       scene_perception_->SetMeshingThresholds(max, avg)) {
     info->PostResult(CreateSuccessResult());
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to set meshing thresholds."));
+    info->PostResult(CreateDOMException(
+        "Failed to set meshing thresholds.",
+        ERROR_NAME_ABORTERROR));
   }
 }
 void ScenePerceptionObject::OnSetMeshingThresholds(
@@ -1090,23 +1088,23 @@ void ScenePerceptionObject::OnSetMeshingThresholds(
       SetMeshingThresholds::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for setMeshingThresholds."));
+        CreateDOMException("Malformed parameters for setMeshingThresholds.",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   MeshingThresholds* jsThresholds = &(params->m_thresholds);
   if (!isValidThresholds(jsThresholds)) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Invalid parameters for meshing thresholds."));
+        CreateDOMException("Invalid parameters for meshing thresholds.",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
 
   // Check the state.
   if (state_ == IDLE || !sensemanager_thread_.IsRunning()) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Wrong state to set meshing thresholds."));
+        CreateDOMException("Wrong state to set meshing thresholds.",
+                           ERROR_NAME_ABORTERROR));
     return;
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1125,8 +1123,8 @@ void ScenePerceptionObject::DoSetCameraPose(
       SetCameraPose::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for setCameraPose."));
+        CreateDOMException("Malformed parameters for setCameraPose.",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
 
@@ -1139,8 +1137,8 @@ void ScenePerceptionObject::DoSetCameraPose(
       scene_perception_->SetCameraPose(pose)) {
     info->PostResult(CreateSuccessResult());
   } else {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to set camera pose."));
+    info->PostResult(CreateDOMException("Failed to set camera pose.",
+                                        ERROR_NAME_ABORTERROR));
   }
 }
 
@@ -1148,8 +1146,8 @@ void ScenePerceptionObject::OnSetCameraPose(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
 
   if (scene_perception_ == NULL || !sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Wrong state to set camera pose."));
+    info->PostResult(CreateDOMException("Wrong state to set camera pose.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1165,8 +1163,8 @@ void ScenePerceptionObject::OnSetMeshingUpdateConfigs(
          SetMeshingUpdateConfigs::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for SetMeshingUpdateConfigs."));
+        CreateDOMException("Malformed parameters for SetMeshingUpdateConfigs.",
+                           ERROR_NAME_INVALIDACCESSERROR));
   }
 
   b_fill_holes_ = *(params->config.b_fill_holes.get());
@@ -1192,8 +1190,8 @@ void ScenePerceptionObject::OnConfigureSurfaceVoxelsData(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning() || scene_perception_ == NULL) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Wrong state to configure surface voxels data."));
+        CreateDOMException("Wrong state to configure surface voxels data.",
+                           ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1210,8 +1208,9 @@ void ScenePerceptionObject::DoConfigureSurfaceVoxelsData(
   scoped_ptr<ConfigureSurfaceVoxelsData::Params> params(
       ConfigureSurfaceVoxelsData::Params::Create(*info->arguments()));
   if (!params) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-        "Malformed parameters to configure surface voxels data."));
+    info->PostResult(CreateDOMException(
+        "Malformed parameters to configure surface voxels data.",
+        ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   // Re-allocate the memory for surface voxels data.
@@ -1224,8 +1223,8 @@ void ScenePerceptionObject::DoConfigureSurfaceVoxelsData(
     info->PostResult(CreateSuccessResult());
   } else {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Failed to configure surface voxels data."));
+        CreateDOMException("Failed to configure surface voxels data.",
+                           ERROR_NAME_ABORTERROR));
   }
 }
 
@@ -1233,16 +1232,16 @@ void ScenePerceptionObject::OnSetMeshingRegion(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   // Operations on meshing region should after initialization.
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Wrong state to set meshing region."));
+    info->PostResult(CreateDOMException("Wrong state to set meshing region.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
   scoped_ptr<SetMeshingRegion::Params> params(
          SetMeshingRegion::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_PARAM_UNSUPPORTED,
-                          "Malformed parameters for SetMeshingRegion."));
+        CreateDOMException("Malformed parameters for SetMeshingRegion.",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   PXCPoint3DF32 lowPoint = PXCPoint3DF32();
@@ -1257,8 +1256,8 @@ void ScenePerceptionObject::OnSetMeshingRegion(
 
   if (scene_perception_->SetMeshingRegion(&lowPoint, &upperPoint)
       < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to set meshing region."));
+    info->PostResult(CreateDOMException("Failed to set meshing region.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
   info->PostResult(CreateSuccessResult());
@@ -1268,9 +1267,9 @@ void ScenePerceptionObject::OnSetMeshingRegion(
 void ScenePerceptionObject::OnGetSample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
-    Sample sample;
-    info->PostResult(GetSample::Results::Create(
-        sample, std::string("Wrong state, or pipeline is not started.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, or pipeline is not started.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
 
@@ -1285,9 +1284,8 @@ void ScenePerceptionObject::DoCopySample(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   DCHECK_EQ(sensemanager_thread_.message_loop(), base::MessageLoop::current());
   if (!(latest_color_image_ && latest_depth_image_)) {
-    Sample sample;
-    info->PostResult(GetSample::Results::Create(
-        sample, std::string("No valiable sample.")));
+    info->PostResult(CreateDOMException("No valiable sample.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -1347,8 +1345,8 @@ void ScenePerceptionObject::DoCopySample(
 void ScenePerceptionObject::OnGetVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning() || state_ != STARTED) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Wrong state to get volume preview."));
+    info->PostResult(CreateDOMException("Wrong state to get volume preview.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1365,8 +1363,8 @@ void ScenePerceptionObject::DoGetVolumePreview(
       GetVolumePreview::Params::Create(*info->arguments()));
   if (!params) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Malformed parameters for getVolumePreview"));
+        CreateDOMException("Malformed parameters for getVolumePreview",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   pxcF32 pose[12];
@@ -1400,10 +1398,10 @@ void ScenePerceptionObject::DoGetVolumePreview(
 
   if (scene_perception_->GetVolumePreview(pose, image_data_position,
                                           vertices_position, normals_position)
-    != PXC_STATUS_NO_ERROR) {
+      != PXC_STATUS_NO_ERROR) {
     info->PostResult(
-        CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                          "Failed to execute getVolumePreview"));
+        CreateDOMException("Failed to execute getVolumePreview",
+                           ERROR_NAME_ABORTERROR));
   }
 
   scoped_ptr<base::ListValue> result(new base::ListValue());
@@ -1422,8 +1420,8 @@ void ScenePerceptionObject::DoQueryVolumePreview(
 
   if (!params) {
     info->PostResult(
-        QueryVolumePreview::Results::Create(
-            image, "Malformed parameters for queryVolumePreview"));
+        CreateDOMException("Malformed parameters for queryVolumePreview",
+                           ERROR_NAME_INVALIDACCESSERROR));
     return;
   }
   pxcF32 pose[12];
@@ -1433,9 +1431,8 @@ void ScenePerceptionObject::DoQueryVolumePreview(
 
   PXCImage* volume_preview = scene_perception_->QueryVolumePreview(pose);
   if (!volume_preview) {
-    info->PostResult(
-        QueryVolumePreview::Results::Create(
-            image, "Failed to queryVolumePreview"));
+    info->PostResult(CreateDOMException("Failed to queryVolumePreview",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
   // sample message: call_id (i32),
@@ -1471,8 +1468,9 @@ void ScenePerceptionObject::OnQueryVolumePreview(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   Image image;
   if (!sensemanager_thread_.IsRunning() || scene_perception_ == NULL) {
-    info->PostResult(QueryVolumePreview::Results::Create(
-        image, std::string("Wrong state to query volume preview.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state to query volume preview.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // Wrong state.
   }
   sensemanager_thread_.message_loop()->PostTask(
@@ -1486,8 +1484,9 @@ void ScenePerceptionObject::OnIsReconstructionEnabled(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (!sensemanager_thread_.IsRunning()) {
     // Reconstruction is enabled by default.
-    info->PostResult(IsReconstructionEnabled::Results::Create(
-          true, std::string("wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
 
@@ -1515,9 +1514,9 @@ void ScenePerceptionObject::OnGetVoxelResolution(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   VoxelResolution jsResolution = VOXEL_RESOLUTION_NONE;
   if (state_ == IDLE) {
-    info->PostResult(GetVoxelResolution::Results::Create(
-        jsResolution,
-        std::string("Wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
   switch (scene_perception_->QueryVoxelResolution()) {
@@ -1541,9 +1540,9 @@ void ScenePerceptionObject::OnGetVoxelResolution(
 void ScenePerceptionObject::OnGetVoxelSize(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   if (state_ == IDLE) {
-    info->PostResult(GetVoxelSize::Results::Create(
-        0,
-        std::string("Wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
   info->PostResult(GetVoxelSize::Results::Create(
@@ -1554,9 +1553,9 @@ void ScenePerceptionObject::OnGetInternalCameraIntrinsics(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   CameraIntrinsics intrinsics;
   if (state_ == IDLE) {
-    info->PostResult(GetInternalCameraIntrinsics::Results::Create(
-        intrinsics,
-        std::string("Wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
   intrinsics.image_size.width = sp_intrinsics_.imageSize.width;
@@ -1574,9 +1573,9 @@ void ScenePerceptionObject::OnGetMeshingThresholds(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   JSThresholds result;
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(GetMeshingThresholds::Results::Create(
-        result,
-        std::string("Wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
 
@@ -1607,11 +1606,10 @@ void ScenePerceptionObject::DoGetMeshingThresholds(
 
 void ScenePerceptionObject::OnGetMeshingResolution(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
-  MeshingResolution mr = MESHING_RESOLUTION_NONE;
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(GetMeshingResolution::Results::Create(
-        mr,
-        std::string("Wrong state, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
 
@@ -1639,16 +1637,15 @@ void ScenePerceptionObject::DoGetMeshingResolution(
       break;
   }
   info->PostResult(GetMeshingResolution::Results::Create(
-        mr, std::string()));
+      mr, std::string()));
 }
 
 void ScenePerceptionObject::OnGetSurfaceVoxels(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   SurfaceVoxelsData data;
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(GetSurfaceVoxels::Results::Create(
-          data,
-          std::string("Wrong state to get surface voxels.")));
+    info->PostResult(CreateDOMException("Wrong state to get surface voxels.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
 
@@ -1672,9 +1669,9 @@ void ScenePerceptionObject::DoGetSurfaceVoxels(
   if (!surface_voxels_data_) {
     surface_voxels_data_ = scene_perception_->CreatePXCSurfaceVoxelsData();
     if (!surface_voxels_data_) {
-      info->PostResult(GetSurfaceVoxels::Results::Create(
-            data,
-            std::string("Failed to create surface voxels data.")));
+      info->PostResult(CreateDOMException(
+          "Failed to create surface voxels data.",
+          ERROR_NAME_INVALIDSTATEERROR));
       return;
     }
   }
@@ -1703,9 +1700,8 @@ void ScenePerceptionObject::DoGetSurfaceVoxels(
   if (status == PXC_STATUS_DATA_PENDING) {
     dataPending = 1;
   } else if (status != PXC_STATUS_NO_ERROR) {
-    info->PostResult(GetSurfaceVoxels::Results::Create(
-          data,
-          std::string("Failed to get surface voxels.")));
+    info->PostResult(CreateDOMException("Failed to get surface voxels.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -1721,9 +1717,8 @@ void ScenePerceptionObject::DoGetSurfaceVoxels(
   float* voxels = reinterpret_cast<float*>(
       surface_voxels_data_->QueryCenterOfSurfaceVoxels());
   if (!voxels) {
-    info->PostResult(GetSurfaceVoxels::Results::Create(
-          data,
-          std::string("No surface voxels data.")));
+    info->PostResult(CreateDOMException("No surface voxels data.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
   // It will return NULL, if no voxels color data.
@@ -1772,9 +1767,9 @@ void ScenePerceptionObject::OnSaveMesh(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   std::vector<char> buffer;
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(SaveMesh::Results::Create(
-          buffer,
-          std::string("Wrong state to save mesh, start the process first.")));
+    info->PostResult(CreateDOMException(
+        "Wrong state to save mesh, start the process first.",
+        ERROR_NAME_INVALIDSTATEERROR));
     return;  // wrong state.
   }
 
@@ -1835,7 +1830,8 @@ void ScenePerceptionObject::DoSaveMesh(
   wchar_t* wfile = const_cast<wchar_t*>(tmp_file.value().c_str());
   if (scene_perception_->SaveMeshExtended(wfile, &mInfo)
       < PXC_STATUS_NO_ERROR) {
-    info->PostResult(SaveMesh::Results::Create(buffer, "Failed to SaveMesh"));
+    info->PostResult(CreateDOMException("Failed to SaveMesh",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
 
@@ -1860,14 +1856,14 @@ void ScenePerceptionObject::OnClearMeshingRegion(
     scoped_ptr<XWalkExtensionFunctionInfo> info) {
   // Operations on meshing region should after initialization.
   if (!sensemanager_thread_.IsRunning()) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Wrong state to clear meshing region."));
+    info->PostResult(CreateDOMException("Wrong state to clear meshing region.",
+                                        ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
   if (scene_perception_->ClearMeshingRegion()
       < PXC_STATUS_NO_ERROR) {
-    info->PostResult(CreateErrorResult(ERROR_CODE_EXEC_FAILED,
-                                       "Failed to clear meshing region."));
+    info->PostResult(CreateDOMException("Failed to clear meshing region.",
+                                        ERROR_NAME_ABORTERROR));
     return;
   }
   info->PostResult(CreateSuccessResult());
