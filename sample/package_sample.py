@@ -15,12 +15,17 @@ import shutil
 import subprocess
 import sys
 
+APP_TOOL_CMD = 'crosswalk-pkg'
 
-def getAppToolsVersion():
-  cmd = "crosswalk-pkg --version"
-  version = subprocess.Popen(cmd, shell=True,
-                             stdout=subprocess.PIPE).stdout.read()
-  return version
+
+def isProgAvailable(program):
+  for path in os.environ['PATH'].split(os.pathsep):
+    path = path.strip('"')
+    exe_file = os.path.join(path, program)
+    if os.path.isfile(exe_file) and os.access(exe_file, os.X_OK):
+      return exe_file
+
+  return None
 
 
 def addAppVersion(version, app_root):
@@ -32,7 +37,7 @@ def addAppVersion(version, app_root):
 
 
 def packageSampleApp(appRoot, platform, xwalkPath):
-  cmd = "crosswalk-pkg -p %s -c %s %s" % (platform, xwalkPath, appRoot)
+  cmd = APP_TOOL_CMD + ' -p %s -c %s %s' % (platform, xwalkPath, appRoot)
   print "cmd:" + cmd
   subprocess.Popen(cmd, shell=True)
 
@@ -54,6 +59,11 @@ def main():
     print "Error: no web staff in " + options.web_content
     sys.exit(2)
 
+  # Install app-tool if not available
+  if isProgAvailable(APP_TOOL_CMD) is None:
+    cmd = "npm install -g crosswalk-app-tools"
+    subprocess.check_call(cmd, shell=True)
+
   # Clean the output directory.
   if os.path.exists(options.out):
     print "Warning: out directory " + options.out + " already exists."
@@ -72,12 +82,6 @@ def main():
   # Add currently VERSION to the manifest.json.
   if options.version is not None:
     addAppVersion(options.version, options.out)
-
-  # Package the sample app using app-tools.
-  version = getAppToolsVersion()
-  if version is None:
-    print "Error: Crosswalk-App-tools not found."
-    sys.exit(2)
 
   xwalkEnv = "XWALK_HOME"
   if (xwalkEnv not in os.environ):
