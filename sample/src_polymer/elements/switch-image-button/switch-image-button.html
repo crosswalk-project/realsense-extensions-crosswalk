@@ -1,0 +1,160 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-checked-element-behavior/iron-checked-element-behavior.html">
+<link rel="import" href="../../bower_components/paper-behaviors/paper-inky-focus-behavior.html">
+<link rel="import" href="../toggle-image-button/toggle-image-button.html">
+
+<dom-module id="switch-image-button">
+  <style>
+    :host {
+      display: inline-block;
+      box-sizing: border-box !important;
+      cursor: pointer;
+      outline: none;
+      border-radius: 20px;
+      color: #F2F2F2;
+      border: 1px solid #929595;
+      background-color: #3A4345;
+
+      width: 76px;
+      height: 105px;
+
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      z-index: 0;
+
+      @apply(--switch-image-button);
+    }
+    :host.horizontal > toggle-image-button {
+      float: right;
+    }
+    :host:hover {
+      border: 1px solid #F2F2F2;
+    }
+    :host #ink {
+      opacity: 0.6;
+      position: relative;
+    }
+    toggle-image-button {
+      display: block;
+    }
+    #wrapper{
+      display: inline-block;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      padding: 2px;
+    }
+    #wrapper > #state0{
+      margin-bottom: 1px;
+    }
+    #wrapper > #state1{
+      margin-top: 1px;
+    }
+    </style>
+  <template>
+    <div id="wrapper">
+      <toggle-image-button
+        id="state0"
+        toggles
+        disabled=true
+        icon="{{icon0}}"
+        icon-active="{{iconActive0}}"
+        icon-src="{{icon0Src}}"
+        icon-src-active="{{icon0SrcActive}}"
+        class$="{{itemClasses}}">
+      </toggle-image-button>
+      <toggle-image-button
+        id="state1"
+        toggles
+        disabled=true
+        icon="{{icon1}}"
+        icon-active="{{iconActive1}}"
+        icon-src="{{icon1Src}}"
+        icon-src-active="{{icon1SrcActive}}"
+        class$="{{itemClasses}}">
+      </toggle-image-button>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'switch-image-button',
+      properties: {
+        horizontal: {
+          type: Boolean,
+          notify: true,
+          observer: '_horizontalChanged',
+          value: false
+        },
+        icon0: {
+          type: String,
+          value: ''
+        },
+        iconActive0 : {
+          type: String,
+          value: ''
+        },
+        icon0Src: {
+          type: String,
+          value: ''
+        },
+        icon0SrcActive : {
+          type: String,
+          value: ''
+        },
+        icon1: {
+          type: String,
+        },
+        iconActive1 : {
+          type: String,
+          value: ''
+        },
+        icon1Src: {
+          type: String,
+          value: ''
+        },
+        icon1SrcActive : {
+          type: String,
+          value: ''
+        },
+        selection : {
+          type: String,
+          notify: true,
+          observer: '_selectionChanged',
+          value: 'state0'
+        }
+      },
+      behaviors: [
+        Polymer.IronCheckedElementBehavior,
+        Polymer.PaperInkyFocusBehavior
+      ],
+      _horizontalChanged: function(newValue, oldValue) {
+        this.toggleClass('horizontal', newValue);
+      },
+      _selectionChanged: function(newValue, oldValue) {
+        var state0 = this.$$('#state0');
+        var state1 = this.$$('#state1');
+        if (newValue == 'state1') {
+          state1.active = true;
+          state0.active = false;
+        } else {
+          state0.active = true;
+          state1.active = false;
+        }
+      },
+      ready: function() {
+        this.ensureRipple();
+        this.addEventListener('click', function(){
+          this.checked = !this.checked;
+          if (this.selection == 'state0') {
+            this.selection = 'state1'
+          } else {
+            this.selection = 'state0'
+          }
+        });
+      },
+    });
+  </script>
+</dom-module>

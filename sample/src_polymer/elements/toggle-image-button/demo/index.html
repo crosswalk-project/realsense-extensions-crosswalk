@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Demo for toggle-image-button</title>
+    <link rel="import" href="../toggle-image-button.html">
+    <style>
+      body {
+        background: black
+      }
+    </style>
+  </head>
+
+  <body>
+    <toggle-image-button
+      icon-src='images/icon_play_dark.png'
+      icon-src-active='images/icon_pause_dark.png'
+    ></toggle-image-button>
+
+    <toggle-image-button
+      icon-src='images/icon_play_dark.png'
+    ></toggle-image-button>
+
+    <toggle-image-button
+      toggles
+      icon-src='images/icon_play_dark.png'
+    ></toggle-image-button>
+
+    <toggle-image-button
+      toggles
+      id='example'
+      icon-src='images/icon_play_light.png'
+      icon-src-active='images/icon_pause_dark.png'
+    ></toggle-image-button>
+    <script>
+      document.getElementById('example').addEventListener('click', function(ev){
+        console.log(ev);
+        console.log(ev.currentTarget.active);
+      });
+    </script>
+  </body>
+</html>

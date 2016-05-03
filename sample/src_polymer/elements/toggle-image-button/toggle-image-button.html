@@ -1,0 +1,146 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-checked-element-behavior/iron-checked-element-behavior.html">
+<link rel="import" href="../../bower_components/paper-behaviors/paper-inky-focus-behavior.html">
+
+<!--
+A customized checkable image button.
+
+It can be used as a normal button and also can be used as a checkable button
+have a different icon in active state.
+
+The icon inside and the image button itself can be resized.
+
+The image button can also be configured to have or have no border.
+
+-->
+<dom-module id="toggle-image-button">
+  <style>
+    :host {
+      display: inline-block;
+      box-sizing: border-box !important;
+      cursor: pointer;
+      outline: none;
+      border-radius: 20px;
+      color: #F2F2F2;
+      background-color: #3A4345;
+      --paper-icon-button-ink-color: white;
+
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      z-index: 0;
+
+      width: 70px;
+      height: 48px;
+
+      @apply(--toggle-image-button);
+    }
+    :host #ink {
+      opacity: 0.6;
+      position: relative;
+
+      @apply(--toggle-image-button-ink);
+    }
+    :host([disabled]) {
+      pointer-events: none;
+      cursor: auto;
+    }
+    :host[toggles][active] {
+      background-color: #00FFE5;
+    }
+    :host[toggles] {
+      --paper-icon-button-ink-color: #00FFE5;
+    }
+    :host[pressed] {
+      color: #242A2B;
+      background-color: white;
+    }
+    :host.with-border {
+      border: 1px solid #929595;
+    }
+    :host(:hover) {
+      border: 1px solid #F2F2F2;
+    }
+    iron-icon {
+      width: 100%;
+      height: 100%;
+
+      @apply(--toggle-image-button-icon);
+    }
+  </style>
+  <template>
+    <iron-icon
+      id='iconItem'
+      icon="{{_getIcon(icon, iconActive, active)}}"
+      src="{{_getIcon(iconSrc, iconSrcActive, active)}}"
+      alt$="[[alt]]"
+    ></iron-icon>
+  </template>
+  <script>
+    Polymer({
+      is: "toggle-image-button",
+      hostAttributes: {
+        role: 'button',
+        tabindex: '0'
+      },
+      properties: {
+        hasBorder: {
+          type: Boolean,
+          notify: true,
+          observer: '_hasBorderChanged',
+          value: false
+        },
+        icon: {
+          type: String,
+          value: ''
+        },
+        iconActive: {
+          type: String,
+          value: ''
+        },
+        iconSrc: {
+          type: String,
+          value: ''
+        },
+        iconSrcActive: {
+          type: String,
+          value: ''
+        },
+        alt: {
+          type: String,
+          observer: "_altChanged"
+        }
+      },
+      _altChanged: function(newValue, oldValue) {
+        var label = this.getAttribute('aria-label');
+
+        // Don't stomp over a user-set aria-label.
+        if (!label || oldValue == label) {
+          this.setAttribute('aria-label', newValue);
+        }
+      },
+      behaviors: [
+        Polymer.IronCheckedElementBehavior,
+        Polymer.PaperInkyFocusBehavior
+      ],
+      _hasBorderChanged: function(newValue, oldValue) {
+        this.toggleClass('with-border', newValue);
+      },
+      _getIcon: function (normalIconPath, activeIconPath, isActive) {
+        if (isActive && activeIconPath.length > 0) {
+          return activeIconPath;
+        } else {
+          return normalIconPath;
+        }
+      },
+      ready: function () {
+        this.ensureRipple();
+        this.$$('#iconItem')._img.style.width = 'auto';
+        this.$$('#iconItem')._img.style.height = 'auto';
+      },
+    });
+  </script>
+</dom-module>
