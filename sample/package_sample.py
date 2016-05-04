@@ -16,6 +16,7 @@ import subprocess
 import sys
 
 APP_TOOL_CMD = 'crosswalk-pkg'
+NPM_CMD = 'npm'
 
 
 def isProgAvailable(program):
@@ -40,6 +41,24 @@ def packageSampleApp(appRoot, platform, xwalkPath):
   cmd = APP_TOOL_CMD + ' -p %s -c %s %s' % (platform, xwalkPath, appRoot)
   print "cmd:" + cmd
   subprocess.Popen(cmd, shell=True)
+
+
+def npmInstallExtensions(appRoot, distPath):
+  nodeModulesPath = os.path.join(appRoot, "node_modules")
+  if os.path.exists(nodeModulesPath):
+    print "Warning: directory " + nodeModulesPath + " already exists."
+    shutil.rmtree(nodeModulesPath)
+  os.makedirs(nodeModulesPath)
+  manifestPath = os.path.join(appRoot, 'manifest.json')
+  manifest = json.loads(open(manifestPath, 'r').read())
+  xwalkExtensions = manifest['xwalk_extensions']
+  for extension in xwalkExtensions:
+    extensionDir = extension.split('/')[1]
+    extensionPath = os.path.join(distPath, extensionDir)
+    cmd = NPM_CMD + ' install ' + extensionPath
+    print "cmd: " + cmd
+    process = subprocess.Popen(cmd, shell=True, cwd=appRoot)
+    process.wait()
 
 
 def main():
@@ -72,12 +91,8 @@ def main():
   # Copy web content to the sample app folder.
   shutil.copytree(options.web_content, options.out)
 
-  # Copy extensions to the sample app folder.
-  distExtDir = os.path.join(options.out, "realsense_extensions")
-  if os.path.exists(distExtDir):
-    print "Error: dist extensions directory " + distExtDir + " already exists."
-    sys.exit(2)
-  shutil.copytree(options.extensions, distExtDir)
+  # Install extensions by npm.
+  npmInstallExtensions(options.out, options.extensions)
 
   # Add currently VERSION to the manifest.json.
   if options.version is not None:
