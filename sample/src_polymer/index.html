@@ -13,7 +13,7 @@
           <paper-toolbar id="drawerToolbar">
             <span class="menu-name">Intel(R) RealSense(TM) 3D Camera R200</span>
           </paper-toolbar>
-          
+
           <!-- Drawer Content -->
           <paper-menu id="paperMenu"
                       attr-for-selected="page-name" selected="{{selectedPage}}"
@@ -33,9 +33,9 @@
               <span class="menu-item-name">Face</span>
             </paper-icon-item>
           </paper-menu>
-          
+
         </paper-header-panel>
-        
+
         <paper-header-panel main>
 
           <!-- Main Toolbar -->
@@ -43,21 +43,21 @@
             <paper-icon-button src="images/icon_menu.png" paper-drawer-toggle></paper-icon-button>
             <span class="page-title">[[selectedPage]]</span>
           </paper-toolbar>
-          
+
           <!-- Main Content -->
           <iron-pages attr-for-selected="page-name" selected="[[selectedPage]]">
-            <photo-capture-page page-name="Photo Capture"></photo-capture-page> 
-            <scene-perception-page page-name="Scene Perception"></scene-perception-page> 
-            <face-page page-name="Face"></face-page> 
+            <photo-capture-page page-name="Photo Capture"></photo-capture-page>
+            <scene-perception-page page-name="Scene Perception"></scene-perception-page>
+            <face-page page-name="Face"></face-page>
           </iron-pages>
-          
+
         </paper-header-panel>
-        
+
       </paper-drawer-panel>
-  
+
     </template>
 
-    <script src="scripts/app.js"></script> 
+    <script src="scripts/app.js"></script>
 
   </body>
-</html> 
+</html>
