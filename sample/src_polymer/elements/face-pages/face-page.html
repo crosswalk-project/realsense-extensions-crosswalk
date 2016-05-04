@@ -73,7 +73,7 @@
       }
 
     </style>
-  
+
     <div style="overflow: auto;">
     <div id="leftPanel">
       <div id="statPanel">
@@ -185,7 +185,7 @@
 
         <div>
           <paper-button on-tap="_confApply" disabled="[[confDisabled]]" class="round-button text-button" style='margin-top: 25px; margin-left: 55px'>
-            APPLY  
+            APPLY
           </paper-button>
           <paper-button on-tap="_confRevert" disabled="[[confDisabled]]" class="round-button text-button extendRight">
             REVERT
@@ -219,13 +219,13 @@
         </div>
       </div>
       </template>
-  
+
       <template is="dom-if" if="{{!hasCamera}}">
         <span style='margin-top: 50%; text-align: center;'>No available RealSense camera</span>
       </template>
     </div>
   </template>
-  
+
   <script src='../../libs/adapter.js'></script>
   <script src='../../libs/stats.min.js'></script>
   <script src='face-page.js'></script>
