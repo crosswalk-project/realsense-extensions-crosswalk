@@ -632,11 +632,17 @@ void ScenePerceptionObject::OnResetScenePerception(
                                         ERROR_NAME_INVALIDSTATEERROR));
     return;
   }
-  scene_perception_->Reset();
+  if (PXC_STATUS_NO_ERROR != scene_perception_->Reset()) {
+    info->PostResult(
+        CreateDOMException("Failed to reset scene perception.",
+                           ERROR_NAME_ABORTERROR));
+  } else {
+    if (block_meshing_data_)  block_meshing_data_->Reset();
 
-  if (block_meshing_data_)  block_meshing_data_->Reset();
+    if (surface_voxels_data_)  surface_voxels_data_->Reset();
 
-  if (surface_voxels_data_)  surface_voxels_data_->Reset();
+    info->PostResult(CreateSuccessResult());
+  }
 }
 
 void ScenePerceptionObject::DoPauseScenePerception(
