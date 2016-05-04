@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Demo for switch-image-button</title>
+    <link rel="import" href="../switch-image-button.html">
+    <style>
+      body {
+        background: black
+      }
+    </style>
+  </head>
+
+  <body>
+    <switch-image-button
+      icon0-src='images/icon_play_light.png'
+      icon1-src='images/icon_pause_light.png'
+    ></switch-image-button>
+    <switch-image-button
+      id='playOrPause'
+      icon0-src='images/icon_play_light.png'
+      icon0-src-active='images/icon_play_dark.png'
+      icon1-src='images/icon_pause_light.png'
+      icon1-src-active='images/icon_pause_dark.png'
+    ></switch-image-button>
+    <script>
+      document.getElementById('playOrPause').addEventListener('iron-change', function(ev){
+        console.log(ev);
+        console.log(ev.currentTarget.checked);
+        console.log(ev.currentTarget.selection);
+      });
+    </script>
+  </body>
+</html>
