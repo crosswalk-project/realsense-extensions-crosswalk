@@ -45,7 +45,9 @@
           </paper-toolbar>
 
           <!-- Main Content -->
-          <iron-pages attr-for-selected="page-name" selected="[[selectedPage]]">
+          <iron-pages attr-for-selected="page-name" selected="[[selectedPage]]"
+                      on-iron-deselect="_onPageDeactivated"
+                      on-iron-select="_onPageActivated">
             <photo-capture-page page-name="Photo Capture"></photo-capture-page>
             <scene-perception-page page-name="Scene Perception"></scene-perception-page>
             <face-page page-name="Face"></face-page>

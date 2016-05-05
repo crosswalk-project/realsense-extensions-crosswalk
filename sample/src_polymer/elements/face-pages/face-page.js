@@ -102,7 +102,7 @@ var facepageReady = (function() {
     console.log('errorCallback: ' + error);
   }
 
-  function main() {
+  function activateFacepage() {
     // Trigger the user permission prompt by a getUserMedia
     navigator.mediaDevices.getUserMedia({video: true})
         .then(function(stream) {
@@ -152,10 +152,6 @@ var facepageReady = (function() {
       facepageDom.showDepth = false;
       overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       depthContext.clearRect(0, 0, depthCanvas.width, depthCanvas.height);
-      /*
-  trackingColorModeRadio.disabled = false;
-  trackingColorDepthModeRadio.disabled = false;
-  */
     }
 
     facepageDom._startFacemodule = function() {
@@ -510,14 +506,18 @@ var facepageReady = (function() {
       }
     }
 
-    facepageDom._onTest = function() {
-      console.log('_onTest: idx is ' + this.resolutionIndex);
+    facepageDom._activatedChanged = function(newValue, oldValue) {
+      if (newValue) {
+        console.log('face page activated');
+        activateFacepage();
+      } else {
+        console.log('face page deactivated');
+        clearAfterStopped();
+        stopPreviewStream();
+      }
     };
 
   }
 
-  return function(o) {
-    initFacepage(o);
-    main();
-  }
+  return initFacepage;
 })();
