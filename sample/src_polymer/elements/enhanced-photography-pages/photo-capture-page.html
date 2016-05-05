@@ -4,15 +4,143 @@
 <dom-module id="photo-capture-page">
   <template>
     <style include="shared-styles">
+      #captureContainer {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #dropDownPanel {
+        height: 100px;
+        align-self: stretch;
+      }
+
+      #mainPanel {
+        align-self: stretch;
+        background: #101010;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #statPanel {
+        height: 80px;
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+      }
+
+      #fpsContainer {
+        width: 100px;
+      }
+
+      #resoContainer {
+        width: 400px;
+        position: relative;
+      }
+
+      #captureButton {
+        margin-top: auto;
+        margin-bottom: auto;
+      }
+
+      .previewCanvas {
+        width: 100%;
+      }
+
+      #preview {
+        z-index: -1;
+      }
+
+      #depth {
+        display: none;
+      }
+
+      .extendRight {
+        margin-top: 25px;
+        margin-left: 10px;
+      }
+
+      span {
+        display: block;
+      }
+
+      span.configItem {
+        font-size: 14px;
+        margin-top: 25px;
+        margin-left: 50px;
+      }
+
+      span.titleItem {
+        font-size: 16px;
+        margin-top: 25px;
+        margin-left: 25px;
+      }
+
+      video {
+        text-align: center;
+      }
+
+      canvas {
+        text-align: center;
+      }
     </style>
 
-    <h1>This page is [[pageName]]</h1>
-
+    <div id="captureContainer">
+    <div id="dropDownPanel">
+      <template is="dom-if" if="{{hasCamera}}">
+        <div>
+          <paper-button on-tap="_startPhotoCapture" disabled="[[previewing]]" class="round-button text-button" style='margin-top: 25px; margin-left: 55px'>
+            START
+          </paper-button>
+          <paper-button on-tap="_stopPhotoCapture" disabled="[[!previewing]]" class="round-button text-button extendRight">
+            STOP
+          </paper-button>
+          <paper-button toggles on-tap="_showDepthCanvas" active="{{showDepth}}" disabled="[[!previewing]]" class="checkbox-button text-button" style='margin-top: 25px; margin-left: 25px'>
+            SHOW DEPTH
+          </paper-button>
+        </div>
+      </template>
+      <template is="dom-if" if="{{!hasCamera}}">
+        <span style='margin-top: 8%; text-align: center;'>No available RealSense camera</span>
+      </template>
+    </div>
+    <div id="mainPanel">
+      <div id="statPanel">
+        <div id="fpsContainer">
+        </div>
+        <div id="resoContainer">
+          <resolution-slider class="center-center" candidates="[[resolutionKeys]]" selected-index="{{resolutionIndex}}"></resolution-slider>
+        </div>
+        <paper-button id="captureButton" on-tap="_takePhoto" class="round-button image-button">
+          <iron-icon src="../../images/btn_capture_photo.png"></iron-icon>
+        </paper-button>
+      </div>
+      <div id="viewer">
+        <video id='preview' autoplay class="previewCanvas"></video>
+        <canvas id='depth' class="previewCanvas"></canvas>
+      </div>
+      <paper-toast id="toast"></paper-toast>
+    </div>
+    </div>
   </template>
+
+  <script src='../../libs/adapter.js'></script>
+  <script src='../../libs/stats.min.js'></script>
+  <script src='../../common/utils.js'></script>
+  <script src='photo-capture-page.js'></script>
 
   <script>
     Polymer({
       is: "photo-capture-page",
+      properties: {
+        hasCamera: {
+          type: Boolean,
+          value: false
+        }
+      },
+
+      ready: function() {
+        photoCapturePageReady(this);
+      }
     });
   </script>
 </dom-module>
