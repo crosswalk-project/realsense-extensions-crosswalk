@@ -26,6 +26,7 @@ group("dist") {
 
 group("sample_app") {
   deps = [
-    "//extensions/sample:package_sample_app",
+    "//extensions/sample:package_sample",
+    "//extensions/sample:package_sample_polymer",
   ]
 }
