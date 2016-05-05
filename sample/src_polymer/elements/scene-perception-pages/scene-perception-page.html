@@ -198,9 +198,6 @@
   <script>
     Polymer({
       is: "scene-perception-page",
-      attached: function(){
-        main(this);
-      },
       properties: {
         // SP status:
         // 'idle'(0) - before init successfully,
@@ -212,6 +209,11 @@
         },
         extendReconstruction: {
           type: Boolean
+        },
+        activated: {
+          type: Boolean,
+          value: false,
+          observer: '_activatedChanged'
         }
       },
       _getInitializedState: function(spState) {
@@ -224,6 +226,14 @@
       detached:
       attributeChanged:
       */
+      _activatedChanged: function(newValue, oldValue) {
+        if (newValue) {
+          console.log('sp page activated');
+          main(this);
+        } else {
+          console.log('sp page deactivated');
+        }
+      },
     });
   </script>
 </dom-module>
