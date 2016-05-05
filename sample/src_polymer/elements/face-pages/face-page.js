@@ -94,12 +94,19 @@ var facepageReady = (function() {
     previewStream = null;
   }
 
+  function toastMessage(message) {
+    facepageDom.$.toast.text = message;
+    facepageDom.$.toast.open();
+  }
+
   function alertFired(msg) {
     console.log('alert: ' + msg);
+    toastMessage(msg);
   }
 
   function errorCallback(error) {
     console.log('errorCallback: ' + error);
+    toastMessage(error);
   }
 
   function activateFacepage() {
@@ -145,6 +152,7 @@ var facepageReady = (function() {
     var depthContext = depthCanvas.getContext('2d');
     var overlayCanvas = facepageDom.$.overlay;
     var overlayContext = overlayCanvas.getContext('2d');
+    facepageDom.$.toast.fitInto = videoElement;
     depthCanvas.style.display = 'none';
 
     function clearAfterStopped() {
