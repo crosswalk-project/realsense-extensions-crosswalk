@@ -1,4 +1,5 @@
 {
+  "display": "fullscreen",
   "name": "Crosswalk RealSense Sample App - Polymer",
   "start_url": "index.html",
   "xwalk_package_id": "org.crosswalk_project.rs_sample_polymer",
