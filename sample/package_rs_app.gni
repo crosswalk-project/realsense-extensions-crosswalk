@@ -1,0 +1,59 @@
+# Copyright (c) 2016 Intel Corporation. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+template("package_rs_app") {
+  assert(defined(invoker.src_dir),
+         "Need specific src_dir in $target_name.")
+  assert(defined(invoker.pkg_name),
+         "Need specific pkg_name in $target_name.")
+  assert(defined(invoker.version),
+         "Need specific version in $target_name.")
+
+  hasRuntime = getenv("NO_RS_RUNTIME_HOOKS")
+
+  # Set the "windows" as default platform.
+  platform = "windows"
+  if (is_win) {
+    platform = "windows"
+  } else if (is_android) {
+    platform = "android"
+  }
+
+  do_package_target_name = "do_" + target_name
+
+  action(do_package_target_name) {
+    src_dir = invoker.src_dir
+    pkg_name = invoker.pkg_name
+    version = invoker.version
+
+    # Wix need 4 field type version, appending ".0" unconditionally.
+    app_version = version + ".0"
+
+    script = "package_sample.py"
+
+    bundle_file = "$root_build_dir/$pkg_name" + "_with_rssdk_runtime" + "-$app_version.exe"
+
+    outputs = [
+      "$root_build_dir/$pkg_name-$app_version.msi",
+      "$bundle_file"
+    ]
+    if (hasRuntime == "1" || hasRuntime == "true") {
+      outputs -= ["$bundle_file"]
+    }
+
+    args = ["-e", rebase_path("$root_build_dir/realsense_extensions"),
+            "-w", rebase_path("$src_dir"),
+            "-o", rebase_path("$root_build_dir/$pkg_name"),
+            "-p", "$platform",
+            "-v", "$version",
+    ]
+    deps = [
+      "//extensions:dist",
+    ]
+  }
+
+  source_set(target_name) {
+    deps = [ ":$do_package_target_name" ]
+  }
+}

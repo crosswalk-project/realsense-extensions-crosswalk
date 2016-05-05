@@ -2,40 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-action("package_sample_app") {
-  dist_dir = "$root_build_dir/realsense_extensions"
-  script = "package_sample.py"
-  sources = [
-    "//extensions/sample/src",
-  ]
-  hasRuntime = getenv("NO_RS_RUNTIME_HOOKS")
-  v = read_file("../VERSION", "scope")
-  version = v.MAJOR + "." + v.RSSDK + "." + v.MINOR
-  app_version = "$version" + ".0"
-  package = "org.xwalk.rs_sample"
-  bundle_file = "$root_build_dir/$package" + "_with_rssdk_runtime" + "-$app_version.exe"
-  outputs = [
-    "$root_build_dir/$package-$app_version.msi",
-    "$bundle_file"
-  ]
-  if (hasRuntime == "1" || hasRuntime == "true") {
-    outputs -= ["$bundle_file"]
-  }
+import("//extensions/sample/package_rs_app.gni")
 
-  # Set the "windows" as default platform.
-  platform = "windows"
-  if (is_win) {
-    platform = "windows"
-  } else if (is_android) {
-    platform = "android"
-  }
-  args = ["-e", rebase_path("$dist_dir"),
-          "-w", rebase_path("//extensions/sample/src"),
-          "-o", rebase_path("$root_build_dir/sample_app"),
-          "-p", "$platform",
-          "-v", "$version",
-  ]
-  deps = [
-    "//extensions:dist",
-  ]
+v = read_file("../VERSION", "scope")
+rs_version = v.MAJOR + "." + v.RSSDK + "." + v.MINOR
+
+package_rs_app("package_sample") {
+   src_dir = rebase_path("//extensions/sample/src")
+   pkg_name = "org.xwalk.rs_sample"
+   version = rs_version
+}
+
+package_rs_app("package_sample_polymer") {
+   src_dir = rebase_path("//extensions/sample/src_polymer")
+   pkg_name = "org.xwalk.rs_sample_polymer"
+   version = rs_version
 }
