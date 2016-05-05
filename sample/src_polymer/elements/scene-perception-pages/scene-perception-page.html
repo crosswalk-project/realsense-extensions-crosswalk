@@ -1,18 +1,229 @@
-<link rel="import" href="../elements.html">
-
+<link rel="import" href="../toggle-image-button/toggle-image-button.html">
+<link rel="import" href="../switch-image-button/switch-image-button.html">
 
 <dom-module id="scene-perception-page">
   <template>
-    <style include="shared-styles">
+    <style>
+    #controlPanel {
+      box-sizing: border-box;
+      padding-left: 24px;
+      padding-right: 25px;
+      padding-top: 15px;
+      padding-bottom: 25px;
+      right: 0;
+      top: 0;
+      float: right;
+      width: 125px;
+      height: 100%;
+      z-index: 10;
+      background-color: #101010 ;
+    }
+
+    toggle-image-button,
+    switch-image-button {
+      margin-top: 10px;
+    }
+    toggle-image-button {
+      margin-left: 3px;
+    }
+    toggle-image-button[disabled],
+    switch-image-button[disabled] {
+      opacity: 0.2;
+    }
+    #leftHint {
+      display: inline-block;
+      left: 10px;
+      top: -40px;
+      position: relative;
+    }
+    
+    #rightHint {
+      display: inline-block;
+      top: -50px;
+      position: relative;
+    }
+
+    #leftContainer {
+      z-index: 10;
+      margin-left: 25px;
+      margin-top: 25px;
+      max-width: 320px;
+      max-height: 240px;
+      min-width: 320px;
+      min-height: 240px;
+      width: 320px;
+      height: 320px;
+    }
+    
+    #rightContainer {
+      z-index: -1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      min-width: 320px;
+      min-height: 240px;
+      width: 100%;
+      height: 100%;
+    }
+
+    #bottomPanel {
+      position: absolute;
+      bottom: 10px;
+      left: 25px;
+    }
+    #zoomPanel {
+      z-index: 10;
+      box-sizing: border-box;;
+      background-color: #3A4345;
+      width: 72px;
+      height: 220px;
+      position: absolute;
+      bottom: 60px;
+      right: 155px;
+      border-radius: 30px;
+    }
+    #zoomPanel > iron-icon {
+      width: auto;
+      height: auto;
+    }
+    .iconWrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    #zoomPanel > hr {
+      margin: 0px 8px;
+      border-color: #929595;
+    }
     </style>
-
-    <h1>This page is [[pageName]]</h1>
-
+    <div id='container' style='width:100%; height:100%;'>
+    <div id='controlPanel'>
+      <toggle-image-button
+        id='playOrPause'
+        toggles
+        icon-src='images/scene-perception/icon_play_light.png'
+        icon-src-active='images/scene-perception/icon_pause_dark.png'>
+      </toggle-image-button>
+      <switch-image-button
+        id='colorOrDepth'
+        disabled={{_getInitializedState(spState)}}
+        icon0-src='images/scene-perception/icon_color_light.png'
+        icon0-src-active='images/scene-perception/icon_color_dark.png'
+        icon1-src='images/scene-perception/icon_depth_light.png'
+        icon1-src-active='images/scene-perception/icon_depth_dark.png'>
+      </switch-image-button>
+      <switch-image-button
+        id='meshOrVolume'
+        disabled={{_getTrackingState(spState)}}
+        icon0-src='images/scene-perception/icon_mesh_light.png'
+        icon0-src-active='images/scene-perception/icon_mesh_dark.png'
+        icon1-src='images/scene-perception/icon_mesh_light.png'
+        icon1-src-active='images/scene-perception/icon_mesh_dark.png'>
+      </switch-image-button>
+      <toggle-image-button
+        id='toggleExtend'
+        active={{extendReconstruction}}
+        disabled={{_getTrackingState(spState)}}
+        toggles
+        icon-src='images/scene-perception/icon_extend_reconstruction_light.png'
+        icon-src-active='images/scene-perception/icon_extend_reconstruction_dark.png'>
+      </toggle-image-button>
+      <toggle-image-button
+        id='reset'
+        disabled={{_getTrackingState(spState)}}
+        icon-src='images/scene-perception/icon_reset_light.png'>
+      </toggle-image-button>
+      <toggle-image-button
+        id='centerViewPoint'
+        disabled={{_getInitializedState(spState)}}
+        icon-src='images/scene-perception/icon_center_view_light.png'>
+      </toggle-image-button>
+      <toggle-image-button
+        id='staticViewpoint'
+        disabled={{_getInitializedState(spState)}}
+        icon-src='images/scene-perception/icon_static_viewpoint_light.png'>
+      </toggle-image-button>
+      <toggle-image-button
+        id='saveMesh'
+        disabled={{_getTrackingState(spState)}}
+        icon-src='images/scene-perception/icon_save_dark.png'>
+      </toggle-image-button>
+    </div>
+    <div id='leftContainer'>
+      <canvas  id='imageRender' width=320 height=240></canvas>
+      <span id='leftHint'></span>
+    </div>
+    <div id='rightContainer'>
+      <canvas  id='volumePreviewRender' style='display:none'></canvas>
+      <canvas  id='meshRender'></canvas>
+      <span id='rightHint'></span>
+    </div>
+    <div id='zoomPanel'>
+      <div
+        id='zoomIn'
+        class='iconWrapper'
+        style="height:64px">
+        <img src='../../images/scene-perception/icon_zoom_in.png'>
+        </img>
+      </div>
+      <hr>
+      <div class='iconWrapper' style="height:90px">
+        <img src='../../images/scene-perception/icon_zoom.png'>
+      </div>
+      <hr>
+      <div
+        id='zoomOut'
+        class='iconWrapper'
+        style="height:64px">
+        <img src='../../images/scene-perception/icon_zoom_out.png'>
+        </img>
+      </div>
+    </div>
+    <div id='bottomPanel'></div>
+    </div>
   </template>
-
+  
+  <script src='../../libs/three.js'></script>
+  <script src='../../libs/TrackballControls.js'></script>
+  <script src='../../libs/stats.min.js'></script>
+  <script src='../../scripts/common/utils.js'></script>
+  <script src='../../scripts/common/spMath.js'></script>
+  <script src='leftRender.js'></script>
+  <script src='volumePreview.js'></script>
+  <script src='meshView.js'></script>
+  <script src='rightRender.js'></script>
+  <script src='main.js'></script>
   <script>
     Polymer({
       is: "scene-perception-page",
+      attached: function(){
+        main(this);
+      },
+      properties: {
+        // SP status:
+        // 'idle'(0) - before init successfully,
+        // 'checking'(1) - init successfully,
+        // 'tracking'(2) - SP started
+        spState: {
+          type: Number,
+          value: 0
+        },
+        extendReconstruction: {
+          type: Boolean
+        }
+      },
+      _getInitializedState: function(spState) {
+        return spState < 1 ? true : false;
+      },
+      _getTrackingState: function(spState) {
+        return spState < 2 ? true : false;
+      },
+      /*
+      detached:
+      attributeChanged:
+      */
     });
   </script>
 </dom-module>

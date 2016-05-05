@@ -3,7 +3,7 @@
 
   var app = document.querySelector('#app');
 
-  app.selectedPage = 'Face';
+  app.selectedPage = 'Scene Perception';
 
   app._onPageSelected = function(e) {
     console.log('item selected: ' + app.selectedPage);
