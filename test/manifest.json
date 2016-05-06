@@ -1,0 +1,11 @@
+{
+  "name": "Crosswalk RealSense Tests",
+  "start_url": "http://localhost:8000/index.html",
+  "xwalk_command_line": "--use-rs-video-capture --allow-external-extensions-for-remote-sources",
+  "xwalk_extensions": [
+    "c:\\projects\\realsense-extensions-crosswalk\\src\\out\\Release_x64_gn\\realsense_extensions\\enhanced_photography",
+    "c:\\projects\\realsense-extensions-crosswalk\\src\\out\\Release_x64_gn\\realsense_extensions\\face",
+    "c:\\projects\\realsense-extensions-crosswalk\\src\\out\\Release_x64_gn\\realsense_extensions\\scene_perception"
+  ],
+  "xwalk_windows_vendor": "Crosswalk Project"
+}
