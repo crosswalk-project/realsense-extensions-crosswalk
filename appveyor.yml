@@ -34,6 +34,8 @@ install:
     gclient config --spec=solutions=[{'name':'src','url':'https://github.com/crosswalk-project/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions/third_party/libpxc':'https://github.com/crosswalk-project/libpxc.git'},'safesync_url':'',},]
 
     gclient sync
+
+    python src\extensions\sample\sample_bower_update.py
 before_build:
 - cmd: >-
     curl -fsS -o get-pip.py https://bootstrap.pypa.io/get-pip.py
@@ -62,9 +64,13 @@ after_build:
 
     appveyor PushArtifact realsense_extensions.zip
 
-    7z a sample_installer.zip org.crosswalk_project.rs_sample_with_rssdk_runtime_*
+    7z a rs_sample_installer.zip org.crosswalk_project.rs_sample_with_rssdk_runtime_*
 
-    appveyor PushArtifact sample_installer.zip
+    appveyor PushArtifact rs_sample_installer.zip
+
+    7z a rs_sample_polymer_installer.zip org.crosswalk_project.rs_sample_polymer_with_rssdk_runtime_*
+
+    appveyor PushArtifact rs_sample_polymer_installer.zip
 deploy:
   description: 'Release Description'
   provider: GitHub
@@ -80,5 +86,8 @@ artifacts:
     - path: realsense_extensions.zip
       name: RealSense Extensions for crosswalk
 
-    - path: sample_installer.zip
-      name: Sample App Installer
+    - path: rs_sample_installer.zip
+      name: RealSense Sample App Installer
+
+    - path: rs_sample_polymer_installer.zip
+      name: RealSense Sample App (Polymer) Installer
