@@ -103,6 +103,7 @@
       <toggle-image-button
         id='playOrPause'
         toggles
+        active={{_getPlayState(spState)}}
         icon-src='images/scene-perception/icon_play_light.png'
         icon-src-active='images/scene-perception/icon_pause_dark.png'>
       </toggle-image-button>
@@ -208,12 +209,22 @@
           value: 0
         },
         extendReconstruction: {
-          type: Boolean
+          type: Boolean,
+          observer: '_extendReconstructionChanged'
         },
         activated: {
           type: Boolean,
           value: false,
           observer: '_activatedChanged'
+        },
+        spState: {
+          // SP status:
+          // 'initial'(-1) - before SP page initialized,
+          // 'idle'(0) - before init successfully,
+          // 'checking'(1) - init successfully,
+          // 'tracking'(2) - SP started
+          type: Number,
+          value: -1
         }
       },
       _getInitializedState: function(spState) {
@@ -222,18 +233,36 @@
       _getTrackingState: function(spState) {
         return spState < 2 ? true : false;
       },
-      /*
-      detached:
-      attributeChanged:
-      */
+      _getPlayState: function(spState) {
+        return spState == 2 ? true : false;
+      },
       _activatedChanged: function(newValue, oldValue) {
         if (newValue) {
           console.log('sp page activated');
           main(this);
         } else {
+          destroySP(this);
           console.log('sp page deactivated');
         }
       },
+      _extendReconstructionChanged: function(newValue, oldValue) {
+        var sp = getSP();
+        if (!sp) return;
+
+        var spDom = this;
+
+        sp.isReconstructionEnabled().then(function(enabled) {
+          if (enabled != newValue) {
+            sp.enableReconstruction(newValue).then(function() {
+              spDom.extendReconstruction = newValue;
+              console.log('Toggle reconstruction succeeds');
+            }, function(e) {
+              spDom.extendReconstruction = enabled;
+              errorHandler(e);
+            });
+          }
+        }, errorHandler);
+      }
     });
   </script>
 </dom-module>

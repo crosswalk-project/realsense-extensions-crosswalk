@@ -1,5 +1,6 @@
 function VolumePreview(sp, stats, spDom) {
   var canvas = spDom.$$('#volumePreviewRender');
+  var mStyleWidth, mStyleHeight;
   var context = canvas.getContext('2d');
   var imageData = context.createImageData(SP_SIZE_WIDTH, SP_SIZE_HEIGHT);
   var gettingVolumePreview = false;
@@ -13,6 +14,8 @@ function VolumePreview(sp, stats, spDom) {
     canvas.height = SP_SIZE_HEIGHT;
     canvas.style.width = width;
     canvas.style.height = height;
+    mStyleWidth = width;
+    mStyleHeight = height;
   }
 
   function updateView(renderMatrix) {
@@ -38,6 +41,7 @@ function VolumePreview(sp, stats, spDom) {
     if (enabled) {
       canvas.style.display = '';
       showing = true;
+      resize(mStyleWidth, mStyleHeight);
     } else {
       canvas.style.display = 'none';
       showing = false;
