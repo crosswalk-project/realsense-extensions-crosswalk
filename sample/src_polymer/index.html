@@ -5,6 +5,11 @@
   <body>
     <template is="dom-bind" id="app">
 
+      <style include="shared-styles">
+        .sublist {
+          padding-left: 30px;
+        }
+      </style>
       <paper-drawer-panel force-narrow edge-swipe-sensitivity=55 id="paperDrawerPanel">
 
         <paper-header-panel mode="scroll" drawer>
@@ -18,10 +23,20 @@
           <paper-menu id="paperMenu"
                       attr-for-selected="page-name" selected="{{selectedPage}}"
                       on-iron-select="_onPageSelected">
-            <paper-icon-item role="menuitem" page-name="Photo Capture">
-              <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
-              <span class="menu-item-name">Photo Capture</span>
-            </paper-icon-item>
+            <paper-submenu role="menuitem">
+              <paper-icon-item class="menu-trigger">
+                <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                <span class="menu-item-name">Depth Enhanced Photography</span>
+              </paper-icon-item>
+              <paper-menu class="menu-content sublist" attr-for-selected="page-name"
+                          selected="{{selectedPage}}"
+                          on-iron-select="_onPageSelected">
+                <paper-icon-item role="menuitem" page-name="Photo Capture">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Photo Capture</span>
+                </paper-icon-item>
+              </paper-menu>
+            </paper-submenu>
 
             <paper-icon-item role="menuitem" page-name="Scene Perception">
               <iron-icon src="images/icon_cube.png" item-icon></iron-icon>
