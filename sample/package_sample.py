@@ -17,6 +17,7 @@ import sys
 
 APP_TOOL_CMD = 'crosswalk-pkg'
 NPM_CMD = 'npm'
+VULCANIZE_CMD = 'vulcanize'
 
 
 def isProgAvailable(program):
@@ -61,6 +62,34 @@ def npmInstallExtensions(appRoot, distPath):
     process.wait()
 
 
+def doVulcanize(appRoot):
+  # Install vulcanize if not available
+  if isProgAvailable(VULCANIZE_CMD) is None:
+    cmd = NPM_CMD + ' install -g ' + VULCANIZE_CMD
+    subprocess.check_call(cmd, shell=True)
+
+  cmd = VULCANIZE_CMD + ' ' \
+       + os.path.join("elements", "elements.html") \
+       + ' --inline-scripts --inline-css --out-html elements.vulcanized.html'
+  print "cmd: " + cmd
+  process = subprocess.Popen(cmd, shell=True, cwd=appRoot)
+  process.wait()
+
+  # All bellowing things have been vulcanized into elements.vulcanized.html.
+  shutil.rmtree(os.path.join(appRoot, "elements"))
+  shutil.rmtree(os.path.join(appRoot, "bower_components"))
+  shutil.rmtree(os.path.join(appRoot, "common"))
+  shutil.rmtree(os.path.join(appRoot, "libs"))
+  shutil.rmtree(os.path.join(appRoot, "styles"))
+
+  # Remove useless files.
+  os.remove(os.path.join(appRoot, "bower.json"))
+
+  # Use vulcanized elements.html instead.
+  os.makedirs(os.path.join(appRoot, "elements"))
+  os.rename(os.path.join(appRoot, "elements.vulcanized.html"),
+              os.path.join(appRoot, "elements", "elements.html"))
+
 def main():
   parser = optparse.OptionParser()
   parser.add_option('-e', '--extensions', help='Directory to the extensions')
@@ -90,6 +119,10 @@ def main():
 
   # Copy web content to the sample app folder.
   shutil.copytree(options.web_content, options.out)
+
+  # If polymer sample, do vulcanize.
+  if options.out.endswith("org.xwalk.rs_sample_polymer"):
+    doVulcanize(options.out)
 
   # Install extensions by npm.
   npmInstallExtensions(options.out, options.extensions)
