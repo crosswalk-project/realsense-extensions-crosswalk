@@ -1,5 +1,4 @@
-<link rel="import" href="../toggle-image-button/toggle-image-button.html">
-<link rel="import" href="../switch-image-button/switch-image-button.html">
+<link rel="import" href="../elements.html">
 
 <dom-module id="scene-perception-page">
   <template>
@@ -54,7 +53,26 @@
       width: 320px;
       height: 320px;
     }
-    
+
+    #swap {
+      z-index: 20;
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+      min-height: 64px;
+      position: absolute;
+      left: 256px;
+      top: 176px;
+      border-radius: 32px;
+      background-color: rgba(58, 67, 69, 0.3);
+    }
+
+    #swap[active] {
+      left: 25px;
+      top: 25px;
+      background-color: rgba(0, 255, 229, 0.6);
+    }
+
     #rightContainer {
       z-index: -1;
       position: absolute;
@@ -99,6 +117,12 @@
     }
     </style>
     <div id='container' style='width:100%; height:100%;'>
+      <toggle-image-button
+        id='swap'
+        active={{hideLeftView}}
+        toggles
+        icon-src='../../images/scene-perception/icon_swap_view_light.png'>
+      </toggle-image-button>
     <div id='controlPanel'>
       <toggle-image-button
         id='playOrPause'
@@ -152,7 +176,7 @@
         icon-src='images/scene-perception/icon_save_dark.png'>
       </toggle-image-button>
     </div>
-    <div id='leftContainer'>
+    <div id='leftContainer' style="display:{{_getLeftDisplay(hideLeftView)}}">
       <canvas  id='imageRender' width=320 height=240></canvas>
       <span id='leftHint'></span>
     </div>
@@ -212,6 +236,10 @@
           type: Boolean,
           observer: '_extendReconstructionChanged'
         },
+        hideLeftView: {
+          type: Boolean,
+          value: false
+        },
         activated: {
           type: Boolean,
           value: false,
@@ -235,6 +263,9 @@
       },
       _getPlayState: function(spState) {
         return spState == 2 ? true : false;
+      },
+      _getLeftDisplay: function(hideLeftView) {
+        return hideLeftView ? "none" : "";
       },
       _activatedChanged: function(newValue, oldValue) {
         if (newValue) {

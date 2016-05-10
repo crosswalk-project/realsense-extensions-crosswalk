@@ -89,7 +89,7 @@ function LeftRender(sp, spDom) {
   }
 
   function updateView() {
-    if (!sampleFlowController.get())
+    if (spDom.hideLeftView || !sampleFlowController.get())
       return;
     sp.getSample().then(function(sample) {
       var context = renderer.getContext('2d');
