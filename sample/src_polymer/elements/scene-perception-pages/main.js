@@ -5,39 +5,44 @@ const SP_SIZE_FPS = 60;
 const CONTROL_PANEL_WIDTH = 125;
 var myStatus = new Status();
 
-function initBindings(spDom) {
-  // SP status:
-  // 'idle'(0) - before init successfully,
-  // 'checking'(1) - init successfully,
-  // 'tracking'(2) - SP started
-  spDom.spState = 0;
-  spDom.extendReconstruction = true;
+function destroySP(spDom) {
+  var sp = getSP();
+  if (!sp || spDom.spState <= 0) return;
+
+  sp.destroy().then(function() {
+    spDom.spState = 0;
+    myStatus.info('destroy succeeds');
+  }, errorHandler);
 }
 
 function main(spDom) {
-  // Global variables.
-  var sp;
-  var imagePanelWidth = SP_SIZE_WIDTH;
-  var imagePanelHeight = SP_SIZE_HEIGHT;
+  var sp = getSP();
+  if (!sp) return;
 
-  initBindings(spDom);
-
-  function initUI() {
+  if (spDom.spState < 0) {
     spDom.$$('#bottomPanel').appendChild(myStatus.getDom());
-    spDom.$$('#rightHint').fitInfo = spDom.$$('#rightContainer');
-    spDom.$$('#leftHint').fitInfo = spDom.$$('#leftContainer');
 
-    resizeUI(null);
+    var leftView = new LeftRender(sp, spDom);
+    var rightView = new RightRender(sp, spDom);
+    bindHandlers(leftView, rightView);
   }
 
-  function destroySP() {
-    sp.destroy().then(function() {
-      spDom.spState = 0;
-      myStatus.info('destroy succeeds');
-    }, errorHandler);
-  }
+  myStatus.info('Please wait for initialization.');
+  initSP(function() {
+    if (spDom.spState < 0) {
+      leftView.init();
+      rightView.init();
+    }
+    resizeUI(rightView);
+  });
 
+  /*--------------------------Sub functions ---------------------------*/
   function initSP(cbk) {
+    if (spDom.spState > 0) {
+      errorHandler('Wrong state to init SP.');
+      return;
+    }
+
     var initConfig = {
       useOpenCVCoordinateSystem: true,
       colorCaptureSize: {width: SP_SIZE_WIDTH, height: SP_SIZE_HEIGHT},
@@ -45,14 +50,20 @@ function main(spDom) {
       captureFramerate: SP_SIZE_FPS
     };
     sp.init(initConfig).then(function() {
-      spDom.spState = 1;
-      cbk();
-      myStatus.info('init succeeds');
-    }, errorHandler);
-  }
+      if (cbk instanceof Function) cbk();
 
-  window.onclose = destroySP;
-  window.onbeforeunload = destroySP;
+      // SP status:
+      // 'idle'(0) - before init successfully,
+      // 'checking'(1) - init successfully,
+      // 'tracking'(2) - SP started
+      spDom.spState = 1;
+      spDom.extendReconstruction = true;
+      myStatus.info('init succeeds');
+    }, function(e) {
+      spDom.spState = 0;
+      errorHandler(e);
+    });
+  }
 
   function displayText(quality, accuracy) {
     var leftHint = spDom.$$('#leftHint');
@@ -153,21 +164,6 @@ function main(spDom) {
       rightView.toggleView(viewIndex);
     });
 
-    spDom.$$('#toggleExtend').addEventListener('tap', function(ev) {
-      var buttonEnabled = ev.currentTarget.active;
-      sp.isReconstructionEnabled().then(function(enabled) {
-        if (enabled != buttonEnabled) {
-          sp.enableReconstruction(buttonEnabled).then(function() {
-            spDom.extendReconstruction = buttonEnabled;
-            console.log('Toggle reconstruction succeeds');
-          }, function(e) {
-            spDom.extendReconstruction = enabled;
-            errorHandler(e);
-          });
-        }
-      }, errorHandler);
-    });
-
     spDom.$$('#reset').addEventListener('tap', function(ev) {
       sp.reset().then(function() {
         myStatus.info('reset succeeds');
@@ -215,6 +211,8 @@ function main(spDom) {
       resizeUI(rightView);
       Polymer.dom.flush();
     };
+    window.onclose = function(spDom) { destroySP(spDom); };
+    window.onbeforeunload = function(spDom) { destroySP(spDom); };
   }
 
   function resizeUI(rightView) {
@@ -233,8 +231,8 @@ function main(spDom) {
 
     var ratio = SP_SIZE_WIDTH / SP_SIZE_HEIGHT;
     //imagePanelWidth = leftWidth;
-    imagePanelWidth = Math.min(leftWidth, height * ratio);
-    imagePanelHeight = imagePanelWidth / ratio;
+    var imagePanelWidth = Math.min(leftWidth, height * ratio);
+    var imagePanelHeight = imagePanelWidth / ratio;
 
     spDom.$$('#rightContainer').style.width = leftWidth;
 
@@ -243,29 +241,6 @@ function main(spDom) {
     }
   }
 
-  function start() {
-    myStatus.info('Please wait for initialization.');
-    initUI();
-    var realsense = window.realsense;
-    if (!(realsense &&
-          realsense instanceof Object &&
-          realsense.hasOwnProperty('ScenePerception') &&
-          realsense.ScenePerception instanceof Object)) {
-      myStatus.error('Invalid realsense.ScenePerception interface.');
-      return;
-    }
-    sp = realsense.ScenePerception;
-
-    var leftView = new LeftRender(sp, spDom);
-    var rightView = new RightRender(sp, spDom);
-    initSP(function() {
-      leftView.init();
-      rightView.init();
-      resizeUI(rightView);
-      bindHandlers(leftView, rightView);
-    });
-  }
-  start();
 }
 
 function getButtonValueId(buttonId) {
@@ -298,4 +273,16 @@ function Status(statusDom) {
   this.error = function(msg) {updateStatus(msg, 1)};
   this.warning = function(msg) {updateStatus(msg, 2)};
   this.getDom = function() {return myStatusDom};
+}
+
+function getSP() {
+  var realsense = window.realsense;
+  if (!(realsense &&
+        realsense instanceof Object &&
+        realsense.hasOwnProperty('ScenePerception') &&
+        realsense.ScenePerception instanceof Object)) {
+    myStatus.error('Invalid realsense.ScenePerception interface.');
+    return null;
+  }
+  return realsense.ScenePerception;
 }
