@@ -35,6 +35,26 @@
                   <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
                   <span class="menu-item-name">Photo Capture</span>
                 </paper-icon-item>
+                <paper-icon-item role="menuitem" page-name="Photo">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Photo</span>
+                </paper-icon-item>
+                <paper-icon-item role="menuitem" page-name="Enhanced Photo">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Enhanced Photo</span>
+                </paper-icon-item>
+                <paper-icon-item role="menuitem" page-name="Photo Utilities">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Photo Utilities</span>
+                </paper-icon-item>
+                <paper-icon-item role="menuitem" page-name="Segmentation">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Segmentation</span>
+                </paper-icon-item>
+                <paper-icon-item role="menuitem" page-name="Motion Effect">
+                  <iron-icon src="images/icon_camera.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Motion Effect</span>
+                </paper-icon-item>
               </paper-menu>
             </paper-submenu>
 
@@ -64,6 +84,11 @@
                       on-iron-deselect="_onPageDeactivated"
                       on-iron-select="_onPageActivated">
             <photo-capture-page page-name="Photo Capture"></photo-capture-page>
+            <photo-page page-name="Photo"></photo-page>
+            <enhanced-photo-page page-name="Enhanced Photo"></enhanced-photo-page>
+            <photo-utils-page page-name="Photo Utilities"></photo-utils-page>
+            <segmentation-page page-name="Segmentation"></segmentation-page>
+            <motion-effect-page page-name="Motion Effect"></motion-effect-page>
             <scene-perception-page page-name="Scene Perception"></scene-perception-page>
             <face-page page-name="Face"></face-page>
           </iron-pages>

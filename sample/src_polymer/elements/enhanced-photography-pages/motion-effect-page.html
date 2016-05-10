@@ -1,0 +1,20 @@
+<link rel="import" href="../elements.html">
+<dom-module id="motion-effect-page">
+  <template>
+    <style include="shared-style">
+    </style>
+    <h1 style="color:white;">This page is [[pageName]]</h1>
+  </template>
+
+  <script src='motion-effect-page.js'></script>
+
+  <script>
+    Polymer({
+      is: "motion-effect-page",
+
+      ready: function() {
+        motionEffectPageReady(this);
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,20 @@
+<link rel="import" href="../elements.html">
+<dom-module id="enhanced-photo-page">
+  <template>
+    <style include="shared-style">
+    </style>
+    <h1 style="color:white;">This page is [[pageName]]</h1>
+  </template>
+
+  <script src='enhanced-photo-page.js'></script>
+
+  <script>
+    Polymer({
+      is: "enhanced-photo-page",
+
+      ready: function() {
+        enhancedPhotoPageReady(this);
+      }
+    });
+  </script>
+</dom-module>
