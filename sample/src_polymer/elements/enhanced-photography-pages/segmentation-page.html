@@ -1,0 +1,20 @@
+<link rel="import" href="../elements.html">
+<dom-module id="segmentation-page">
+  <template>
+    <style include="shared-style">
+    </style>
+    <h1 style="color:white;">This page is [[pageName]]</h1>
+  </template>
+
+  <script src='segmentation-page.js'></script>
+
+  <script>
+    Polymer({
+      is: "segmentation-page",
+
+      ready: function() {
+        segmentationPageReady(this);
+      }
+    });
+  </script>
+</dom-module>

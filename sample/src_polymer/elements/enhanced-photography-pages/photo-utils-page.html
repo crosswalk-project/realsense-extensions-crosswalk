@@ -1,0 +1,20 @@
+<link rel="import" href="../elements.html">
+<dom-module id="photo-utils-page">
+  <template>
+    <style include="shared-style">
+    </style>
+    <h1 style="color:white;">This page is [[pageName]]</h1>
+  </template>
+
+  <script src='photo-utils-page.js'></script>
+
+  <script>
+    Polymer({
+      is: "photo-utils-page",
+
+      ready: function() {
+        photoUtilsPageReady(this);
+      }
+    });
+  </script>
+</dom-module>
