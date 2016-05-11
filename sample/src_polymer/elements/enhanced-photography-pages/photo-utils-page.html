@@ -1,11 +1,69 @@
 <link rel="import" href="../elements.html">
+
 <dom-module id="photo-utils-page">
   <template>
-    <style include="shared-style">
+    <style include="shared-styles">
+      #containerPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #commandPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+      }
+      #viewPanel {
+        background-color: #101010;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+      }
+      #loadPanel {
+        height: 60px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      #image {
+        position: relative;
+        width: 100%;
+        min-height: 480px;
+      }
+      #overlay {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+
+    <div id="containerPanel">
+      <div id="commandPanel">
+        <paper-button id='colorResizeButton' toggles on-tap="_onColorResizeTapped" class="radio-button text-button">Color Resize</paper-button>
+        <paper-button id='commonFOVButton' toggles on-tap="_onCommonFOVTapped" class="radio-button text-button">Common FOV</paper-button>
+        <paper-button id='depthResizeButton' toggles on-tap="_onDepthResizeTapped" class="radio-button text-button">Depth Resize</paper-button>
+        <paper-button id='depthEnhanceButton' toggles on-tap="_onDepthEnhanceTapped" class="radio-button text-button">Depth Enhance</paper-button>
+        <paper-button id='depthQualityButton' toggles on-tap="_onDepthQualityTapped" class="radio-button text-button">Depth Quality</paper-button>
+        <paper-button id='photoCropButton' toggles on-tap="_onPhotoCropTapped" class="radio-button text-button">Photo Crop</paper-button>
+        <paper-button id='photoRotateButton' toggles on-tap="_onPhotoRotateTapped" class="radio-button text-button">Photo Rotate</paper-button>
+      </div>
+      <div id="viewPanel">
+        <canvas id='image'></canvas>
+        <canvas id='overlay'></canvas>
+      </div>
+      <div id="loadPanel">
+        <paper-input id="loadPhoto" type="file" on-change="_onLoadChanged"></paper-input>
+        <paper-button id='saveButton' on-tap="_onSaveTapped" class="round-button text-button">Save</paper-button>
+      </div>
+      <paper-toast id="toast" class="fit-bottom"></paper-toast>
+    </div>
   </template>
 
+  <script src='../../libs/stats.min.js'></script>
+  <script src='../../common/utils.js'></script>
   <script src='photo-utils-page.js'></script>
 
   <script>
