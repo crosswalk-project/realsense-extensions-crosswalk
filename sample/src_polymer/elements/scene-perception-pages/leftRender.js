@@ -10,9 +10,8 @@ function LeftRender(sp, spDom) {
     resize(SP_SIZE_WIDTH, SP_SIZE_HEIGHT);
     renderer.height = SP_SIZE_HEIGHT;
     sampleFps.domElement.style.position = 'absolute';
-    sampleFps.domElement.style.top = '25px';
-    sampleFps.domElement.style.left = '25px';
-    sampleFps.domElement.style.zIndex = '100';
+    sampleFps.domElement.style.top = '0';
+    sampleFps.domElement.style.left = '0';
     spDom.$$('#leftContainer').insertBefore(sampleFps.domElement, renderer);
   }
 
