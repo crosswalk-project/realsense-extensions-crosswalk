@@ -75,7 +75,7 @@ var facepageReady = (function() {
     }
   }
 
-  function stopPreviewStream() {
+  function stopPreviewStream(clearCallback) {
     if (previewStream) {
       if (ft) {
         // Remove listeners as we don't care about the events.
@@ -83,13 +83,22 @@ var facepageReady = (function() {
         ft.onprocessedsample = null;
         ft.onready = null;
         ft.onalert = null;
-        ft.onended = null;
-        ft = null;
+        if (clearCallback) {
+          ft.onended = clearCallback;
+        } else {
+          ft.onended = null;
+          ft = null;
+        }
         facepageDom.confDisabled = true;
+      } else if (clearCallback) {
+        clearCallback();
       }
+
       previewStream.getTracks().forEach(function(track) {
         track.stop();
       });
+    } else if (clearCallback) {
+      clearCallback();
     }
     previewStream = null;
   }
@@ -316,6 +325,7 @@ var facepageReady = (function() {
             };
 
             ft.onerror = function(e) {
+              console.log('Status: onerror: ' + e.message);
               errorCallback('Status: onerror: ' + e.message);
             };
 
@@ -521,7 +531,10 @@ var facepageReady = (function() {
       } else {
         console.log('face page deactivated');
         clearAfterStopped();
-        stopPreviewStream();
+        stopPreviewStream(function() {
+          ft = null;
+          facepageDom.fire('clear');
+        });
       }
     };
 
