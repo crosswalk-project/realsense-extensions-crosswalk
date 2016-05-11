@@ -12,6 +12,7 @@
     "paper-item": "PolymerElements/paper-item#^1.1.4",
     "paper-input": "PolymerElements/paper-input#1.1.11",
     "paper-menu": "PolymerElements/paper-menu#^1.2.2",
+    "paper-slider": "PolymerElements/paper-slider#^1.0.10",
     "paper-toast": "PolymerElements/paper-toast#^1.2.2",
     "paper-toolbar": "PolymerElements/paper-toolbar#^1.1.4",
     "polymer": "Polymer/polymer#^1.4.0"
