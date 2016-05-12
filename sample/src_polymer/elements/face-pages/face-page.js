@@ -84,7 +84,13 @@ var facepageReady = (function() {
         ft.onready = null;
         ft.onalert = null;
         if (clearCallback) {
-          ft.onended = clearCallback;
+          if (facepageDom.ftStarted) {
+            ft.onended = clearCallback;
+          } else {
+            ft.onended = null;
+            ft = null;
+            clearCallback();
+          }
         } else {
           ft.onended = null;
           ft = null;
@@ -530,11 +536,11 @@ var facepageReady = (function() {
         activateFacepage();
       } else {
         console.log('face page deactivated');
-        clearAfterStopped();
         stopPreviewStream(function() {
           ft = null;
           facepageDom.fire('clear');
         });
+        clearAfterStopped();
       }
     };
 
