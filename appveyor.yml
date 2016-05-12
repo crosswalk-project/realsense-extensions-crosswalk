@@ -38,15 +38,17 @@ install:
     python src\extensions\sample\sample_bower_update.py
 before_build:
 - cmd: >-
-    curl -fsS -o get-pip.py https://bootstrap.pypa.io/get-pip.py
-
-    python get-pip.py
-
     set PATH=%PATH%;c:\Python27\Scripts
 
-    pip install https://closure-linter.googlecode.com/svn/trunk/
+    cd c:\projects\realsense-extensions-crosswalk
 
-    cd c:\projects\realsense-extensions-crosswalk\src\extensions
+    git clone https://github.com/google/closure-linter.git
+
+    cd closure-linter
+
+    python .\setup.py install
+
+    cd ..\src\extensions
 
     python ..\tools\lint.py
 build_script:
