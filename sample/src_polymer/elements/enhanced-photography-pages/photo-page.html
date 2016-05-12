@@ -1,9 +1,135 @@
 <link rel="import" href="../elements.html">
+
 <dom-module id="photo-page">
   <template>
     <style include="shared-styles">
+      #containerPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #commandPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+      }
+      #viewPanel {
+        background-color: #101010;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+        min-height: 360px;
+      }
+      #loadPanel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60px;
+      }
+      #image {
+        position: absolute;
+        z-index: -1;
+      }
+      #infoButton {
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        background: white;
+      }
+      #detailsPanel {
+        bottom: 0;
+        width: 100%;
+        position: absolute;
+        background: gray;
+      }
+      #toast {
+        bottom: 0;
+        align-items: center;
+        position: absolute;
+      }
+      span {
+        font-size: 12px;
+      }
+      span.button {
+        font-size: 14px;
+      }
+      span.title{
+        font-size: 12px;
+        color: white;
+      }
+      span.details{
+        font-size: 10px;
+        color: #C8DEE6;
+      }
+      td.title {
+        text-align: left;
+        margin-right: 1em;
+        width: 15%;
+      }
+      td.details {
+        text-align: left;
+        margin-right: 1em;
+        width: 35%;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+    <div id="containerPanel">
+      <div id="commandPanel">
+        <paper-button id='colorResizeButton' toggles class="radio-button text-button">
+          <span class="button">QUERY IMAGE</span>
+        </paper-button>
+        <paper-button id='commonFOVButton' toggles class="radio-button text-button">
+          <span class="button">QUERY COUNTER IMAGE</span>
+        </paper-button>
+        <paper-button id='depthResizeButton' toggles class="radio-button text-button">
+          <span class="button">QUERY DEPTH</span>
+        </paper-button>
+        <paper-button id='depthEnhanceButton' toggles class="radio-button text-button">
+          <span class="button">QUERY RAW DEPTH</span>
+        </paper-button>
+        <paper-button id='depthEnhanceButton' toggles class="radio-button text-button">
+          <span class="button">RESET COUNTER IMAGE</span>
+        </paper-button>
+      </div>
+      <div id="viewPanel">
+        <canvas id="image"></canvas>
+        <paper-toast id="toast" class="fit-bottom"></paper-toast>
+        <iron-collapse id="detailsPanel">
+          <!-- TODO (halton): Do not use table. -->
+          <table width="100%">
+            <tr>
+              <td class="title"><span class="title">XDM REVISION: </span></td>
+              <td class="details"><span class="details">[[xdmRevision]]</span></td>
+              <td class="title"><span class="title"></span></td>
+              <td class="details"><span class="details"></span></td>
+            </tr>
+            <tr>
+              <td class="title"><span class="title">CHECK SIGNATURE: </span></td>
+              <td class="details"><span class="details">[[signature]]</span></td>
+              <td class="title"><span class="title">CAMERAS: </span></td>
+              <td class="details"><span class="details">[[cameras]]</span></td>
+            </tr>
+            <tr>
+              <td class="title"><span class="title">DEVICE VENDOR INFO: </span></td>
+              <td class="details"><span class="details">[[deviceVendorInfo]]</span></td>
+              <td class="title"><span class="title">CAMERA VENDOR INFO: </span></td>
+              <td class="details"><span class="details">[[cameraVendorInfo]]</span></td>
+            </tr>
+            <tr>
+              <td class="title"><span class="title">CAMERA PERSPECTIVE MODEL: </span></td>
+              <td class="details"><span class="details">[[cameraPerspectiveModel]]</span></td>
+              <td class="title"><span class="title">CAMERA POSES: </span></td>
+              <td class="details"><span class="details">[[cameraPoses]]</span></td>
+            </tr>
+         </table>
+        </iron-collapse>
+        <paper-icon-button icon="info-outline" id="infoButton" on-click="toggleDetails"></paper-icon-button>
+      </div>
+      <div id="loadPanel">
+        <paper-input id="loadPhoto" type="file"></paper-input>
+      </div>
+    </div>
   </template>
 
   <script src='photo-page.js'></script>
@@ -12,8 +138,44 @@
     Polymer({
       is: "photo-page",
 
+      properties: {
+        xdmRevision: {
+          type: String,
+          value: "Unknown"
+        },
+        signature: {
+          type: String,
+          value: "Unknown"
+        },
+        cameras: {
+          type: Number,
+          value: 0
+        },
+        deviceVendorInfo: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraVendorInfo: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraPerspectiveModel: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraPoses: {
+          type: String,
+          value: "Unknown"
+        }
+      },
+
       ready: function() {
         photoPageReady(this);
+      },
+      toggleDetails : function() {
+        this.$.infoButton.icon = this.$.detailsPanel.opened ? "expand-more" : "info-outline";
+        this.$.detailsPanel.toggle();
+        console.log('details toggled.');
       }
     });
   </script>
