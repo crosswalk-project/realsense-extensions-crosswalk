@@ -135,6 +135,11 @@
         hasCamera: {
           type: Boolean,
           value: false
+        },
+        activated: {
+          type: Boolean,
+          value: false,
+          observer: '_activatedChanged'
         }
       },
 

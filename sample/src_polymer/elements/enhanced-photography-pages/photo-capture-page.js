@@ -105,13 +105,18 @@ var photoCapturePageReady = (function() {
     pageDom._stopPhotoCapture = function() {
       if (previewStream) {
         // Remove listeners as we don't care about the events.
-        photoCapture.onerror = null;
-        photoCapture.ondepthquality = null;
+        if (photoCapture) {
+          photoCapture.onerror = null;
+          photoCapture.ondepthquality = null;
+          photoCapture = null;
+        }
+
         previewStream.getTracks().forEach(function(track) {
           track.stop();
         });
-        clearAfterStopped();
+        previewStream = null;
       }
+      clearAfterStopped();
     };
 
     pageDom._showDepthCanvas = function() {
@@ -140,8 +145,8 @@ var photoCapturePageReady = (function() {
                     fs.root.getFile(fileName, { create: true }, function(entry) {
                       entry.createWriter(function(writer) {
                         writer.onwriteend = function(e) {
-                          toastMessage('The depth photo has been saved to '
-                            + fileName + ' successfully.');
+                          toastMessage('The depth photo has been saved to ' +
+                          fileName + ' successfully.');
                         };
                         writer.onerror = function(e) {
                           toastMessage('Failed to save depth photo.');
@@ -154,14 +159,57 @@ var photoCapturePageReady = (function() {
       }, errorCallback);
     };
 
-    // Trigger the user permission prompt by a getUserMedia
-    navigator.mediaDevices.getUserMedia({video: true})
-        .then(function(stream) {
-          stream.getTracks().forEach(function(track) {
-            track.stop();
-          });
-          navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
-        }, errorCallback);
+    function activatePage() {
+      // Trigger the user permission prompt by a getUserMedia
+      navigator.mediaDevices.getUserMedia({video: true})
+          .then(function(stream) {
+            stream.getTracks().forEach(function(track) {
+              track.stop();
+            });
+            navigator.mediaDevices.enumerateDevices().then(gotDevices, errorCallback);
+          }, errorCallback);
+    }
+
+    function deactivatePage() {
+      if (!previewStream) {
+        console.log('photo capture clearing: No previewStream');
+        clearAfterStopped();
+        pageDom.fire('clear');
+        return;
+      }
+
+      var videoTracks = previewStream.getVideoTracks();
+      if (videoTracks.length == 0) {
+        console.log('photo capture clearing: No videoTracks');
+        pageDom._stopPhotoCapture();
+        pageDom.fire('clear');
+        return;
+      }
+      var videoTrack = videoTracks[0];
+      if (videoTrack.readyState == 'ended') {
+        console.log('photo capture clearing: video track already ended');
+        pageDom._stopPhotoCapture();
+        pageDom.fire('clear');
+        return;
+      }
+
+      videoTrack.onended = function() {
+        console.log('photo capture clearing: video track stopped');
+        pageDom.fire('clear');
+      };
+      pageDom._stopPhotoCapture();
+    }
+
+    pageDom._activatedChanged = function(newValue, oldValue) {
+      if (newValue) {
+        console.log('photo capture page activated');
+        activatePage();
+      } else {
+        console.log('photo capture page deactivated');
+        deactivatePage();
+      }
+    };
+
   }
 
   function gotDevices(deviceInfos) {
