@@ -118,41 +118,74 @@
         </paper-button>
 
         <span class="configItem">TRACKING STRATEGY</span>
-        <paper-button id='stratTimeButton' toggles on-tap="_onstratTimeButton" class="radio-button image-button" style='margin-top: 25px; margin-left: 80px'>
-          <iron-icon src="../../images/icon_time_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button id='stratCloseFarButton' toggles on-tap="_onstratCloseFarButton" class="radio-button image-button extendRight">
-          <iron-icon src="../../images/icon_closest_farthest_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button id='stratFarCloseButton' toggles on-tap="_onstratFarCloseButton" class="radio-button image-button extendRight">
-          <iron-icon src="../../images/icon_farthest_closest_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button id='stratLeftRightButton' toggles on-tap="_onstratLeftRightButton" class="radio-button image-button extendRight">
-          <iron-icon src="../../images/icon_left_to_right_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button id='stratRightLeftButton' toggles on-tap="_onstratRightLeftButton" class="radio-button image-button extendRight">
-          <iron-icon src="../../images/icon_right_to_left_dark.png"></iron-icon>
-        </paper-button>
+        <toggle-image-button
+          id='stratTimeButton' toggles on-tap="_onstratTimeButton"
+          style='margin-top: 25px; margin-left: 80px'
+          icon-src='../../images/icon_time_light.png'
+          icon-src-active='../../images/icon_time_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          id='stratCloseFarButton' toggles on-tap="_onstratCloseFarButton"
+          class='extendRight'
+          icon-src='../../images/icon_closest_farthest_light.png'
+          icon-src-active='../../images/icon_closest_farthest_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          id='stratFarCloseButton' toggles on-tap="_onstratFarCloseButton"
+          class='extendRight'
+          icon-src='../../images/icon_farthest_closest_light.png'
+          icon-src-active='../../images/icon_farthest_closest_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          id='stratLeftRightButton' toggles on-tap="_onstratLeftRightButton"
+          class='extendRight'
+          icon-src='../../images/icon_left_to_right_light.png'
+          icon-src-active='../../images/icon_left_to_right_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          id='stratRightLeftButton' toggles on-tap="_onstratRightLeftButton"
+          class='extendRight'
+          icon-src='../../images/icon_right_to_left_light.png'
+          icon-src-active='../../images/icon_right_to_left_dark.png'
+        ></toggle-image-button>
 
         <span class="configItem">ALERT</span>
-        <paper-button toggles active="{{faceModuleConf.alert.newFaceDetected}}" class="checkbox-button image-button" style='margin-top: 25px; margin-left: 80px'>
-          <iron-icon src="../../images/icon_new_face_detected_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button toggles active="{{faceModuleConf.alert.faceOutOfFov}}" class="checkbox-button image-button extendRight">
-          <iron-icon src="../../images/icon_face_out_of_fov_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button toggles active="{{faceModuleConf.alert.faceBackToFov}}" class="checkbox-button image-button extendRight">
-          <iron-icon src="../../images/icon_face_back_to_fov_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button toggles active="{{faceModuleConf.alert.faceOccluded}}" class="checkbox-button image-button extendRight">
-          <iron-icon src="../../images/icon_face_occluded_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button toggles active="{{faceModuleConf.alert.faceNoLongerOccluded}}" class="checkbox-button image-button extendRight">
-          <iron-icon src="../../images/icon_face_occluded_dark.png"></iron-icon>
-        </paper-button>
-        <paper-button toggles active="{{faceModuleConf.alert.faceLost}}" class="checkbox-button image-button extendRight">
-          <iron-icon src="../../images/icon_face_lost_dark.png"></iron-icon>
-        </paper-button>
+        <toggle-image-button
+          toggles style='margin-top: 25px; margin-left: 80px' 
+          active="{{faceModuleConf.alert.newFaceDetected}}"
+          icon-src='../../images/icon_new_face_detected_light.png'
+          icon-src-active='../../images/icon_new_face_detected_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          toggles class='extendRight'
+          active="{{faceModuleConf.alert.faceOutOfFov}}"
+          icon-src='../../images/icon_face_out_of_fov_light.png'
+          icon-src-active='../../images/icon_face_out_of_fov_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          toggles class='extendRight'
+          active="{{faceModuleConf.alert.faceBackToFov}}"
+          icon-src='../../images/icon_face_back_to_fov_light.png'
+          icon-src-active='../../images/icon_face_back_to_fov_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          toggles class='extendRight'
+          active="{{faceModuleConf.alert.faceOccluded}}"
+          icon-src='../../images/icon_face_occluded_light.png'
+          icon-src-active='../../images/icon_face_occluded_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          toggles class='extendRight'
+          active="{{faceModuleConf.alert.faceNoLongerOccluded}}"
+          icon-src='../../images/icon_face_occluded_light.png'
+          icon-src-active='../../images/icon_face_occluded_dark.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          toggles class='extendRight'
+          active="{{faceModuleConf.alert.faceLost}}"
+          icon-src='../../images/icon_face_lost_light.png'
+          icon-src-active='../../images/icon_face_lost_dark.png'
+        ></toggle-image-button>
 
         <span class="configItem">DETECTION</span>
         <div>
