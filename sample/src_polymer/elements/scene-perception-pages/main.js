@@ -14,9 +14,13 @@ function destroySP(spDom) {
 
   sp.destroy().then(function() {
     spDom.spState = 0;
+    // Clear the hint.
+    spDom.$$('#leftHint').innerText = '';
+    spDom.$$('#rightHint').innerText = '';
     myStatus.info('destroy succeeds');
     spDom.fire('clear');
   }, function(e) {
+    myStatus.error('Failed to destroy SP, nor release the camera.');
     spDom.fire('clear');
   });
 }
