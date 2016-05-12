@@ -30,10 +30,11 @@ function main(spDom) {
   if (!sp) return;
 
   if (spDom.spState < 0) {
-    spDom.$$('#bottomPanel').appendChild(myStatus.getDom());
+    spDom.$$('#container').appendChild(myStatus.getDom());
 
     var leftView = new LeftRender(sp, spDom);
     var rightView = new RightRender(sp, spDom);
+
     bindHandlers(leftView, rightView);
   }
 
@@ -201,7 +202,7 @@ function main(spDom) {
           fs.root.getFile(fileName, { create: true }, function(entry) {
             entry.createWriter(function(writer) {
               writer.onwriteend = function(e) {
-                myStatus.info('Saved Mesh:' + fileName);
+                myStatus.info('Saved Mesh:' + fileName, 10000);
               };
               writer.onerror = function(e) {
                 myStatus.error('Saved Mesh:save failed, error' + e.toString());
@@ -235,9 +236,6 @@ function main(spDom) {
     var leftWidth = width - CONTROL_PANEL_WIDTH;
 
     spDom.$$('#rightContainer').style.width = leftWidth;
-    var bottomPanel = spDom.$$('#bottomPanel');
-    bottomPanel.style.bottom = '10px';
-    bottomPanel.style.width = leftWidth;
 
     var ratio = SP_SIZE_WIDTH / SP_SIZE_HEIGHT;
     //imagePanelWidth = leftWidth;
@@ -267,21 +265,25 @@ function errorHandler(eMsg) {
   }
 }
 
-function Status(statusDom) {
-  var myStatusDom = document.createElement('span');
-  function updateStatus(msg, level) {
+function Status(defaultDuration) {
+  var myStatusDom = document.createElement('paper-toast');
+  var myDuration = (defaultDuration == undefined) ? 3000 : defaultDuration;
+  function updateStatus(msg, level, duration) {
     var colorArray = ['green', 'red', 'orange'];
     var myLevel = 0;
+    var dur = duration == undefined ? myDuration : duration;
     if (level == 1 || level == 2) myLevel = level;
 
-    myStatusDom.innerText = msg;
+    //myStatusDom.style["--paper-toast-color"] = colorArray[myLevel];
     myStatusDom.style.color = colorArray[myLevel];
+    myStatusDom.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    myStatusDom.show({text: msg, duration: dur});
   }
 
   // level: 0(info, green), 1(error, red), 2(warning, orange)
-  this.info = function(msg) {updateStatus(msg)};
-  this.error = function(msg) {updateStatus(msg, 1)};
-  this.warning = function(msg) {updateStatus(msg, 2)};
+  this.info = function(msg, duration) {updateStatus(msg, 0, duration)};
+  this.error = function(msg, duration) {updateStatus(msg, 1, duration)};
+  this.warning = function(msg, duration) {updateStatus(msg, 2, duration)};
   this.getDom = function() {return myStatusDom};
 }
 

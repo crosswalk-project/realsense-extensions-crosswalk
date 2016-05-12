@@ -17,8 +17,7 @@ function RightRender(sp, spDom) {
     stats = new Stats();
     stats.domElement.style.position = 'absolute';
     stats.domElement.style.top = '25px';
-    stats.domElement.style.right = '25px';
-    stats.domElement.style.zIndex = '100';
+    stats.domElement.style.right = '150px';
     spDom.$$('#rightContainer').appendChild(stats.domElement);
 
     sp.getVoxelResolution().then(function(resolution) {
