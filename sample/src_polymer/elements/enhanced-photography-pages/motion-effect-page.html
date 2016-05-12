@@ -2,8 +2,82 @@
 <dom-module id="motion-effect-page">
   <template>
     <style include="shared-style">
+      #leftPanel {
+        float: left;
+        width: 60%;
+        height: 100%;
+        background: ;
+      }
+
+      #rightPanel {
+        float: right;
+        width: 40%;
+        height: 100%;
+        background: #101010;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #000000;
+      }
+      span {
+        display: block;
+        color: white;
+      }
+      span.titleItem {
+        font-size: 14px;
+        margin-top: 10px;
+        margin-left: 25px;
+        height: 30px;
+      }
+      paper-slider.lightgreen {
+        --paper-slider-knob-color: var(--paper-green-200);
+        --paper-slider-active-color: var(--paper-green-200);
+        --paper-slider-pin-color: var(--paper-green-200);
+        --paper-slider-height: 4px;
+      }
+      .flex-horizontal {
+        @apply(--layout-horizontal);
+      }
+      .flex-vertical {
+        @apply(--layout-vertical);
+        height: 220px;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+    <div>
+
+    <div id="leftPanel">
+      <canvas id='image'></canvas>
+      <paper-toast id="toast"></paper-toast>
+    </div>
+
+    <div id="rightPanel" style="margin-top: 25px">
+      <div class="container flex-horizontal">
+        <div class="container flex-vertical">
+          <span class="titleItem">LEFT / RIGHT</span>
+          <span class="titleItem">UP / DOWN</span>
+          <span class="titleItem">FORWARD / BACK</span>
+          <span class="titleItem">ZOOM</span>
+          <span class="titleItem">YAW</span>
+          <span class="titleItem">ROOL</span>
+          <span class="titleItem">PITCH</span>
+        </div>
+        <div class="container flex-vertical">
+          <paper-slider id="leftRightSlider" class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+          <paper-slider id="upDownSlider" class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+          <paper-slider id="forwardBackSlider" class="lightgreen" value="0" max="5" min ="-5" step="1" pin></paper-slider>
+          <paper-slider id="zoomSlider" class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+          <paper-slider id="yawSlider"class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+          <paper-slider id="roolSlider" class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+          <paper-slider id="pitchSlider" class="lightgreen" value="0" max="10" min ="-10" step="1" pin></paper-slider>
+        </div>
+      </div>
+      <div class="container flex">
+        <paper-input type="file" accept="image/*" style="margin-left: 25px" id="loadPhoto"></paper-input>
+      </div>
+    </div>
+
+    </div>
   </template>
 
   <script src='motion-effect-page.js'></script>
