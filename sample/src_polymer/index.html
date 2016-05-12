@@ -83,14 +83,14 @@
           <iron-pages attr-for-selected="page-name" selected="[[selectedPage]]"
                       on-iron-deselect="_onPageDeactivated"
                       on-iron-select="_onPageActivated">
-            <photo-capture-page page-name="Photo Capture"></photo-capture-page>
+            <photo-capture-page page-name="Photo Capture" on-clear="_onPageCleared"></photo-capture-page>
             <photo-page page-name="Photo"></photo-page>
             <enhanced-photo-page page-name="Enhanced Photo"></enhanced-photo-page>
             <photo-utils-page page-name="Photo Utilities"></photo-utils-page>
             <segmentation-page page-name="Segmentation"></segmentation-page>
             <motion-effect-page page-name="Motion Effect"></motion-effect-page>
-            <scene-perception-page page-name="Scene Perception"></scene-perception-page>
-            <face-page page-name="Face"></face-page>
+            <scene-perception-page page-name="Scene Perception" on-clear="_onPageCleared"></scene-perception-page>
+            <face-page page-name="Face" on-clear="_onPageCleared"></face-page>
           </iron-pages>
 
         </paper-header-panel>

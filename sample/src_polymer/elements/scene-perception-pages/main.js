@@ -7,12 +7,18 @@ var myStatus = new Status();
 
 function destroySP(spDom) {
   var sp = getSP();
-  if (!sp || spDom.spState <= 0) return;
+  if (!sp || spDom.spState <= 0) {
+    spDom.fire('clear');
+    return;
+  }
 
   sp.destroy().then(function() {
     spDom.spState = 0;
     myStatus.info('destroy succeeds');
-  }, errorHandler);
+    spDom.fire('clear');
+  }, function(e) {
+    spDom.fire('clear');
+  });
 }
 
 function main(spDom) {
