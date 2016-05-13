@@ -1,9 +1,152 @@
 <link rel="import" href="../elements.html">
+
 <dom-module id="photo-page">
   <template>
     <style include="shared-styles">
+      #containerPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #commandPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80px;
+      }
+      #viewPanel {
+        background-color: #101010;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+        min-height: 480px;
+        background: transparent;
+      }
+      #loadPanel {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60px;
+      }
+      #image {
+        position: absolute;
+        width: 100%;
+        height: 480px;
+        z-index: -1;
+      }
+      #infoButton {
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        background: white;
+      }
+      #detailsPanel {
+        bottom: 0;
+        width: 100%;
+        position: absolute;
+        background: gray;
+      }
+      #toast {
+        bottom: 0;
+        align-items: center;
+        position: absolute;
+      }
+      span {
+        font-size: 12px;
+      }
+      span.button {
+        font-size: 14px;
+      }
+      p.title{
+        font-size: 12px;
+        color: white;
+      }
+      p.details{
+        font-size: 10px;
+        color: #C8DEE6;
+      }
+      td.title {
+        text-align: left;
+        margin-right: 1em;
+        width: 15%;
+      }
+      td.details {
+        text-align: left;
+        margin-right: 1em;
+        width: 35%;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+    <div id="containerPanel">
+      <div id="commandPanel">
+        <paper-button id='queryImageButton' toggles class="radio-button text-button">
+          <span class="button">QUERY IMAGE</span>
+        </paper-button>
+        <paper-button id='queryContainerImageButton' toggles class="radio-button text-button">
+          <span class="button">QUERY CONTAINER IMAGE</span>
+        </paper-button>
+        <paper-button id='queryDepthButton' toggles class="radio-button text-button">
+          <span class="button">QUERY DEPTH</span>
+        </paper-button>
+        <paper-button id='queryRawDepthButton' toggles class="radio-button text-button">
+          <span class="button">QUERY RAW DEPTH</span>
+        </paper-button>
+        <paper-button id='resetContainerImageButton' toggles class="radio-button text-button">
+          <span class="button">RESET CONTAINER IMAGE</span>
+        </paper-button>
+      </div>
+      <div id="viewPanel">
+        <canvas id="image"></canvas>
+        <paper-toast id="toast" class="fit-bottom"></paper-toast>
+        <iron-collapse id="detailsPanel">
+          <!-- TODO (halton): Do not use table. -->
+          <table width="100%">
+            <tr>
+              <td class="title"><p class="title">XDM REVISION: </p ></td>
+              <td class="details"><p class="details">[[xdmRevision]]</p></td>
+              <td class="title"><p class="title"></p></td>
+              <td class="details"><p class="details"></p></td>
+            </tr>
+            <tr>
+              <td class="title"><p class="title">CHECK SIGNATURE: </p></td>
+              <td class="details"><p class="details">[[signature]]</p></td>
+              <td class="title"><p class="title">CAMERAS: </p></td>
+              <td class="details"><p class="details">[[cameras]]</p></td>
+            </tr>
+            <tr>
+              <td class="title"><p class="title">DEVICE VENDOR INFO: </p></td>
+              <td class="details"><p class="details">
+                model: [[deviceVendorInfoModel]]<br>
+                manufacturer: [[deviceVendorInfoManufacturer]]<br>
+                notes: [[deviceVendorInfoNotes]]
+              <p></td>
+              <td class="title"><p class="title">CAMERA VENDOR INFO: </p></td>
+              <td class="details"><p class="details">
+                model: [[cameraVendorInfoModel]]<br>
+                manufacturer: [[cameraVendorInfoManufacturer]]<br>
+                notes: [[cameraVendorInfoNotes]]
+              </p></td>
+            </tr>
+            <tr>
+              <td class="title"><p class="title">CAMERA PERSPECTIVE MODEL: </p></td>
+              <td class="details"><p class="details">
+                model: [[perspectiveModelModel]]<br>
+                focalLength: [[perspectiveModelFocalLength]]<br>
+                principalPoint: [[perspectiveModelPrincipalPoint]]<br>
+                skew: [[perspectiveModelSkew]]<br>
+                radialDistortion: [[perspectiveModelRadialDistortion]]<br>
+                tangentialDistortion: [[perspectiveModelTangentialDistortion]]
+              </p></td>
+              <td class="title"><p class="title">CAMERA POSES: </p></td>
+              <td class="details"><p class="details">[[cameraPoses]]</p></td>
+            </tr>
+         </table>
+        </iron-collapse>
+        <paper-icon-button icon="info-outline" id="infoButton" on-click="toggleDetails"></paper-icon-button>
+      </div>
+      <div id="loadPanel">
+        <paper-input id="loadPhoto" type="file" on-change="_onLoadChanged"></paper-input>
+      </div>
+    </div>
   </template>
 
   <script src='photo-page.js'></script>
@@ -12,8 +155,79 @@
     Polymer({
       is: "photo-page",
 
+      properties: {
+        xdmRevision: {
+          type: String,
+          value: "Unknown"
+        },
+        signature: {
+          type: String,
+          value: "Unknown"
+        },
+        cameras: {
+          type: Number,
+          value: 0
+        },
+        deviceVendorInfoModel: {
+          type: String,
+          value: "Unknown"
+        },
+        deviceVendorInfoManufacturer: {
+          type: String,
+          value: "Unknown"
+        },
+        deviceVendorInfoNotes: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraVendorInfoModel: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraVendorInfoManufacturer: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraVendorInfoNotes: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelModel: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelFocalLength: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelPrincipalPoint: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelSkew: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelRadialDistortion: {
+          type: String,
+          value: "Unknown"
+        },
+        perspectiveModelTangentialDistortion: {
+          type: String,
+          value: "Unknown"
+        },
+        cameraPoses: {
+          type: String,
+          value: "Unknown"
+        }
+      },
+
       ready: function() {
         photoPageReady(this);
+      },
+      toggleDetails : function() {
+        this.$.infoButton.icon = this.$.detailsPanel.opened ? "expand-more" : "info-outline";
+        this.$.detailsPanel.toggle();
       }
     });
   </script>
