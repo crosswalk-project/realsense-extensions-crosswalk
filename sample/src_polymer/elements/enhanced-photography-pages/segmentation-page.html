@@ -2,10 +2,69 @@
 <dom-module id="segmentation-page">
   <template>
     <style include="shared-styles">
+      #containerPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #commandPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+      }
+      #viewPanel {
+        background-color: #101010;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+      }
+      #loadPanel {
+        height: 60px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      #image {
+        position: relative;
+        width: 100%;
+        min-height: 480px;
+      }
+      #overlay {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+
+    <div id="containerPanel">
+      <div id="commandPanel">
+        <paper-button id='restart' toggles on-tap="_onRestartTapped" class="round-button text-button">RESTART</paper-button>
+        <toggle-image-button
+          id='undo' on-tap="_onUndoTapped" style='margin-left: 30px;'
+          icon-src='../../images/icon_closest_farthest_light.png'
+        ></toggle-image-button>
+        <toggle-image-button
+          id='redo' on-tap="_onRedoTapped" style='margin-left: 30px;'
+          icon-src='../../images/icon_farthest_closest_light.png'
+        ></toggle-image-button>
+      </div>
+      <div id="viewPanel">
+        <canvas id='image'></canvas>
+        <canvas id='overlay'></canvas>
+      </div>
+      <div id="loadPanel">
+        <paper-input id="loadPhoto" type="file" on-change="_onLoadChanged"></paper-input>
+        <paper-button id='saveButton' on-tap="_onSaveTapped" class="round-button text-button">Save</paper-button>
+      </div>
+      <paper-toast id="toast" class="fit-bottom"></paper-toast>
+    </div>
   </template>
 
+  <script src='../../libs/stats.min.js'></script>
+  <script src='../../common/utils.js'></script>
   <script src='segmentation-page.js'></script>
 
   <script>
