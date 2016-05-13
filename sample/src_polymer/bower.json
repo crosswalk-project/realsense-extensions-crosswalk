@@ -2,7 +2,9 @@
   "name": "realsense-extensions-sample",
   "private": true,
   "dependencies": {
+    "iron-collapse": "PolymerElements/iron-collapse#^1.0.8",
     "iron-icon": "PolymerElements/iron-icon#^1.0.0",
+    "iron-icons": "PolymerElements/iron-icons#^1.1.3",
     "iron-pages": "PolymerElements/iron-pages#^1.0.7",
     "paper-behaviors": "PolymerElements/paper-behaviors#^1.0.11",
     "paper-button": "PolymerElements/paper-button#^1.0.11",
