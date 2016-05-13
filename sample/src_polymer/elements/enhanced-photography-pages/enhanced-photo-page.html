@@ -2,10 +2,65 @@
 <dom-module id="enhanced-photo-page">
   <template>
     <style include="shared-styles">
+      #containerPanel {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #commandPanel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+      }
+      #viewPanel {
+        background-color: #101010;
+        position: relative;
+        display: flex;
+        align-items: stretch;
+      }
+      #loadPanel {
+        height: 60px;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      #image {
+        position: relative;
+        width: 100%;
+        min-height: 480px;
+      }
+      #overlay {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        width: 100%;
+        height: 100%;
+      }
     </style>
-    <h1 style="color:white;">This page is [[pageName]]</h1>
+
+    <div id="containerPanel">
+      <div id="commandPanel">
+        <paper-button id='measureButton' toggles on-tap="_onMeasureTapped" class="radio-button text-button">Measure</paper-button>
+        <paper-button id='refocusButton' toggles on-tap="_onRefocusTapped" class="radio-button text-button">Refocus</paper-button>
+        <paper-button id='pasteOnPlaneButton' toggles on-tap="_onPasteOnPlaneTapped" class="radio-button text-button">Paste On Plane</paper-button>
+        <paper-button id='colorPopButton' toggles on-tap="_onColorPopTapped" class="radio-button text-button">Color Pop</paper-button>
+      </div>
+      <div id="viewPanel">
+        <canvas id='image'></canvas>
+        <canvas id='overlay'></canvas>
+      </div>
+      <div id="loadPanel">
+        <paper-input id="loadPhoto" type="file" on-change="_onLoadChanged"></paper-input>
+        <paper-button id='saveButton' on-tap="_onSaveTapped" class="round-button text-button">Save</paper-button>
+        <paper-input id='setStickerButton' type="file" on-change="_onSetStickerChanged">Set Sticker</paper-input>
+      </div>
+      <paper-toast id="toast" class="fit-bottom"></paper-toast>
+    </div>
   </template>
 
+  <script src='../../libs/stats.min.js'></script>
+  <script src='../../common/utils.js'></script>
   <script src='enhanced-photo-page.js'></script>
 
   <script>
