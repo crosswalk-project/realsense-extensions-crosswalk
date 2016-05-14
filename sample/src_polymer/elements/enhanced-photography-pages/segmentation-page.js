@@ -140,7 +140,7 @@ var segmentationPageReady = (function() {
     imageContext = imageCanvas.getContext('2d');
     overlayContext = overlayCanvas.getContext('2d');
 
-    overlayCanvas.addEventListener('mousedown', function(e) {
+    function handleTouchStart(e) {
       if (!hasImage)
         return;
       var coords = overlayCanvas.relMouseCoords(e);
@@ -148,7 +148,13 @@ var segmentationPageReady = (function() {
         topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
         topY = coords.y;
         nextClick = SecondClick;
-      } else if (nextClick == SecondClick) {
+      }
+    }
+    function handleTouchEnd(e) {
+      if (!hasImage)
+        return;
+      var coords = overlayCanvas.relMouseCoords(e);
+      if (nextClick == SecondClick) {
         bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width /
                 imageCanvas.scrollWidth);
         bottomY = coords.y;
@@ -196,21 +202,21 @@ var segmentationPageReady = (function() {
         var x = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
         var y = parseInt((e.clientY - overlayCanvas.offsetTop) * height / imageCanvas.scrollHeight);
         overlayContext.beginPath();
-        if (e.button == 0) {
+        if (pageDom.$.foregroundButton.active) {
           isLeftButtonDown = true;
-          updateMarkupImage(x, y, true);
           overlayContext.strokeStyle = 'blue';
+          updateMarkupImage(x, y, true);
         } else {
           isRightButtonDown = true;
-          updateMarkupImage(x, y, false);
           overlayContext.strokeStyle = 'green';
+          updateMarkupImage(x, y, false);
         }
         overlayContext.lineWidth = 0.5;
         overlayContext.moveTo(x, y);
       }
-    }, false);
+    };
 
-    overlayCanvas.addEventListener('mousemove', function(e) {
+    function handleTouchMove(e) {
       if (!hasImage || nextClick == FirstClick ||
           (nextClick == TraceClicks && !isLeftButtonDown && !isRightButtonDown))
         return;
@@ -238,11 +244,11 @@ var segmentationPageReady = (function() {
           overlayContext.closePath();
         }
       }
-    }, false);
+    };
 
-    overlayCanvas.addEventListener('mouseup', function(e) {
+    function handleTouchUp(e) {
       if (nextClick == TraceClicks) {
-        if (e.button == 0) {
+        if (pageDom.$.foregroundButton.active) {
           isLeftButtonDown = false;
         } else {
           isRightButtonDown = false;
@@ -268,7 +274,7 @@ var segmentationPageReady = (function() {
                           savePhoto.setContainerImage(colorImage).then(
                               function() {
                                 toastMessage('Click and drag the left(foregroud) and' +
-                                'right(background) mouse buttons to refine the mask');
+                                    'right(background) mouse buttons to refine the mask');
                               },
                               function(e) { toastMessage(e.message); });
                         },
@@ -278,7 +284,35 @@ var segmentationPageReady = (function() {
             },
             function(e) { toastMessage(e.message); });
       }
-    }, false);
+    };
+
+    pageDom._onForegroundButtonTapped = function() {
+      if (pageDom.$.foregroundButton.active) {
+        isLeftButtonDown = true;
+        isRightButtonDown = false;
+      } else {
+        isLeftButtonDown = false;
+        isRightButtonDown = true;
+      }
+    };
+
+    pageDom._onOverlayTracking = function(event) {
+      switch (event.detail.state) {
+        case 'start':
+          handleTouchStart(event.detail.sourceEvent);
+          break;
+        case 'track':
+          handleTouchMove(event.detail.sourceEvent);
+          break;
+        case 'end':
+          handleTouchEnd(event.detail.sourceEvent);
+          break;
+      }
+    };
+
+    pageDom._onOverlayUp = function(event) {
+      handleTouchUp(event.detail.sourceEvent);
+    };
 
     pageDom._onSaveTapped = function() {
       if (!savePhoto) {
