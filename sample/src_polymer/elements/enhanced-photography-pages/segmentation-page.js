@@ -43,8 +43,8 @@ var segmentationPageReady = (function() {
     }
     while (currentElement = currentElement.offsetParent);
 
-    canvasX = event.pageX - totalOffsetX;
-    canvasY = event.pageY - totalOffsetY;
+    canvasX = parseInt(event.pageX - totalOffsetX);
+    canvasY = parseInt(event.pageY - totalOffsetY);
 
     return { x: canvasX, y: canvasY };
   }
