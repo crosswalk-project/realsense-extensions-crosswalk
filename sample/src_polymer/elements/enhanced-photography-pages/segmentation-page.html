@@ -50,10 +50,11 @@
           id='redo' on-tap="_onRedoTapped" style='margin-left: 30px;'
           icon-src='../../images/icon_farthest_closest_light.png'
         ></toggle-image-button>
+        <paper-button id="foregroundButton" toggles class="radio-button text-button" on-tap="_onForegroundButtonTapped">Foreground</paper-button>
       </div>
       <div id="viewPanel">
         <canvas id='image'></canvas>
-        <canvas id='overlay'></canvas>
+        <canvas id='overlay' on-track="_onOverlayTracking" on-up="_onOverlayUp"></canvas>
       </div>
       <div id="loadPanel">
         <paper-input id="loadPhoto" type="file" on-change="_onLoadChanged"></paper-input>

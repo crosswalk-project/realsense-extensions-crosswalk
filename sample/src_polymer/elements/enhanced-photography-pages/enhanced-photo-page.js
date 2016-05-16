@@ -444,21 +444,20 @@ var enhancedPhotoPageReady = (function() {
           }, errorCallback);
     };
 
-    overlayCanvas.addEventListener('mousedown', function(e) {
+    pageDom._onOverlayCanvasTapped = function(e) {
       if (pageDom.$.measureButton.active) {
-        measureDistance(e);
+        measureDistance(e.detail.sourceEvent);
       }
       if (pageDom.$.refocusButton.active) {
-        depthRefocus(e);
+        depthRefocus(e.detail.sourceEvent);
       }
       if (pageDom.$.pasteOnPlaneButton.active) {
-        pasteOnPlane(e);
+        pasteOnPlane(e.detail.sourceEvent);
       }
       if (pageDom.$.colorPopButton.active) {
-        popColor(e);
+        popColor(e.detail.sourceEvent);
       }
-    });
-
+    };
   };
 
   return function(dom) {

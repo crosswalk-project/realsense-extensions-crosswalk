@@ -9,8 +9,6 @@ var photoUtilsPageReady = (function() {
   var currentPhoto, savePhoto;
   var width, height;
 
-  const FirstClick = 0, SecondClick = 1;
-  var nextClick = FirstClick;
   var topX, topY, bottomX, bottomY;
   var hasImage = false;
 
@@ -181,36 +179,36 @@ var photoUtilsPageReady = (function() {
       selectedButton.active = true;
     }
 
-    overlayCanvas.addEventListener('mousedown', function(e) {
+    pageDom._onOverlayTracking = function(event) {
       if (!hasImage || !pageDom.$.photoCropButton.active)
         return;
+      var e = event.detail.sourceEvent;
       var coords = overlayCanvas.relMouseCoords(e);
-      if (nextClick == FirstClick) {
-        topX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
-        topY = coords.y;
-        nextClick = SecondClick;
-      } else if (nextClick == SecondClick) {
-        bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) *
-            width / imageCanvas.scrollWidth);
-        bottomY = coords.y;
-        nextClick = FirstClick;
-        photoCrop();
+      switch (event.detail.state) {
+        case 'start':
+          topX = parseInt((e.clientX - overlayCanvas.offsetLeft) *
+              width / imageCanvas.scrollWidth);
+          topY = coords.y;
+          break;
+        case 'track':
+          bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) *
+              width / imageCanvas.scrollWidth);
+          bottomY = coords.y;
+          overlayContext.clearRect(0, 0, width, height);
+          var offsetX = bottomX - topX;
+          var offsetY = bottomY - topY;
+          overlayContext.strokeStyle = 'red';
+          overlayContext.lineWidth = 2;
+          overlayContext.strokeRect(topX, topY, offsetX, offsetY);
+          break;
+        case 'end':
+          bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) *
+              width / imageCanvas.scrollWidth);
+          bottomY = coords.y;
+          photoCrop();
+          break;
       }
-    }, false);
-
-    overlayCanvas.addEventListener('mousemove', function(e) {
-      var coords = overlayCanvas.relMouseCoords(e);
-      bottomX = parseInt((e.clientX - overlayCanvas.offsetLeft) * width / imageCanvas.scrollWidth);
-      bottomY = coords.y;
-      if (nextClick == SecondClick) {
-        overlayContext.clearRect(0, 0, width, height);
-        var offsetX = bottomX - topX;
-        var offsetY = bottomY - topY;
-        overlayContext.strokeStyle = 'red';
-        overlayContext.lineWidth = 2;
-        overlayContext.strokeRect(topX, topY, offsetX, offsetY);
-      }
-    }, false);
+    };
 
     pageDom._onLoadChanged = function(e) {
       var file = loadPhoto.files[0];
