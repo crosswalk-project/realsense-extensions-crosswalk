@@ -1,6 +1,6 @@
 {
   "name": "crosswalk-extension-face",
-  "version": "19.6.1",
+  "version": "19.6.2",
   "description": "The Crosswalk Project Extension for Face Tracking and Recognition",
   "repository": {
     "type": "git",
