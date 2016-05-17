@@ -1,6 +1,6 @@
 {
   "name": "crosswalk-extension-dep",
-  "version": "19.6.2",
+  "version": "19.6.1",
   "description": "The Crosswalk Project Extension for Depth Enabled Photography",
   "repository": {
     "type": "git",
