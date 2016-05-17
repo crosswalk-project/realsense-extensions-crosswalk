@@ -1,6 +1,6 @@
 {
   "name": "crosswalk-extension-sp",
-  "version": "19.6.1",
+  "version": "19.6.2",
   "description": "The Crosswalk Project Extension for Scene Perception",
   "repository": {
     "type": "git",
