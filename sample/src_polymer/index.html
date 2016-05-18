@@ -58,10 +58,20 @@
               </paper-menu>
             </paper-submenu>
 
-            <paper-icon-item role="menuitem" page-name="Scene Perception">
-              <iron-icon src="images/icon_cube.png" item-icon></iron-icon>
-              <span class="menu-item-name">Scene Perception</span>
-            </paper-icon-item>
+            <paper-submenu role="menuitem">
+              <paper-icon-item class="menu-trigger">
+                <iron-icon src="images/icon_cube.png" item-icon></iron-icon>
+                <span class="menu-item-name">Scene Perception</span>
+              </paper-icon-item>
+              <paper-menu class="menu-content sublist" attr-for-selected="page-name"
+                          selected="{{selectedPage}}"
+                          on-iron-select="_onPageSelected">
+                <paper-icon-item role="menuitem" page-name="Reconstruction">
+                  <iron-icon src="images/icon_cube.png" item-icon></iron-icon>
+                  <span class="menu-item-name">Reconstruction</span>
+                </paper-icon-item>
+              </paper-menu>
+            </paper-submenu>
 
             <paper-icon-item role="menuitem" page-name="Face">
               <iron-icon src="images/icon_magicwand.png" item-icon></iron-icon>
@@ -89,7 +99,7 @@
             <photo-utils-page page-name="Photo Utilities"></photo-utils-page>
             <segmentation-page page-name="Segmentation"></segmentation-page>
             <motion-effect-page page-name="Motion Effect"></motion-effect-page>
-            <scene-perception-page page-name="Scene Perception" on-clear="_onPageCleared"></scene-perception-page>
+            <reconstruction-page page-name="Reconstruction" on-clear="_onPageCleared"></reconstruction-page>
             <face-page page-name="Face" on-clear="_onPageCleared"></face-page>
           </iron-pages>
 
