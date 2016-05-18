@@ -22,7 +22,7 @@ function VolumePreview(sp, stats, spDom) {
     if (!showing || gettingVolumePreview) return;
 
     gettingVolumePreview = true;
-    sp.queryVolumePreview(renderMatrix.toCameraPose()).then(function(image) {
+    sp.queryVolumePreview(SPMath.mat4ToCameraPose(renderMatrix)).then(function(image) {
       imageData.data.set(image.data);
       context.putImageData(imageData, 0, 0);
       gettingVolumePreview = false;

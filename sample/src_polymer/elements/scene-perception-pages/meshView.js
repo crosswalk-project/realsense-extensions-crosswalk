@@ -4,9 +4,9 @@ function MeshView(sp, stats, spDom) {
   var myHeight = SP_SIZE_HEIGHT;
   var gl = canvas.getContext('webgl');
   var currentMeshes, meshToDraw, program;
-  var modelViewMatrix = new THREE.Matrix4();
-  var projectionMatrix = new THREE.Matrix4();
-  var initialMatrix = new THREE.Matrix4();
+  var modelViewMatrix = mat4.create();
+  var projectionMatrix = mat4.create();
+  var initialMatrix = mat4.create();
   var indexBuffer, vertexPosBuffer, vertexColorBuffer;
   var onmeshupdatedTime = 0;
   var showing = (canvas.style.display == 'none') ? false : true;
@@ -30,12 +30,15 @@ function MeshView(sp, stats, spDom) {
   }
 
   function getModelView(renderMatrix) {
-    var inverse = new THREE.Matrix4();
-    inverse.getInverse(renderMatrix);
-    var mRot = new THREE.Matrix4();
-    mRot.set(1.0, 0, 0, 0, 0, -1.0, 0, 0, 0, 0, -1.0, 0, 0, 0, 0, 1.0);
-    mRot.multiply(inverse);
-    mRot.transpose();
+    var inverse = mat4.create();
+    mat4.invert(inverse, renderMatrix);
+    var mRot = mat4.fromValues(
+        1.0, 0, 0, 0,
+        0, -1.0, 0, 0,
+        0, 0, -1.0, 0,
+        0, 0, 0, 1.0);
+    mat4.multiply(mRot, mRot, inverse);
+    mat4.transpose(mRot, mRot);
     return mRot;
   }
 
@@ -61,7 +64,7 @@ function MeshView(sp, stats, spDom) {
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     // Params: left, right, top, bottom, near, far.
-    initialMatrix.makeOrthographic(0, canvas.width, 0, canvas.height, -1, 1);
+    mat4.ortho(initialMatrix, 0, canvas.width, 0, canvas.height, -1, 1);
   }
 
   function initWebGL() {
@@ -157,8 +160,14 @@ function MeshView(sp, stats, spDom) {
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
     gl.vertexAttribPointer(program.vertexColorAttribute, 3, gl.UNSIGNED_BYTE, true, 0, 0);
 
-    gl.uniformMatrix4fv(program.mvMatrixUniform, false, modelViewMatrix.toLineIndexArray());
-    gl.uniformMatrix4fv(program.pMatrixUniform, false, projectionMatrix.toLineIndexArray());
+    gl.uniformMatrix4fv(
+        program.mvMatrixUniform,
+        false,
+        SPMath.mat4ToRowIndexArray(modelViewMatrix));
+    gl.uniformMatrix4fv(
+        program.pMatrixUniform,
+        false,
+        SPMath.mat4ToRowIndexArray(projectionMatrix));
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.drawElements(gl.TRIANGLES, meshToDraw.numberOfFaces * 3, gl.UNSIGNED_INT, 0);
