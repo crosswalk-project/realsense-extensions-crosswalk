@@ -1,10 +1,15 @@
-function LeftRender(sp, spDom) {
+spReconstructionSample.LeftRender = function(sp, spDom) {
+  const SP_SIZE_WIDTH = 320;
+  const SP_SIZE_HEIGHT = 240;
   var renderer = spDom.$$('#imageRender');
   var sampleFps = new Stats();
 
   var sampleFlowController = new CmdFlowController(5);
   var views = ['color', 'depth'];
   var activeView = 0;
+  var errorHandler = spReconstructionSample.errorHandler || function(e) {
+    console.error(e);
+  };
 
   function init() {
     resize(SP_SIZE_WIDTH, SP_SIZE_HEIGHT);
@@ -110,4 +115,4 @@ function LeftRender(sp, spDom) {
   this.toggleView = toggleView;
   this.updateView = updateView;
   this.resize = resize;
-}
+};

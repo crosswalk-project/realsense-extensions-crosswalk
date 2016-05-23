@@ -10,6 +10,7 @@ var RSUtils = {
         ('0' + date.getSeconds()).slice(-2);
     return dateString;
   },
+
   'ConvertDepthToRGBUsingHistogram': function(depthImage, nearColor, farColor, rgbImage) {
     var depthImageData = depthImage.data;
     var imageSize = depthImage.width * depthImage.height;
@@ -47,5 +48,38 @@ var RSUtils = {
         rgbImage[l * 4 + 3] = 255;
       }
     }
+  },
+
+  'getSP': function() {
+    var realsense = window.realsense;
+    if (!(realsense &&
+          realsense instanceof Object &&
+          realsense.hasOwnProperty('ScenePerception') &&
+          realsense.ScenePerception instanceof Object)) {
+      console.error('Invalid realsense.ScenePerception interface.');
+      return null;
+    }
+    return realsense.ScenePerception;
+  },
+
+  'Status': function(defaultDuration) {
+    var myStatusDom = document.createElement('paper-toast');
+    var myDuration = (defaultDuration == undefined) ? 3000 : defaultDuration;
+    function updateStatus(msg, level, duration) {
+      var colorArray = ['green', 'red', 'orange'];
+      var myLevel = 0;
+      var dur = duration == undefined ? myDuration : duration;
+      if (level == 1 || level == 2) myLevel = level;
+
+      myStatusDom.style.color = colorArray[myLevel];
+      myStatusDom.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+      myStatusDom.show({text: msg, duration: dur});
+    }
+
+    // level: 0(info, green), 1(error, red), 2(warning, orange)
+    this.info = function(msg, duration) {updateStatus(msg, 0, duration)};
+    this.error = function(msg, duration) {updateStatus(msg, 1, duration)};
+    this.warning = function(msg, duration) {updateStatus(msg, 2, duration)};
+    this.getDom = function() {return myStatusDom};
   }
 };
