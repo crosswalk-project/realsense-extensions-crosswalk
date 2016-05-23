@@ -3,11 +3,11 @@ function RightRender(sp, spDom) {
   var volumeDimension = 4;
   var mRenderWidth = 320;
   var mRenderHeight = 240;
-  var movePose = new THREE.Matrix4();
-  var initialMatrix = new THREE.Matrix4();
-  var translationMatrix = new THREE.Matrix4();
-  translationMatrix.makeTranslation(-0.5, 0.5, 0);
-  translationMatrix.elements[15] *= Math.sqrt(window.devicePixelRatio);
+  var movePose = mat4.create();
+  var initialMatrix = mat4.create();
+  var translationMatrix = mat4.fromTranslation(
+      mat4.create(), vec3.fromValues(-0.5, 0.5, 0));
+  translationMatrix[15] *= Math.sqrt(window.devicePixelRatio);
   var views = [];
   var activeView = 0;
   var started = false;
@@ -53,12 +53,10 @@ function RightRender(sp, spDom) {
   }
 
   function getInitialMovePose() {
-    var matrix = new THREE.Matrix4();
-    matrix.fromCameraPose([
+    return SPMath.mat4FromCameraPose([
       1, 0, 0, 0,
       0, 1, 0, 0,
       0, 0, 1, -volumeDimension]);
-    return matrix;
   }
 
   function bindMouseEvent() {
@@ -94,22 +92,19 @@ function RightRender(sp, spDom) {
           if (onDrag) {
             var anglex = 0.5 * (x - startX) / mRenderWidth;
             var angley = -0.5 * (y - startY) / mRenderHeight;
-            var incrementMatrixX = new THREE.Matrix4();
-            incrementMatrixX.fromCameraPose([
+            var incrementMatrixX = SPMath.mat4FromCameraPose([
               Math.cos(anglex), 0, Math.sin(anglex), 0,
               0, 1, 0, 0,
               -Math.sin(anglex), 0, Math.cos(anglex), 0
             ]);
 
-            var incrementMatrixY = new THREE.Matrix4();
-            incrementMatrixY.fromCameraPose([
+            var incrementMatrixY = SPMath.mat4FromCameraPose([
               1, 0, 0, 0,
               0, Math.cos(angley), -Math.sin(angley), 0,
               0, Math.sin(angley), Math.cos(angley), 0
             ]);
-            incrementMatrixX.multiply(incrementMatrixY);
-            incrementMatrixX.multiply(movePose);
-            movePose = incrementMatrixX;
+            mat4.mul(incrementMatrixX, incrementMatrixX, incrementMatrixY);
+            mat4.mul(movePose, incrementMatrixX, movePose);
           }
           startX = x;
           startY = y;
@@ -142,14 +137,14 @@ function RightRender(sp, spDom) {
 
   function animate() {
     if (!isStaticViewpoint) {
-      initialMatrix.fromCameraPose(currentPose);
+      initialMatrix = SPMath.mat4FromCameraPose(currentPose);
     }
-    var renderMatrix = initialMatrix.clone();
+    var renderMatrix = mat4.clone(initialMatrix);
     // For meshView.
     if (activeView == 0) {
-      renderMatrix.multiply(translationMatrix);
+      mat4.mul(renderMatrix, renderMatrix, translationMatrix);
     }
-    renderMatrix = renderMatrix.multiply(movePose);
+    mat4.mul(renderMatrix, renderMatrix, movePose);
 
     // volume Preview.
     views[activeView].updateView(renderMatrix);
@@ -163,7 +158,7 @@ function RightRender(sp, spDom) {
     });
 
     movePose = getInitialMovePose();
-    initialMatrix.identity();
+    mat4.identity(initialMatrix);
     isStaticViewpoint = false;
   }
 
@@ -184,16 +179,14 @@ function RightRender(sp, spDom) {
   }
 
   function zoom(isZoomIn) {
-    var incrementMatrix = new THREE.Matrix4();
     var delta = 0.2;
     if (!isZoomIn) delta *= -1;
 
-    incrementMatrix.fromCameraPose([
+    var incrementMatrix = SPMath.mat4FromCameraPose([
       1, 0, 0, 0,
       0, 1, 0, 0,
       0, 0, 1, delta]);
-    incrementMatrix.multiply(movePose);
-    movePose = incrementMatrix;
+    mat4.mul(movePose, incrementMatrix, movePose);
   }
 
   // Export the object;
