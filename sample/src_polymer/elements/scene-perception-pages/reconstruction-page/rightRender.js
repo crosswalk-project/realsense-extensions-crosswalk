@@ -12,9 +12,6 @@
     var mRenderHeight = SP_SIZE_HEIGHT;
     var movePose = mat4.create();
     var initialMatrix = mat4.create();
-    var translationMatrix = mat4.fromTranslation(
-        mat4.create(), vec3.fromValues(-0.5, 0.5, 0));
-    translationMatrix[15] *= Math.sqrt(window.devicePixelRatio);
     var views = [];
     var activeView = 0;
     var started = false;
@@ -147,10 +144,6 @@
         initialMatrix = SPMath.mat4FromCameraPose(currentPose);
       }
       var renderMatrix = mat4.clone(initialMatrix);
-      // For meshView.
-      if (activeView == 0) {
-        mat4.mul(renderMatrix, renderMatrix, translationMatrix);
-      }
       mat4.mul(renderMatrix, renderMatrix, movePose);
 
       // volume Preview.

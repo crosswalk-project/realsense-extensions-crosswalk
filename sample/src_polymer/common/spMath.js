@@ -1,5 +1,5 @@
-// This script file should be loaded after THREE.js.
-// Because, all the translations are based on THREE.Matrix4.
+// This script file should be loaded after gl-matrix.js.
+// Because, all the translations are based on this library.
 var SPMath = {};
 
 (function(exports) {
@@ -7,10 +7,10 @@ var SPMath = {};
     if (!Array.isArray(pose)) return;
 
     return mat4.fromValues(
-        pose[0], pose[1], pose[2], pose[3],
-        pose[4], pose[5], pose[6], pose[7],
-        pose[8], pose[9], pose[10], pose[11],
-        0, 0, 0, 1);
+        pose[0], pose[4], pose[8], 0,
+        pose[1], pose[5], pose[9], 0,
+        pose[2], pose[6], pose[10], 0,
+        pose[3], pose[7], pose[11], 1);
   };
 
   function mat4ToCameraPose(sMatrix) {

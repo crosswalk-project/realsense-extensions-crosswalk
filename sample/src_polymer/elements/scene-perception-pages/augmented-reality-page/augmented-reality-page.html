@@ -1,0 +1,96 @@
+<link rel="import" href="../../elements.html">
+
+<dom-module id="augmented-reality-page">
+  <template>
+    <style>
+    #container {
+      width: 100%;
+      height: 85%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #renderContainer {
+      display: flex;
+      flex: 1;
+      min-width: 320px;
+      min-height: 240px;
+      justify-content: center;
+      align-items: center;
+      vertical-align: middle;
+    }
+
+    #bottomPanel {
+      display: flex;
+      flex: none;
+      min-height: 50px;
+      height: 50px;
+      flex-direction: row;
+    }
+
+    #bottomPanel > paper-button {
+      flex: 1;
+      margin: 0;
+      color: #F2F2F2;
+      background-color: #3A4345;
+      --paper-button-ink-color: white;
+      border-radius: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    hr {
+      width: 1px;
+      height: 50px;
+      flex: none;
+      border: none;
+      margin: 0;
+    }
+
+    paper-button[disabled] {
+      background-color: #90a0c0 !important;
+      opacity: 0.5 !important;
+    }
+
+    paper-button[pressed] {
+      color: #242A2B !important;
+      background-color: white !important;
+    }
+
+    canvas {
+      min-width: 320px;
+      min-height: 240px;
+    }
+
+    #accuracy {
+      position: absolute;
+      z-index: 100;
+      display: inline-block;
+      bottom: 75px;
+    }
+
+    </style>
+
+    <div id="container">
+      <div id="renderContainer">
+        <canvas  id="renderView"></canvas>
+        <span id="accuracy"></span>
+      </div>
+      <div id="bottomPanel">
+        <paper-button
+          id="shoot"
+          disabled={{_getTrackingState}}>
+          <span> Shoot <span>
+        </paper-button>
+        <hr />
+        <paper-button id="reset">
+          <span> Reset <span>
+        </paper-button>
+      </div>
+    </div>
+  </template>
+
+  <script src="augmented-reality-page.js"></script>
+</dom-module>

@@ -261,11 +261,11 @@
       },
       _activatedChanged: function(newValue, oldValue) {
         if (newValue) {
-          console.log('sp page activated');
+          console.log('SP reconstruction page activated');
           spReconstructionSample.main(this);
         } else {
           spReconstructionSample.destroySP(this);
-          console.log('sp page deactivated');
+          console.log('SP reconstruction page deactivated');
         }
       },
       _extendReconstructionChanged: function(newValue, oldValue) {
