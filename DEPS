@@ -3,7 +3,7 @@ use_relative_paths = True
 
 deps_os = {
   'win': {
-    'third_party/libpxc': 'https://github.com/crosswalk-project/libpxc.git',
+    'third_party/libpxc': 'https://github.com/crosswalk-project/libpxc.git@568e4ecc969b4663e82034e71d08efdd5fa77e1a',
   },
 }
 
