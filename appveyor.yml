@@ -9,6 +9,7 @@ environment:
   DEPOT_TOOLS_WIN_TOOLCHAIN: 0
   XWALK_CHANNEL: beta
   XWALK_VERSION: 19.49.514.1
+  LIBPXC_VERSION: 568e4ecc969b4663e82034e71d08efdd5fa77e1a
 install:
 - cmd: >-
     git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git c:\projects\realsense-extensions-crosswalk\src\third_party\depot_tools
@@ -31,7 +32,7 @@ install:
 
     cd c:\projects\realsense-extensions-crosswalk
 
-    gclient config --spec=solutions=[{'name':'src','url':'https://github.com/crosswalk-project/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions/third_party/libpxc':'https://github.com/crosswalk-project/libpxc.git'},'safesync_url':'',},]
+    gclient config --spec=solutions=[{'name':'src','url':'https://github.com/crosswalk-project/crosswalk-extensions-sdk.git','deps_file':'DEPS','managed':True,'custom_deps':{'extensions/third_party/libpxc':'https://github.com/crosswalk-project/libpxc.git@%LIBPXC_VERSION%'},'safesync_url':'',},]
 
     gclient sync
 
