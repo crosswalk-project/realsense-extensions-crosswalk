@@ -14,7 +14,7 @@ var motionEffectPageReady = (function() {
   var imageContext, imageData;
 
   // flags.
-  var hasImage = false;
+  var hasImage = false,
       isInitialized = false;
 
   // To show information or error messages.
@@ -41,13 +41,13 @@ var motionEffectPageReady = (function() {
 
   // To initlize the effection sliders.
   function initSliders(dom) {
-    var leftRightSlider = dom.$.leftRightSlider;
-        upDownSlider = dom.$.upDownSlider;
-        forwardBackSlider = dom.$.forwardBackSlider;
-        zoomSlider = dom.$.zoomSlider;
-        yawSlider = dom.$.yawSlider;
-        pitchSlider = dom.$.pitchSlider;
-        roolSlider = dom.$.roolSlider;
+    var leftRightSlider = dom.$.leftRightSlider,
+        upDownSlider = dom.$.upDownSlider,
+        forwardBackSlider = dom.$.forwardBackSlider,
+        zoomSlider = dom.$.zoomSlider,
+        yawSlider = dom.$.yawSlider,
+        pitchSlider = dom.$.pitchSlider,
+        rollSlider = dom.$.rollSlider;
 
     leftRightSlider.addEventListener('value-change', function() {
       right = parseInt(leftRightSlider.value) * 0.01;
@@ -79,16 +79,17 @@ var motionEffectPageReady = (function() {
       doMothionEffect();
     });
 
-    roolSlider.addEventListener('value-change', function() {
-      rool = parseInt(roolSlider.value) * 0.2;
+    rollSlider.addEventListener('value-change', function() {
+      roll = parseInt(rollSlider.value) * 0.2;
       doMothionEffect();
     });
   }
 
   // To initlize the canvas and RealSense objects.
   function initMainPanel(dom) {
-    photoUtils = realsense.DepthEnabledPhotography.PhotoUtils;
-    XDMUtils = realsense.DepthEnabledPhotography.XDMUtils;
+    var DEP = realsense.DepthEnabledPhotography;
+    photoUtils = DEP.PhotoUtils;
+    XDMUtils = DEP.XDMUtils;
 
     imageCanvas = dom.$.image;
     toast = dom.$.toast;
@@ -106,7 +107,8 @@ var motionEffectPageReady = (function() {
                         function(image) {
                           imageCanvas.width = image.width;
                           imageCanvas.height = image.height;
-                          imageData = imageContext.createImageData(image.width, image.height);
+                          imageData = imageContext.createImageData(
+                                          image.width, image.height);
                           toastMessage('Load successfully.');
                           imageData.data.set(image.data);
                           imageContext.putImageData(imageData, 0, 0);
@@ -118,8 +120,7 @@ var motionEffectPageReady = (function() {
 
                                 if (!motionEffect) {
                                   try {
-                                    motionEffect =
-                                        new realsense.DepthEnabledPhotography.MotionEffect();
+                                    motionEffect = new DEP.MotionEffect();
                                   } catch (e) {
                                     toastMessage(e.message);
                                     return;
